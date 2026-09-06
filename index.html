@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Post-Deployment Governance Router</title>
+<style>
+  :root{
+    --navy:#122C47; --navy-2:#1c3f63; --gold:#C8AB36; --gold-dk:#9d8526;
+    --ink:#1a1a1a; --muted:#5a5f66; --line:#d9dde2; --paper:#ffffff; --wash:#f4f6f8;
+    --low:#5a7a8c; --med:#b8860b; --high:#c05621; --crit:#9b2226;
+    --low-bg:#eef3f6; --med-bg:#fbf3df; --high-bg:#fbeee6; --crit-bg:#f7e5e5; --ok:#2f6b3f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--wash);line-height:1.5;font-size:16px}
+  .skip{position:absolute;left:-999px;top:0;background:var(--gold);color:var(--navy);padding:.6rem 1rem;font-weight:bold;z-index:100}
+  .skip:focus{left:.5rem;top:.5rem}
+  header.masthead{background:var(--navy);color:#fff;padding:1.4rem 1.25rem 0;border-bottom:5px solid var(--gold)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 1.25rem}
+  .badge{display:inline-block;background:var(--gold);color:var(--navy);font-weight:bold;font-size:.72rem;letter-spacing:.06em;padding:.15rem .5rem;border-radius:2px}
+  h1{font-size:1.5rem;margin:.2rem 0 .3rem}
+  .sub{color:#cdd7e1;font-size:.92rem;margin:0 0 1rem}
+  .tabs{display:flex;gap:.4rem;margin-top:.4rem}
+  .tab{background:transparent;color:#cdd7e1;border:0;border-bottom:3px solid transparent;padding:.7rem 1.1rem;font-weight:bold;font-size:.95rem;cursor:pointer;border-radius:4px 4px 0 0}
+  .tab:hover{color:#fff;background:rgba(255,255,255,.06)}
+  .tab[aria-selected="true"]{color:var(--navy);background:var(--wash);border-bottom-color:var(--gold)}
+  main{padding:1.5rem 0 3rem}
+  .lede{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--gold);padding:.9rem 1.1rem;border-radius:4px;margin:0 0 1.5rem;font-size:.95rem}
+  .lede strong{color:var(--navy)}
+  fieldset{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:1.1rem 1.2rem 1.3rem;margin:0 0 1.15rem}
+  legend{font-weight:bold;color:var(--navy);padding:0 .5rem;font-size:1.02rem}
+  legend .n{display:inline-block;background:var(--navy);color:#fff;border-radius:50%;width:1.5rem;height:1.5rem;line-height:1.5rem;text-align:center;font-size:.85rem;margin-right:.4rem}
+  label.fld{display:block;margin:.7rem 0 .2rem;font-weight:bold;font-size:.9rem;color:#333}
+  .hint{font-weight:normal;color:var(--muted);font-size:.82rem}
+  input[type=text],input[type=email],input[type=datetime-local],input[type=date],textarea,select{width:100%;padding:.55rem .65rem;border:1px solid var(--line);border-radius:4px;font:inherit;background:#fff}
+  textarea{min-height:64px;resize:vertical}
+  input:focus,textarea:focus,select:focus,button:focus{outline:3px solid var(--gold);outline-offset:1px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem}
+  @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+  .chkgroup{display:grid;grid-template-columns:1fr 1fr;gap:.35rem .9rem;margin-top:.4rem}
+  @media(max-width:640px){.chkgroup{grid-template-columns:1fr}}
+  .chk{display:flex;align-items:flex-start;gap:.5rem;padding:.4rem .5rem;border:1px solid var(--line);border-radius:4px;cursor:pointer;background:#fff;font-size:.9rem}
+  .chk:hover{background:var(--wash)}
+  .chk input{margin-top:.15rem;flex:0 0 auto}
+  .band-hdr{font-weight:bold;font-size:.82rem;letter-spacing:.02em;margin:.9rem 0 .1rem;padding:.15rem .5rem;border-radius:3px;display:inline-block;background:var(--wash);color:var(--navy)}
+  .band-crit{background:var(--crit-bg);color:var(--crit)} .band-high{background:var(--high-bg);color:var(--high)} .band-med{background:var(--med-bg);color:var(--med)}
+  .note-inline{font-size:.82rem;color:var(--muted);margin:.3rem 0 0}
+  .actions{display:flex;gap:.7rem;flex-wrap:wrap;margin:.5rem 0 0}
+  button.op{font:inherit;cursor:pointer;border-radius:4px;border:1px solid transparent;padding:.65rem 1.1rem;font-weight:bold}
+  .btn-primary{background:var(--navy);color:#fff} .btn-primary:hover{background:var(--navy-2)}
+  .btn-ghost{background:#fff;color:var(--navy);border-color:var(--navy)} .btn-ghost:hover{background:var(--wash)}
+  .btn-sm{padding:.5rem .8rem;font-size:.85rem}
+  .err{color:var(--crit);font-size:.85rem;margin-top:.35rem;font-weight:bold}
+  .results{margin-top:1.5rem}
+  .result-card{background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:1.15rem}
+  .sev-head{padding:1rem 1.2rem;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  .sev-head.Low{background:var(--low)} .sev-head.Medium{background:var(--med)} .sev-head.High{background:var(--high)} .sev-head.Critical{background:var(--crit)}
+  .sev-head .lvl{font-size:1.35rem;font-weight:bold}
+  .sev-head .tag{font-size:.8rem;background:rgba(255,255,255,.22);padding:.2rem .55rem;border-radius:3px}
+  .verdict-head{padding:1rem 1.2rem;color:#fff;font-size:1.2rem;font-weight:bold}
+  .verdict-head.req{background:var(--high)} .verdict-head.no{background:var(--ok)}
+  .card-body{padding:1rem 1.2rem}
+  .card-body h3{margin:.2rem 0 .5rem;color:var(--navy);font-size:1rem}
+  .kv{margin:.25rem 0} .kv .k{font-weight:bold;color:#333}
+  .deadline{font-size:1.05rem;font-weight:bold;color:var(--crit)}
+  ul.tight{margin:.4rem 0 .4rem 1.1rem;padding:0} ul.tight li{margin:.2rem 0}
+  .why{background:var(--wash);border-radius:4px;padding:.6rem .8rem;font-size:.9rem;margin:.5rem 0}
+  .overlay-breach{border:2px solid var(--crit);border-radius:6px;background:var(--crit-bg);padding:.9rem 1.1rem;margin-bottom:1.15rem}
+  .overlay-breach h3{color:var(--crit);margin:.1rem 0 .5rem}
+  .tiers{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin:.6rem 0}
+  .tierbox{border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:120px;color:#fff}
+  .tierbox .lab{font-size:.72rem;opacity:.9} .tierbox .val{font-size:1.15rem;font-weight:bold}
+  .tierbox.Low{background:var(--low)} .tierbox.Medium{background:var(--med)} .tierbox.High{background:var(--high)} .tierbox.Critical{background:var(--crit)}
+  .arrow{font-size:1.5rem;color:var(--muted)}
+  .move{font-weight:bold;padding:.2rem .6rem;border-radius:3px;font-size:.85rem}
+  .move.up{background:var(--crit-bg);color:var(--crit)} .move.down{background:var(--low-bg);color:var(--low)} .move.same{background:var(--wash);color:var(--muted)}
+  .export-block{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:1rem 1.2rem;margin-bottom:1.15rem}
+  .export-block h3{margin:.1rem 0 .3rem;color:var(--navy);font-size:1rem}
+  .warn{border:1px solid var(--high);background:var(--high-bg);border-radius:4px;padding:.6rem .8rem;font-size:.88rem;margin:.5rem 0;color:#6a2f12}
+  pre.paste{background:#0f2438;color:#e8eef5;border-radius:4px;padding:.8rem .9rem;white-space:pre-wrap;word-break:break-word;font-family:Consolas,"Courier New",monospace;font-size:.8rem;max-height:240px;overflow:auto;margin:.5rem 0}
+  .copied{color:var(--ok);font-weight:bold;font-size:.85rem;margin-left:.5rem}
+  .blockrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.5rem 0}
+  .cols{font-family:Consolas,monospace;background:var(--navy);color:#fff;border-radius:3px;padding:.1rem .45rem;font-size:.8rem;font-weight:bold}
+  footer{border-top:1px solid var(--line);padding:1.3rem 0 2rem;color:var(--muted);font-size:.82rem}
+  .disclaimer{background:#fff;border:1px solid var(--line);border-left:4px solid var(--navy);padding:.8rem 1rem;border-radius:4px;margin-bottom:.8rem;color:#333}
+  [hidden]{display:none!important}
+  @media print{form,.actions,.export-actions,.skip,.tabs{display:none!important}body{background:#fff}.result-card,.export-block,.overlay-breach{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="wrap">
+    <span class="badge">OFFICIAL</span>
+    <h1>AI Post-Deployment Governance Router</h1>
+    <p class="sub">Westminster City Council &nbsp;·&nbsp; AI Governance Playbook §6.8, §5.10, §4.5.6 and post-deployment monitoring &nbsp;·&nbsp; classify incidents, route changes and log monitoring</p>
+    <div class="tabs" role="tablist" aria-label="Choose a task">
+      <button class="tab" id="tab-inc" role="tab" aria-controls="panel-incident" aria-selected="true">Report an incident</button>
+      <button class="tab" id="tab-rea" role="tab" aria-controls="panel-reassess" aria-selected="false">Assess a change</button>
+      <button class="tab" id="tab-mon" role="tab" aria-controls="panel-monitor" aria-selected="false">Log monitoring</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+<!-- ============ PANEL: INCIDENT ============ -->
+<section id="panel-incident" role="tabpanel" aria-labelledby="tab-inc">
+  <p class="lede"><strong>Report early.</strong> Raising a concern, near miss or unexpected output is not a sign of governance failure. This gives a provisional severity, the correct escalation route and deadline, and a started Incident Report Form (WCC-AIG-19) to hand on. It routes and drafts; it is not the record.</p>
+
+  <form id="i_form" novalidate>
+    <fieldset>
+      <legend><span class="n">1</span>Reporter and system</legend>
+      <div class="grid2">
+        <div><label class="fld" for="i_rep">Reported by</label><input type="text" id="i_rep" autocomplete="name"></div>
+        <div><label class="fld" for="i_role">Role / team</label><input type="text" id="i_role"></div>
+        <div><label class="fld" for="i_email">Contact email</label><input type="email" id="i_email" autocomplete="email"></div>
+        <div><label class="fld" for="i_when">Date &amp; time identified <span class="hint">(sets the escalation clock)</span></label><input type="datetime-local" id="i_when"></div>
+        <div><label class="fld" for="i_sys">AI system / model name</label><input type="text" id="i_sys"></div>
+        <div><label class="fld" for="i_air">AI Register ID <span class="hint">AIR-XXXX, if known</span></label><input type="text" id="i_air" placeholder="AIR-"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">2</span>What happened</legend>
+      <label class="fld" for="i_desc">Describe the incident <span class="hint">what occurred, when, how it came to light, and what the AI system was doing</span></label>
+      <textarea id="i_desc"></textarea>
+      <div class="grid2">
+        <div><label class="fld" for="i_kind">Event type</label>
+          <select id="i_kind"><option>Incident</option><option>Near miss</option><option>Concern</option></select>
+          <p class="note-inline">Near misses and concerns follow the same early-reporting and triage route.</p></div>
+        <div><label class="fld" for="i_ongoing">Is the incident ongoing?</label>
+          <select id="i_ongoing"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+      </div>
+      <label class="fld" for="i_how">How was it identified? <span class="hint">e.g. monitoring, user feedback, complaint, audit, supplier notice</span></label>
+      <input type="text" id="i_how">
+      <label class="fld" for="i_immediate">Immediate action taken <span class="hint">what was done at once to contain it — e.g. system paused, output withheld, users notified. Feeds the CAPA "immediate correction".</span></label>
+      <input type="text" id="i_immediate">
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">3</span>Who and what is affected</legend>
+      <div class="chkgroup" id="i_affected">
+        <label class="chk"><input type="checkbox" data-aff="residents"><span>Residents / service users</span></label>
+        <label class="chk"><input type="checkbox" data-aff="staff"><span>Staff</span></label>
+        <label class="chk"><input type="checkbox" data-aff="vulnerable"><span>A vulnerable group</span></label>
+        <label class="chk"><input type="checkbox" data-aff="pd"><span>Personal / special category data</span></label>
+        <label class="chk"><input type="checkbox" data-aff="availability"><span>Service availability</span></label>
+        <label class="chk"><input type="checkbox" data-aff="decisions"><span>Decision-making about individuals</span></label>
+        <label class="chk"><input type="checkbox" data-aff="supplier"><span>Supplier / third party</span></label>
+        <label class="chk"><input type="checkbox" data-aff="reputation"><span>Reputation</span></label>
+      </div>
+      <label class="fld" for="i_scale" style="margin-top:.9rem">Actual or potential impact and approximate number of people affected</label>
+      <textarea id="i_scale" style="min-height:56px"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">4</span>Severity indicators</legend>
+      <p class="note-inline">Tick everything that applies. Severity is the <strong>highest band with a tick</strong> (§6.8.4.2 — where uncertain, the higher level applies). Nothing ticked defaults to <strong>Low</strong>.</p>
+      <span class="band-hdr band-crit">Critical — actual or potential harm, statutory breach, major exposure</span>
+      <div class="chkgroup" data-band="Critical">
+        <label class="chk"><input type="checkbox"><span>Actual or potential harm to individuals</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant impact on vulnerable individuals</span></label>
+        <label class="chk"><input type="checkbox"><span>Suspected personal / special category data breach</span></label>
+        <label class="chk"><input type="checkbox"><span>Unlawful or unsafe automated decision-making</span></label>
+        <label class="chk"><input type="checkbox"><span>Breach of a statutory obligation</span></label>
+        <label class="chk"><input type="checkbox"><span>Widespread service failure</span></label>
+        <label class="chk"><input type="checkbox"><span>Major regulatory concern or substantial media scrutiny</span></label>
+      </div>
+      <span class="band-hdr band-high">High — significant operational, legal, ethical or reputational impact</span>
+      <div class="chkgroup" data-band="High">
+        <label class="chk"><input type="checkbox"><span>Material bias or discriminatory outcome</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant model drift or performance degradation</span></label>
+        <label class="chk"><input type="checkbox"><span>Operational disruption to a service</span></label>
+        <label class="chk"><input type="checkbox"><span>Security weakness or vulnerability</span></label>
+        <label class="chk"><input type="checkbox"><span>Repeated control failures</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant service impact</span></label>
+      </div>
+      <span class="band-hdr band-med">Medium — moderate impact requiring management attention</span>
+      <div class="chkgroup" data-band="Medium">
+        <label class="chk"><input type="checkbox"><span>Repeated inaccurate or erroneous outputs</span></label>
+        <label class="chk"><input type="checkbox"><span>Policy non-compliance</span></label>
+        <label class="chk"><input type="checkbox"><span>A control failure</span></label>
+        <label class="chk"><input type="checkbox"><span>Minor service disruption</span></label>
+        <label class="chk"><input type="checkbox"><span>Recurring user complaints</span></label>
+      </div>
+      <label class="chk" style="margin-top:1rem;border-color:var(--gold);background:var(--med-bg)">
+        <input type="checkbox" id="i_aggregate">
+        <span><strong>Aggregation:</strong> several lower-severity events together point to a systemic weakness (§6.8.4.2). Raises severity by one band.</span></label>
+      <label class="fld" for="i_uplift" style="margin-top:.9rem">Manual uplift <span class="hint">you may raise severity above the calculated floor; you cannot silently lower it</span></label>
+      <select id="i_uplift">
+        <option value="">No uplift — use the calculated severity</option>
+        <option value="Medium">Raise to at least Medium</option>
+        <option value="High">Raise to at least High</option>
+        <option value="Critical">Raise to Critical</option>
+      </select>
+      <label class="fld" for="i_upliftWhy" style="font-weight:normal">Reason for uplift <span class="hint">recorded on the form</span></label>
+      <input type="text" id="i_upliftWhy">
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="op btn-primary" id="i_run">Classify and route</button>
+      <button type="button" class="op btn-ghost" id="i_reset">Clear</button>
+    </div>
+    <p class="err" id="i_formErr" role="alert" hidden></p>
+  </form>
+  <section class="results" id="i_results" aria-live="polite"></section>
+</section>
+
+<!-- ============ PANEL: REASSESS ============ -->
+<section id="panel-reassess" role="tabpanel" aria-labelledby="tab-rea" hidden>
+  <p class="lede">When a live AI system changes, this checks whether a <strong>documented reassessment</strong> is required, recalculates residual risk and tier as the Risk Assessment Worksheet does, and produces a Gate Log event (WCC-AIG-36) plus a <strong>formula-safe</strong> Register update (WCC-AIG-05). A monitoring breach must not be closed as operational remediation without considering whether risk, tier, controls or approval status have changed.</p>
+
+  <form id="r_form" novalidate>
+    <fieldset>
+      <legend><span class="n">1</span>System</legend>
+      <div class="grid2">
+        <div><label class="fld" for="r_air">AI Register ID</label><input type="text" id="r_air" placeholder="AIR-XXXX"></div>
+        <div><label class="fld" for="r_sys">System / model name</label><input type="text" id="r_sys"></div>
+        <div><label class="fld" for="r_row">Register row number <span class="hint">the sheet row this system is on</span></label><input type="text" id="r_row" placeholder="e.g. 7"></div>
+        <div><label class="fld" for="r_prevTier">Current risk tier <span class="hint">for comparison</span></label>
+          <select id="r_prevTier"><option value="">Not known</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div>
+      </div>
+      <label class="fld" for="r_change">Describe what changed</label>
+      <textarea id="r_change"></textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">2</span>Reassessment triggers</legend>
+      <p class="note-inline"><strong>Any single trigger means documented reassessment is required</strong> (§4.5.6 and the Post-Deployment reassessment triggers).</p>
+      <span class="band-hdr">Material change to the system</span>
+      <div class="chkgroup" data-trig>
+        <label class="chk"><input type="checkbox"><span>Change to the model</span></label>
+        <label class="chk"><input type="checkbox"><span>Change to the data or datasets</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant supplier or model update</span></label>
+        <label class="chk"><input type="checkbox"><span>Change of purpose</span></label>
+        <label class="chk"><input type="checkbox"><span>Change to the user population or deployment scope</span></label>
+        <label class="chk"><input type="checkbox"><span>Change to autonomous action authority</span></label>
+      </div>
+      <span class="band-hdr">Performance and control signals</span>
+      <div class="chkgroup" data-trig>
+        <label class="chk"><input type="checkbox"><span>Approved threshold breach</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant model drift or performance degradation</span></label>
+        <label class="chk"><input type="checkbox"><span>Control failure</span></label>
+        <label class="chk"><input type="checkbox"><span>Repeated or adverse human-override trends</span></label>
+      </div>
+      <span class="band-hdr">External and pattern signals</span>
+      <div class="chkgroup" data-trig>
+        <label class="chk"><input type="checkbox"><span>Material incident or near miss</span></label>
+        <label class="chk"><input type="checkbox"><span>Significant complaint or challenge pattern</span></label>
+        <label class="chk"><input type="checkbox"><span>Legal or regulatory change affecting the system</span></label>
+        <label class="chk"><input type="checkbox"><span>Findings from monitoring, audit or assurance</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">3</span>Recalculate residual risk</legend>
+      <p class="note-inline">The highest impact dimension is the impact score. Residual = Likelihood × Impact × (Control ÷ 5), tiered per §4.4.8.</p>
+      <div class="grid3">
+        <div><label class="fld" for="r_imp_res">Resident impact</label><select class="r_imp" id="r_imp_res"></select></div>
+        <div><label class="fld" for="r_imp_legal">Legal &amp; regulatory</label><select class="r_imp" id="r_imp_legal"></select></div>
+        <div><label class="fld" for="r_imp_rep">Reputational</label><select class="r_imp" id="r_imp_rep"></select></div>
+        <div><label class="fld" for="r_imp_op">Operational</label><select class="r_imp" id="r_imp_op"></select></div>
+        <div><label class="fld" for="r_imp_fin">Financial</label><select class="r_imp" id="r_imp_fin"></select></div>
+      </div>
+      <div class="grid2" style="margin-top:.6rem">
+        <div><label class="fld" for="r_lik">Likelihood (L) <span class="hint">1 Rare → 5 Almost Certain</span></label><select id="r_lik"></select></div>
+        <div><label class="fld" for="r_ctrl">Control effectiveness (C) <span class="hint">1 Very Strong → 5 Ineffective</span></label><select id="r_ctrl"></select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">4</span>Governance decision</legend>
+      <p class="note-inline">Reassessment is a governance re-entry. Record the forum, decision and any conditions for the Gate Log.</p>
+      <div class="grid2">
+        <div><label class="fld" for="r_forum">Gate / forum</label>
+          <select id="r_forum"><option>AI Governance Working Group</option><option>AI Governance Board</option><option>AI Assurance Board</option><option>Delegated officer decision</option><option>Other</option></select></div>
+        <div><label class="fld" for="r_decision">Decision</label>
+          <select id="r_decision"><option>Noted</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></div>
+        <div><label class="fld" for="r_dm">Decision-maker / role</label><input type="text" id="r_dm"></div>
+        <div><label class="fld" for="r_minutes">Decision record / minutes ref</label><input type="text" id="r_minutes"></div>
+      </div>
+      <label class="fld" for="r_conditions">Conditions set <span class="hint">leave blank if none</span></label>
+      <input type="text" id="r_conditions">
+      <div class="grid2">
+        <div><label class="fld" for="r_condDue">Condition due</label><input type="date" id="r_condDue"></div>
+        <div><label class="fld" for="r_nextGate">Next gate</label><input type="text" id="r_nextGate" placeholder="e.g. Monitoring and Review"></div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="op btn-primary" id="r_run">Check and route</button>
+      <button type="button" class="op btn-ghost" id="r_reset">Clear</button>
+    </div>
+    <p class="err" id="r_formErr" role="alert" hidden></p>
+  </form>
+  <section class="results" id="r_results" aria-live="polite"></section>
+</section>
+
+<!-- ============ PANEL: MONITOR ============ -->
+<section id="panel-monitor" role="tabpanel" aria-labelledby="tab-mon" hidden>
+  <p class="lede">Record a monitoring result against a live system's AIR-ID for the Monitoring &amp; Review Log (WCC-AIG-39). A within-tolerance result is the <strong>negative-assurance record</strong> that the system was monitored; a breach, deteriorating drift or material change is flagged and can be handed straight to <em>Assess a change</em> with the context carried over.</p>
+
+  <form id="m_form" novalidate>
+    <fieldset>
+      <legend><span class="n">1</span>System and period</legend>
+      <div class="grid2">
+        <div><label class="fld" for="m_air">AI Register ID</label><input type="text" id="m_air" placeholder="AIR-XXXX"></div>
+        <div><label class="fld" for="m_sys">AI system / service</label><input type="text" id="m_sys"></div>
+        <div><label class="fld" for="m_period">Monitoring period <span class="hint">e.g. Aug 2026, Q2 2026</span></label><input type="text" id="m_period"></div>
+        <div><label class="fld" for="m_reviewDate">Review date <span class="hint">defaults to today if blank</span></label><input type="date" id="m_reviewDate"></div>
+        <div><label class="fld" for="m_owner">Monitoring owner</label><input type="text" id="m_owner"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">2</span>Measurement and result</legend>
+      <div class="grid2">
+        <div><label class="fld" for="m_cat">Metric category</label><select id="m_cat"></select></div>
+        <div><label class="fld" for="m_metric">Metric / indicator</label><input type="text" id="m_metric" placeholder="e.g. accuracy vs ground truth"></div>
+        <div><label class="fld" for="m_threshold">Approved threshold / tolerance</label><input type="text" id="m_threshold" placeholder="e.g. ≥ 95%"></div>
+        <div><label class="fld" for="m_actual">Actual result</label><input type="text" id="m_actual" placeholder="e.g. 91%"></div>
+        <div><label class="fld" for="m_trend">Trend</label>
+          <select id="m_trend"><option value="">—</option><option>Improving</option><option>Stable</option><option>Deteriorating</option><option>New / Baseline</option></select></div>
+        <div><label class="fld" for="m_breach">Threshold breach?</label>
+          <select id="m_breach"><option>No</option><option>Yes</option></select></div>
+        <div><label class="fld" for="m_sev">Severity <span class="hint">if breached</span></label>
+          <select id="m_sev"><option value="">—</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="n">3</span>Signals, response and close</legend>
+      <div class="grid2">
+        <div><label class="fld" for="m_material">Material change since last review?</label>
+          <select id="m_material"><option>No</option><option>Yes</option></select></div>
+        <div><label class="fld" for="m_escalation">Governance escalation?</label>
+          <select id="m_escalation"><option>No</option><option>Yes</option></select></div>
+        <div><label class="fld" for="m_action">Action / decision</label><input type="text" id="m_action"></div>
+        <div><label class="fld" for="m_actionOwner">Action owner</label><input type="text" id="m_actionOwner"></div>
+        <div><label class="fld" for="m_due">Action due date</label><input type="date" id="m_due"></div>
+        <div><label class="fld" for="m_residual">Residual risk after review <span class="hint">score or tier</span></label><input type="text" id="m_residual"></div>
+        <div><label class="fld" for="m_complaints">Complaints / challenges</label><input type="text" id="m_complaints"></div>
+        <div><label class="fld" for="m_override">Human override rate / trend</label><input type="text" id="m_override"></div>
+        <div><label class="fld" for="m_incidentRef">Incident / CAPA ref</label><input type="text" id="m_incidentRef"></div>
+        <div><label class="fld" for="m_gateRef">Gate Log ref</label><input type="text" id="m_gateRef"></div>
+        <div><label class="fld" for="m_evidence">Evidence location</label><input type="text" id="m_evidence"></div>
+        <div><label class="fld" for="m_nextReview">Next review date</label><input type="date" id="m_nextReview"></div>
+        <div><label class="fld" for="m_status">Review status</label>
+          <select id="m_status"><option>Reviewed</option><option>Open</option><option>Action Open</option><option>Escalated</option><option>Closed</option></select></div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="op btn-primary" id="m_run">Log monitoring result</button>
+      <button type="button" class="op btn-ghost" id="m_reset">Clear</button>
+    </div>
+    <p class="err" id="m_formErr" role="alert" hidden></p>
+  </form>
+  <section class="results" id="m_results" aria-live="polite"></section>
+</section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="disclaimer">
+      <strong>This is a decision aid, not the record.</strong> The authoritative records are the Incident Report Form (WCC-AIG-19), CAPA log (WCC-AIG-30), Risk Assessment Worksheet (WCC-AIG-07), AI Register (WCC-AIG-05) and Gate Log (WCC-AIG-36). Escalation timescales exclude weekends and do not account for bank holidays. Residual risk uses Likelihood × Impact × (Control ÷ 5) with the highest impact dimension, tiered per §4.4.8. Validate against the controlled documents before relying on it.
+    </div>
+    <p>Westminster City Council · AI Governance · Post-Deployment Governance Router · v0.4 draft · OFFICIAL</p>
+    <p>Draft for Council review. Nothing here is an assurance record until recorded in the controlled artefacts.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* ---------------- Tabs ---------------- */
+(function(){
+  var tabs=[{t:"tab-inc",p:"panel-incident"},{t:"tab-rea",p:"panel-reassess"},{t:"tab-mon",p:"panel-monitor"}];
+  function select(idx){
+    tabs.forEach(function(o,i){
+      var t=document.getElementById(o.t),p=document.getElementById(o.p);
+      var on=i===idx;
+      t.setAttribute("aria-selected",on?"true":"false");
+      p.hidden=!on;
+    });
+  }
+  tabs.forEach(function(o,i){document.getElementById(o.t).addEventListener("click",function(){select(i);});});
+  select(0);
+})();
+
+/* ---------------- Shared helpers ---------------- */
+function pad2(x){return (x<10?"0":"")+x;}
+function ukDate(d){return pad2(d.getDate())+"/"+pad2(d.getMonth()+1)+"/"+d.getFullYear();}
+function ukDateTime(d){return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]+" "+ukDate(d)+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());}
+function csvCell(v){v=(v==null?"":String(v));if(/^[=+\-@]/.test(v))v="'"+v;if(/[",\r\n]/.test(v))v='"'+v.replace(/"/g,'""')+'"';return v;}
+function tsvCell(v){return String(v==null?"":v).replace(/[\t\r\n]+/g," ");}
+function escHtml(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function download(name,text,mime){var BOM="\uFEFF";var b=new Blob([BOM+text],{type:(mime||"text/plain")+";charset=utf-8"});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},100);}
+function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',function(){navigator.clipboard.writeText(text).then(function(){var s=document.createElement('span');s.className='copied';s.textContent=msg||'Copied';btn.after(s);setTimeout(function(){s.remove();},2600);});});}
+
+/* ---------------- Module 1: Incident ---------------- */
+(function(){
+  var root=document.getElementById('panel-incident');
+  function $(id){return document.getElementById(id);}
+  var ORDER=["Low","Medium","High","Critical"];
+  var ROUTES={
+    Low:{route:"Managed at Service Owner level through routine operational processes.",target:"Record in the AI Register within 10 working days.",clock:{days:10,label:"10 working days"},govRecord:false,to:"Service Owner"},
+    Medium:{route:"Notify the AI Governance Lead. Documented remediation plan; the Lead assesses whether further oversight is needed.",target:"Notify the AI Governance Lead within 5 working days.",clock:{days:5,label:"5 working days"},govRecord:true,to:"AI Governance Lead"},
+    High:{route:"Escalate to the AI Governance Working Group for formal governance review (root cause, impacts, control adequacy, whether reclassification is required).",target:"Escalate to the AI Governance Working Group within 2 working days.",clock:{days:2,label:"2 working days"},govRecord:true,to:"AI Governance Working Group"},
+    Critical:{route:"Immediately escalate to the AI Governance Board, Executive Sponsor and relevant Executive Leadership. Board provides strategic oversight of resolution.",target:"Escalate within 24 hours of identification.",clock:{hours:24,label:"24 hours"},govRecord:true,to:"AI Governance Board + Executive Sponsor + Executive Leadership"}
+  };
+  var CRIT_CONSIDER=["Temporary suspension or restriction of the system","Enhanced monitoring arrangements","Independent assurance review","Regulatory notification obligations","Reassessment of the system's risk classification","Additional governance controls and mitigations"];
+  function addWorkingDays(date,n){var d=new Date(date.getTime());var a=0;while(a<n){d.setDate(d.getDate()+1);var g=d.getDay();if(g!==0&&g!==6)a++;}return d;}
+  function addHours(date,h){return new Date(date.getTime()+h*3600*1000);}
+  function esc(s){return(s==null?"":String(s));}
+
+  function calcSeverity(){
+    var floor="Low",trigs=[];
+    root.querySelectorAll('[data-band]').forEach(function(g){
+      var band=g.getAttribute('data-band');
+      g.querySelectorAll('input[type=checkbox]:checked').forEach(function(cb){
+        trigs.push({band:band,text:cb.nextElementSibling.textContent.trim()});
+        if(ORDER.indexOf(band)>ORDER.indexOf(floor))floor=band;
+      });
+    });
+    var aggregated=false;
+    if($('i_aggregate').checked){var i=ORDER.indexOf(floor);if(i<ORDER.length-1){floor=ORDER[i+1];aggregated=true;}}
+    var uplift=$('i_uplift').value,uplifted=false;
+    if(uplift&&ORDER.indexOf(uplift)>ORDER.indexOf(floor)){floor=uplift;uplifted=true;}
+    return {level:floor,trigs:trigs,aggregated:aggregated,uplifted:uplifted};
+  }
+  function affected(){var out=[];$('i_affected').querySelectorAll('input:checked').forEach(function(cb){out.push(cb.nextElementSibling.textContent.trim());});return out;}
+  function breachSuspected(){
+    var pd=root.querySelector('[data-aff="pd"]').checked;
+    var ex=Array.prototype.some.call(root.querySelectorAll('[data-band="Critical"] input:checked'),function(cb){return /data breach/i.test(cb.nextElementSibling.textContent);});
+    return ex||pd;
+  }
+  function partAText(sev){
+    var L=[];
+    L.push("AI INCIDENT REPORT — PART A (INITIAL REPORT)");
+    L.push("Westminster City Council · WCC-AIG-19 · Playbook §6.8");
+    L.push("Drafted with the Post-Deployment Governance Router (v0.4 draft)");
+    L.push("");
+    L.push("1. REPORTER AND SYSTEM");
+    L.push("Reported by: "+esc($('i_rep').value));
+    L.push("Role / team: "+esc($('i_role').value));
+    L.push("Contact email: "+esc($('i_email').value));
+    L.push("Date & time identified: "+esc($('i_when').value.replace('T',' ')));
+    L.push("AI system / model name: "+esc($('i_sys').value));
+    L.push("AI Register ID: "+esc($('i_air').value));
+    L.push("");
+    L.push("2. WHAT HAPPENED");
+    L.push("Event classification: "+esc($('i_kind').value));
+    L.push("Ongoing: "+esc($('i_ongoing').value));
+    L.push("How identified: "+esc($('i_how').value));
+    L.push("Description: "+esc($('i_desc').value));
+    L.push("");
+    L.push("3. WHO AND WHAT IS AFFECTED");
+    L.push("Affected: "+(affected().join("; ")||"(none ticked)"));
+    L.push("Impact and approx. number affected: "+esc($('i_scale').value));
+    L.push("");
+    L.push("4. INITIAL SEVERITY (PROVISIONAL)");
+    L.push("Provisional severity: "+sev.level);
+    L.push("Immediate action taken: "+esc($('i_immediate').value));
+    if(sev.trigs.length)L.push("Indicators ticked: "+sev.trigs.map(function(t){return t.band+" — "+t.text;}).join("; "));
+    if(sev.aggregated)L.push("Aggregation applied: multiple lower-severity events indicating a systemic weakness (severity raised one band).");
+    if(sev.uplifted)L.push("Manual uplift applied. Reason: "+esc($('i_upliftWhy').value));
+    L.push("Escalation: "+ROUTES[sev.level].target+" To: "+ROUTES[sev.level].to);
+    if(breachSuspected()){
+      L.push("");
+      L.push("** SUSPECTED PERSONAL DATA BREACH — refer to the DPO / Information Governance immediately.");
+      L.push("   If notifiable under UK GDPR Art.33, notify the ICO without undue delay and where feasible within 72 hours of awareness. This deadline takes precedence over the internal timelines above.");
+    }
+    return L.join("\r\n");
+  }
+  function capaCells(sev){
+    var dstr=ukDate(new Date());
+    var capaSev=(sev.level==="Critical"||sev.level==="High")?"Major":"Minor";
+    var nc="AI incident ("+sev.level+") on "+esc($('i_sys').value||"(system)")+(($('i_air').value)?" ["+$('i_air').value+"]":"")+": "+esc($('i_desc').value||"see incident report");
+    var headers=["NC ID","Date raised","Source","Nonconformity (what fails, and the requirement)","Severity","Immediate correction","Root cause","Corrective action","Owner","Target date","Effectiveness check","Status","Date closed"];
+    var row=["",dstr,"Incident",nc,capaSev,esc($('i_immediate').value),"","","","","","Open",""];
+    return {headers:headers,row:row};
+  }
+  function capaHeaded(sev){var c=capaCells(sev);return c.headers.map(csvCell).join(",")+"\r\n"+c.row.map(csvCell).join(",");}
+  function capaTSV(sev){return capaCells(sev).row.map(tsvCell).join("\t");}
+
+  function render(){
+    var err=$('i_formErr');
+    if(!$('i_sys').value.trim()&&!$('i_desc').value.trim()){err.hidden=false;err.textContent="Add at least the system name or a description before classifying.";$('i_sys').focus();return;}
+    err.hidden=true;
+    var sev=calcSeverity(),R=ROUTES[sev.level];
+    var idDate=$('i_when').value?new Date($('i_when').value):null;
+    var deadline=null;
+    if(idDate&&!isNaN(idDate.getTime()))deadline=R.clock.hours?addHours(idDate,R.clock.hours):addWorkingDays(idDate,R.clock.days);
+    var breach=breachSuspected(),html="";
+
+    html+='<div class="result-card"><div class="sev-head '+sev.level+'"><span class="lvl">'+sev.level+' severity</span><span class="tag">'+escHtml($('i_kind').value)+(sev.uplifted?' · uplifted':'')+(sev.aggregated?' · aggregated':'')+'</span></div><div class="card-body">';
+    html+='<h3>Escalation route</h3><p class="kv">'+escHtml(R.route)+'</p>';
+    html+='<p class="kv"><span class="k">Escalate to:</span> '+escHtml(R.to)+'</p>';
+    html+='<p class="kv"><span class="k">Deadline:</span> <span class="deadline">'+R.clock.label+'</span>'+(deadline?' &nbsp;→ by '+ukDateTime(deadline):' <span class="note-inline">(set the date &amp; time identified to calculate the exact deadline)</span>')+'</p>';
+    html+='<p class="kv"><span class="k">Governance record:</span> '+(R.govRecord?'Required — Medium and above must be recorded in the Council\u2019s governance records.':'Not normally required beyond the Register entry, unless recurrence indicates a broader concern.')+'</p>';
+    html+='<div class="why"><strong>Why this severity:</strong> ';
+    if(sev.trigs.length){
+      var hb=sev.trigs.reduce(function(a,t){return ORDER.indexOf(t.band)>ORDER.indexOf(a)?t.band:a;},"Low");
+      var tt=sev.trigs.filter(function(t){return t.band===hb;}).map(function(t){return t.text;});
+      html+='highest band ticked was <strong>'+hb+'</strong> ('+escHtml(tt.join('; '))+')';
+    } else html+='no indicators ticked, so the provisional floor is Low';
+    if(sev.aggregated)html+='; raised one band for aggregation of lower-severity events';
+    if(sev.uplifted)html+='; manually uplifted ('+escHtml($('i_upliftWhy').value||'no reason given')+')';
+    html+='. Under §6.8.4.2, apply the higher level until more is known.</div></div></div>';
+
+    if(breach){
+      html+='<div class="overlay-breach"><h3>⚠ Suspected personal data breach — parallel route</h3>';
+      html+='<p>Personal or special category data is in scope. Refer to the <strong>DPO / Information Governance immediately</strong>, in parallel with the AI escalation above.</p><ul class="tight">';
+      html+='<li>Record the <strong>controller awareness date and time</strong>.</li>';
+      html+='<li>Assess risk to individuals\u2019 rights and freedoms; DPO advises on ICO notifiability.</li>';
+      html+='<li>If notifiable under <strong>UK GDPR Article 33</strong>, notify the ICO without undue delay and where feasible <strong>within 72 hours of awareness</strong>'+(idDate&&!isNaN(idDate.getTime())?' &nbsp;→ by '+ukDateTime(addHours(idDate,72)):'')+'.</li>';
+      html+='<li><strong>This 72-hour statutory deadline takes precedence over all internal escalation timelines.</strong></li></ul></div>';
+    }
+    if(sev.level==="Critical"){
+      html+='<div class="result-card"><div class="card-body"><h3>Immediate Critical-incident considerations (§6.8.4.3)</h3><p class="note-inline">Trigger immediate consideration of each.</p><ul class="tight">';
+      CRIT_CONSIDER.forEach(function(c){html+='<li>'+escHtml(c)+'</li>';});
+      html+='</ul></div></div>';
+    }
+    var reassess=(sev.level==="Critical"||sev.level==="High"||breach||$('i_aggregate').checked);
+    html+='<div class="result-card"><div class="card-body"><h3>Close the loop</h3><ul class="tight">';
+    html+='<li>Complete <strong>Part A of WCC-AIG-19</strong> (drafted below) and submit to the AI Governance Lead.</li>';
+    if(reassess){
+      html+='<li><strong>Documented risk reassessment is indicated.</strong> A material incident is a mandatory reassessment trigger — use the <em>Assess a change</em> tab to recalculate residual risk and produce the Gate Log and Register updates.</li>';
+    } else {
+      html+='<li>Record the outcome against the AIR-ID in the Post-Deployment Monitoring &amp; Review Log (WCC-AIG-39). Consider reassessment if this recurs.</li>';
+    }
+    if(R.govRecord)html+='<li>Log corrective and preventative actions in the <strong>CAPA log (WCC-AIG-30)</strong> (row below).</li>';
+    html+='</ul></div></div>';
+
+    html+='<div class="export-block"><h3>Incident Report Form — Part A</h3><p class="note-inline">Paste into WCC-AIG-19, or download to attach.</p>';
+    html+='<pre class="paste" id="i_paPre">'+escHtml(partAText(sev))+'</pre>';
+    html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="i_cpPa">Copy Part A</button>';
+    html+='<button type="button" class="op btn-ghost btn-sm" id="i_dlPa">Download Part A (.txt)</button>';
+    if(R.govRecord){
+      html+='<button type="button" class="op btn-ghost btn-sm" id="i_cpCapa">Copy CAPA row (paste into the log)</button>';
+      html+='<button type="button" class="op btn-ghost btn-sm" id="i_dlCapa">Download CAPA row — standalone (.csv)</button>';
+    }
+    html+='<button type="button" class="op btn-ghost btn-sm" onclick="window.print()">Print / Save as PDF</button></div></div>';
+
+    $('i_results').innerHTML=html;
+    wireCopy($('i_cpPa'),partAText(sev),'Copied');
+    if($('i_dlPa'))$('i_dlPa').addEventListener('click',function(){download("Incident_PartA_"+(esc($('i_air').value)||"unassigned")+".txt",partAText(sev));});
+    wireCopy($('i_cpCapa'),capaTSV(sev),'Copied — paste into the next empty CAPA Log row');
+    if($('i_dlCapa'))$('i_dlCapa').addEventListener('click',function(){download("CAPA_row_"+(esc($('i_air').value)||"unassigned")+".csv",capaHeaded(sev),"text/csv");});
+    var ir=$('i_results');if(ir.scrollIntoView)ir.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  $('i_run').addEventListener('click',render);
+  $('i_reset').addEventListener('click',function(){$('i_form').reset();$('i_results').innerHTML="";$('i_formErr').hidden=true;});
+})();
+
+/* ---------------- Module 3: Monitoring logger ---------------- */
+(function(){
+  var root=document.getElementById('panel-monitor');
+  function $(id){return document.getElementById(id);}
+  function esc(s){return(s==null?"":String(s));}
+  function isoToUk(v){if(!v)return"";var p=v.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:v;}
+
+  var CATS=["Performance","Fairness / Bias","Drift","Error / Failure","Human Oversight","Complaints / Challenges","Privacy","Security","Benefits / Outcomes","Other"];
+  (function(){var o='<option value="">—</option>';CATS.forEach(function(c){o+='<option>'+c+'</option>';});$('m_cat').innerHTML=o;})();
+
+  // reassessment is indicated by breach, material change, or deteriorating drift/performance/error/fairness
+  var DRIFTY=["Drift","Performance","Error / Failure","Fairness / Bias"];
+  function reassessIndicated(){
+    if($('m_breach').value==="Yes")return true;
+    if($('m_material').value==="Yes")return true;
+    if($('m_trend').value==="Deteriorating"&&DRIFTY.indexOf($('m_cat').value)!==-1)return true;
+    return false;
+  }
+
+  function cells(){
+    var reviewDate=$('m_reviewDate').value?isoToUk($('m_reviewDate').value):ukDate(new Date());
+    var R=reassessIndicated()?"Yes":"No";
+    var headers=["AIR-ID","AI System / Service","Monitoring Period","Review Date","Monitoring Owner","Metric Category","Metric / Indicator","Approved Threshold / Tolerance","Actual Result","Trend","Threshold Breach?","Severity","Action / Decision","Action Owner","Due Date","Incident / CAPA Ref","Material Change?","Risk Reassessment Required?","Residual Risk After Review","Governance Escalation?","Gate Log Ref","Complaints / Challenges","Human Override Rate / Trend","Evidence Location","Next Review Date","Review Status"];
+    var row=[esc($('m_air').value),esc($('m_sys').value),esc($('m_period').value),reviewDate,esc($('m_owner').value),
+      esc($('m_cat').value),esc($('m_metric').value),esc($('m_threshold').value),esc($('m_actual').value),esc($('m_trend').value),
+      esc($('m_breach').value),esc($('m_sev').value),esc($('m_action').value),esc($('m_actionOwner').value),isoToUk($('m_due').value),
+      esc($('m_incidentRef').value),esc($('m_material').value),R,esc($('m_residual').value),esc($('m_escalation').value),
+      esc($('m_gateRef').value),esc($('m_complaints').value),esc($('m_override').value),esc($('m_evidence').value),isoToUk($('m_nextReview').value),esc($('m_status').value)];
+    return {headers:headers,row:row};
+  }
+  function rowTSV(){return cells().row.map(tsvCell).join("\t");}
+  function rowCSV(){var c=cells();return c.headers.map(csvCell).join(",")+"\r\n"+c.row.map(csvCell).join(",");}
+
+  function primeReassess(){
+    document.getElementById('r_air').value=esc($('m_air').value);
+    document.getElementById('r_sys').value=esc($('m_sys').value);
+    var why="Monitoring: "+esc($('m_metric').value||$('m_cat').value||"metric")+" — actual "+esc($('m_actual').value||"n/a")+" vs threshold "+esc($('m_threshold').value||"n/a")+(($('m_trend').value)?" ("+$('m_trend').value+")":"");
+    document.getElementById('r_change').value=why;
+    // tick the matching reassessment triggers
+    var want=[];
+    if($('m_breach').value==="Yes")want.push("Approved threshold breach");
+    if($('m_cat').value==="Drift"||$('m_trend').value==="Deteriorating")want.push("Significant model drift or performance degradation");
+    if($('m_material').value==="Yes")want.push("Findings from monitoring, audit or assurance");
+    document.querySelectorAll('#panel-reassess [data-trig] input').forEach(function(cb){
+      if(want.indexOf(cb.nextElementSibling.textContent.trim())!==-1)cb.checked=true;
+    });
+    document.getElementById('tab-rea').click();
+    var f=document.getElementById('r_form');if(f&&f.scrollIntoView)f.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function render(){
+    var err=$('m_formErr');
+    if(!$('m_air').value.trim()&&!$('m_sys').value.trim()){err.hidden=false;err.textContent="Add the Register ID or system name first.";$('m_air').focus();return;}
+    if(!$('m_cat').value&&!$('m_metric').value.trim()){err.hidden=false;err.textContent="Add a metric category or indicator to log.";$('m_cat').focus();return;}
+    err.hidden=true;
+    var indicated=reassessIndicated();
+    var html="";
+
+    html+='<div class="result-card"><div class="verdict-head '+(indicated?'req':'no')+'">'+
+      (indicated?'Logged — reassessment indicated':'Logged — within tolerance (assurance record)')+'</div><div class="card-body">';
+    if(indicated){
+      html+='<p>This result meets a mandatory reassessment trigger, so the row records <strong>Risk Reassessment Required? = Yes</strong>:</p><ul class="tight">';
+      if($('m_breach').value==="Yes")html+='<li>Approved threshold breach.</li>';
+      if($('m_material').value==="Yes")html+='<li>Material change since last review.</li>';
+      if($('m_trend').value==="Deteriorating"&&DRIFTY.indexOf($('m_cat').value)!==-1)html+='<li>Deteriorating trend on a '+escHtml($('m_cat').value)+' measure (drift).</li>';
+      html+='</ul><p>Carry it into a reassessment so residual risk, tier, controls and approval status are reconsidered.</p>';
+      html+='<div class="actions"><button type="button" class="op btn-primary btn-sm" id="m_toRea">Open a reassessment for this system →</button></div>';
+    } else {
+      html+='<p>No mandatory reassessment trigger. This row is the auditable record that the system was monitored this period and remained within tolerance. Keep it as negative-assurance evidence against the AIR-ID.</p>';
+    }
+    html+='</div></div>';
+
+    html+='<div class="export-block"><h3>Monitoring &amp; Review Log row — WCC-AIG-39</h3>'+
+      '<p class="note-inline">26 columns, no formulas — click the next empty row\u2019s cell <strong>A</strong> and paste the whole row. Or download as a record.</p>';
+    var c=cells();
+    html+='<pre class="paste">'+escHtml(c.row.map(function(v,i){return c.headers[i]+": "+v;}).join("\n"))+'</pre>';
+    html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="m_cpRow">Copy Log row (paste into WCC-AIG-39)</button>'+
+      '<button type="button" class="op btn-ghost btn-sm" id="m_dlRow">Download Log row (.csv)</button>'+
+      '<button type="button" class="op btn-ghost btn-sm" onclick="window.print()">Print / Save as PDF</button></div></div>';
+
+    $('m_results').innerHTML=html;
+    if($('m_toRea'))$('m_toRea').addEventListener('click',primeReassess);
+    wireCopy($('m_cpRow'),rowTSV(),'Copied — click cell A of the next empty row and paste');
+    if($('m_dlRow'))$('m_dlRow').addEventListener('click',function(){download("MonitoringLog_"+(esc($('m_air').value)||"unassigned")+".csv",rowCSV(),"text/csv");});
+    var mr=$('m_results');if(mr.scrollIntoView)mr.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  $('m_run').addEventListener('click',render);
+  $('m_reset').addEventListener('click',function(){$('m_form').reset();$('m_results').innerHTML="";$('m_formErr').hidden=true;});
+})();
+
+/* ---------------- Module 2: Reassessment ---------------- */
+(function(){
+  var root=document.getElementById('panel-reassess');
+  function $(id){return document.getElementById(id);}
+  var ORDER=["Low","Medium","High","Critical"];
+  function esc(s){return(s==null?"":String(s));}
+  function isoToUk(v){if(!v)return"";var p=v.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:v;}
+  function addMonthsStr(m){var d=new Date();d.setMonth(d.getMonth()+m);return ukDate(d);}
+
+  var impLabels={1:"1 Minimal",2:"2 Minor",3:"3 Moderate",4:"4 Major",5:"5 Severe"};
+  var likLabels={1:"1 Rare",2:"2 Unlikely",3:"3 Possible",4:"4 Likely",5:"5 Almost Certain"};
+  var ctrlLabels={1:"1 Very Strong",2:"2 Strong",3:"3 Moderate",4:"4 Limited",5:"5 Ineffective"};
+  function fill(el,labels){var o='<option value="">—</option>';for(var i=1;i<=5;i++)o+='<option value="'+i+'">'+labels[i]+'</option>';el.innerHTML=o;}
+  function fillAll(){root.querySelectorAll('.r_imp').forEach(function(s){fill(s,impLabels);});fill($('r_lik'),likLabels);fill($('r_ctrl'),ctrlLabels);}
+  fillAll();
+
+  function tierOf(r){if(r===""||r==null)return"";if(r<=5)return"Low";if(r<=10)return"Medium";if(r<=15)return"High";return"Critical";}
+  function triggers(){var out=[];root.querySelectorAll('[data-trig] input:checked').forEach(function(cb){out.push(cb.nextElementSibling.textContent.trim());});return out;}
+  function impactMax(){var v=[];root.querySelectorAll('.r_imp').forEach(function(s){if(s.value)v.push(+s.value);});return v.length?Math.max.apply(null,v):null;}
+
+  var CONSEQ={
+    Low:["Service Owner review and routine monitoring.","Review following significant system changes."],
+    Medium:["AI Governance Working Group review.","Responsible AI Assessment recommended; EIA where outputs may have differential impact.","Annual system review."],
+    High:["AI Governance Board approval required before continued operation if the tier has risen.","DPIA (normally), EIA (mandatory at score 11+), security review and Responsible AI Assessment.","Quarterly review and independent assurance."],
+    Critical:["AI Governance Board, Executive Sponsor and Executive Leadership involvement.","Human Rights Assessment (mandatory), DPIA, EIA and independent assurance review.","Continuous operational monitoring and regular Board reporting."]
+  };
+  var CADENCE={Low:12,Medium:12,High:3,Critical:1};
+
+  function gateCells(ctx){
+    var notes="Reassessment following change: "+(ctx.change||"see risk assessment")+". Residual "+(ctx.residual!==""?ctx.residual:"n/a")+" ("+(ctx.newTier||"n/a")+")"+(ctx.prevTier?", was "+ctx.prevTier:"")+".";
+    var headers=["Event ID","Register ID","System / Model Name","Gate / forum","Lifecycle stage","Date","Decision","Conditions set","Condition due","Condition status","Assurance opinion ref","Decision-maker / role","Next gate","Notes","Decision record / minutes ref"];
+    var row=["",esc($('r_air').value),esc($('r_sys').value),esc($('r_forum').value),"Risk Assessment and Review",ukDate(new Date()),esc($('r_decision').value),esc($('r_conditions').value),isoToUk($('r_condDue').value),($('r_conditions').value?"Open":"Not applicable"),"",esc($('r_dm').value),esc($('r_nextGate').value),notes,esc($('r_minutes').value)];
+    return {headers:headers,row:row};
+  }
+  function gateTSV(ctx){return gateCells(ctx).row.map(tsvCell).join("\t");}
+  function gateCSV(ctx){var c=gateCells(ctx);return c.headers.map(csvCell).join(",")+"\r\n"+c.row.map(csvCell).join(",");}
+
+  function render(){
+    var err=$('r_formErr');
+    if(!$('r_sys').value.trim()&&!$('r_air').value.trim()){err.hidden=false;err.textContent="Add the Register ID or system name first.";$('r_air').focus();return;}
+    err.hidden=true;
+    var trigs=triggers(),required=trigs.length>0;
+    var I=impactMax(),L=$('r_lik').value?+$('r_lik').value:null,C=$('r_ctrl').value?+$('r_ctrl').value:null;
+    var inherent="",residual="",newTier="";
+    if(I&&L)inherent=L*I;
+    if(inherent!==""&&C){residual=Math.round(inherent*C/5*10)/10;newTier=tierOf(residual);}
+    var prevTier=$('r_prevTier').value,move="same";
+    if(newTier&&prevTier){var d=ORDER.indexOf(newTier)-ORDER.indexOf(prevTier);move=d>0?"up":d<0?"down":"same";}
+    var ctx={change:$('r_change').value,residual:residual,newTier:newTier,prevTier:prevTier};
+    var html="";
+
+    html+='<div class="result-card"><div class="verdict-head '+(required?'req':'no')+'">'+(required?'Documented reassessment required':'No mandatory trigger ticked')+'</div><div class="card-body">';
+    if(required){html+='<p>The following trigger'+(trigs.length>1?'s':'')+' means a documented reassessment must be carried out and its outcome recorded:</p><ul class="tight">';trigs.forEach(function(t){html+='<li>'+escHtml(t)+'</li>';});html+='</ul>';}
+    else html+='<p>No mandatory reassessment trigger is present. Record the monitoring outcome against the AIR-ID in the Monitoring &amp; Review Log (WCC-AIG-39). If the situation recurs or worsens, re-run this check.</p>';
+    html+='</div></div>';
+
+    if(residual!==""){
+      html+='<div class="result-card"><div class="card-body"><h3>Recalculated residual risk</h3><div class="tiers">';
+      if(prevTier)html+='<div class="tierbox '+prevTier+'"><div class="lab">was</div><div class="val">'+prevTier+'</div></div><span class="arrow">→</span>';
+      html+='<div class="tierbox '+newTier+'"><div class="lab">now</div><div class="val">'+newTier+'</div></div>';
+      if(prevTier)html+='<span class="move '+move+'">'+(move==="up"?"Tier increased":move==="down"?"Tier decreased":"Tier unchanged")+'</span>';
+      html+='</div><div class="why">Inherent '+inherent+' (L '+L+' × I '+I+', highest of the five dimensions) × control factor '+(C/5)+' = residual <strong>'+residual+'</strong> → <strong>'+newTier+'</strong> (§4.4.8).</div>';
+      html+='<h3>What the new tier requires</h3><ul class="tight">';
+      CONSEQ[newTier].forEach(function(x){html+='<li>'+escHtml(x)+'</li>';});
+      if(move==="up")html+='<li><strong>Tier has risen — re-authorisation through the higher approval authority is likely. Set Governance Approval Status to Pending or On hold until re-approved.</strong></li>';
+      html+='</ul></div></div>';
+    } else if(required){
+      html+='<div class="result-card"><div class="card-body"><h3>Recalculated residual risk</h3><p class="note-inline">Complete the impact dimensions, likelihood and control effectiveness to recalculate the tier. Reassessment still needs a documented risk score.</p></div></div>';
+    }
+
+    html+='<div class="export-block"><h3>Gate Log event — WCC-AIG-36</h3><p class="note-inline">The governance re-entry event. Paste across the Gate Log columns, or download as a record.</p>';
+    var gc=gateCells(ctx);
+    html+='<pre class="paste" id="r_gatePre">'+escHtml(gc.row.map(function(v,i){return gc.headers[i]+": "+v;}).join("\n"))+'</pre>';
+    html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="r_cpGate">Copy Gate Log row (paste into the log)</button>';
+    html+='<button type="button" class="op btn-ghost btn-sm" id="r_dlGate">Download Gate Log row (.csv)</button></div></div>';
+
+    var rowN=esc($('r_row').value)||"the system's";
+    var approval=move==="up"?"On hold":"Approved";
+    html+='<div class="export-block"><h3>Register update — WCC-AIG-05 (formula-safe)</h3>';
+    html+='<div class="warn"><strong>Do not paste over columns T (Residual Risk) or U (Risk Tier).</strong> They are formulas and recalculate themselves once you update the inputs below.</div>';
+    if(residual!==""){
+      html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — click cell <strong>R'+rowN+'</strong> and paste. T and U then recalc.</div>';
+      html+='<pre class="paste">'+escHtml("R (Inherent Risk): "+inherent+"\nS (Control Effectiveness): "+C)+'</pre>';
+      html+='<button type="button" class="op btn-ghost btn-sm" id="r_cpR">Copy R:S</button>';
+    }
+    html+='<div class="blockrow" style="margin-top:.9rem"><span class="cols">AB:AF</span> Approval Status, Monitoring in Place, Last Review, Next Review, Status — click cell <strong>AB'+rowN+'</strong> and paste.</div>';
+    html+='<pre class="paste">'+escHtml("AB (Governance Approval Status): "+approval+"\nAC (Monitoring in Place): Yes\nAD (Last Review Date): "+ukDate(new Date())+"\nAE (Next Review Date): "+addMonthsStr(CADENCE[newTier]||12)+"  ["+(newTier||"tier")+" cadence]\nAF (Status): Active")+'</pre>';
+    html+='<button type="button" class="op btn-ghost btn-sm" id="r_cpAB">Copy AB:AF</button> ';
+    html+='<button type="button" class="op btn-ghost btn-sm" onclick="window.print()">Print / Save as PDF</button>';
+    html+='<p class="note-inline" style="margin-top:.6rem">Lifecycle Stage (column K) → set to <strong>Risk Assessment and Review</strong> while the reassessment is open, then back to Monitoring and Review on closure.</p></div>';
+
+    $('r_results').innerHTML=html;
+    wireCopy($('r_cpGate'),gateTSV(ctx),'Copied — paste into the next empty Gate Log row');
+    if($('r_dlGate'))$('r_dlGate').addEventListener('click',function(){download("GateLog_"+(esc($('r_air').value)||"unassigned")+".csv",gateCSV(ctx),"text/csv");});
+    if(residual!=="")wireCopy($('r_cpR'),[inherent,C].map(tsvCell).join("\t"),'Copied — click R'+rowN+' and paste');
+    wireCopy($('r_cpAB'),[approval,"Yes",ukDate(new Date()),addMonthsStr(CADENCE[newTier]||12),"Active"].map(tsvCell).join("\t"),'Copied — click AB'+rowN+' and paste');
+    var rr=$('r_results');if(rr.scrollIntoView)rr.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  $('r_run').addEventListener('click',render);
+  $('r_reset').addEventListener('click',function(){$('r_form').reset();fillAll();$('r_results').innerHTML="";$('r_formErr').hidden=true;});
+})();
+</script>
+</body>
+</html>
