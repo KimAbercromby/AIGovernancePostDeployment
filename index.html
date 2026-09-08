@@ -94,7 +94,7 @@
   <div class="wrap">
     <span class="badge">OFFICIAL</span>
     <h1>AI Post-Deployment Governance Router</h1>
-    <p class="sub">Westminster City Council &nbsp;·&nbsp; AI Governance Playbook §6.8, §5.10, §4.5.6 and post-deployment monitoring &nbsp;·&nbsp; classify incidents, route changes and log monitoring</p>
+    <p class="sub">AI Governance Framework &nbsp;·&nbsp; AI Governance Playbook §6.8, §5.10, §4.5.6 and post-deployment monitoring &nbsp;·&nbsp; classify incidents, route changes and log monitoring</p>
     <div class="tabs" role="tablist" aria-label="Choose a task">
       <button class="tab" id="tab-inc" role="tab" aria-controls="panel-incident" aria-selected="true">Report an incident</button>
       <button class="tab" id="tab-rea" role="tab" aria-controls="panel-reassess" aria-selected="false">Assess a change</button>
@@ -108,7 +108,7 @@
 
 <!-- ============ PANEL: INCIDENT ============ -->
 <section id="panel-incident" role="tabpanel" aria-labelledby="tab-inc">
-  <p class="lede"><strong>Report early.</strong> Raising a concern, near miss or unexpected output is not a sign of governance failure. This gives a provisional severity, the correct escalation route and deadline, and a started Incident Report Form (WCC-AIG-19) to hand on. It routes and drafts; it is not the record.</p>
+  <p class="lede"><strong>Report early.</strong> Raising a concern, near miss or unexpected output is not a sign of governance failure. This gives a provisional severity, the correct escalation route and deadline, and a started Incident Report Form (AI Incident Report) to hand on. It routes and drafts; it is not the record.</p>
 
   <form id="i_form" novalidate>
     <fieldset>
@@ -211,7 +211,7 @@
 
 <!-- ============ PANEL: REASSESS ============ -->
 <section id="panel-reassess" role="tabpanel" aria-labelledby="tab-rea" hidden>
-  <p class="lede">When a live AI system changes, this checks whether a <strong>documented reassessment</strong> is required, recalculates residual risk and tier as the Risk Assessment Worksheet does, and produces a Gate Log event (WCC-AIG-36) plus a <strong>formula-safe</strong> Register update (WCC-AIG-05). A monitoring breach must not be closed as operational remediation without considering whether risk, tier, controls or approval status have changed.</p>
+  <p class="lede">When a live AI system changes, this checks whether a <strong>documented reassessment</strong> is required, recalculates residual risk and tier as the Risk Assessment Worksheet does, and produces a Gate Log event (Gate Log) plus a <strong>formula-safe</strong> Register update (AI Register). A monitoring breach must not be closed as operational remediation without considering whether risk, tier, controls or approval status have changed.</p>
 
   <form id="r_form" novalidate>
     <fieldset>
@@ -301,7 +301,7 @@
 
 <!-- ============ PANEL: MONITOR ============ -->
 <section id="panel-monitor" role="tabpanel" aria-labelledby="tab-mon" hidden>
-  <p class="lede">Record a monitoring result against a live system's AIR-ID for the Monitoring &amp; Review Log (WCC-AIG-39). A within-tolerance result is the <strong>negative-assurance record</strong> that the system was monitored; a breach, deteriorating drift or material change is flagged and can be handed straight to <em>Assess a change</em> with the context carried over.</p>
+  <p class="lede">Record a monitoring result against a live system's AIR-ID for the Monitoring &amp; Review Log (Monitoring & Review Log). A within-tolerance result is the <strong>negative-assurance record</strong> that the system was monitored; a breach, deteriorating drift or material change is flagged and can be handed straight to <em>Assess a change</em> with the context carried over.</p>
 
   <form id="m_form" novalidate>
     <fieldset>
@@ -367,10 +367,10 @@
 <footer>
   <div class="wrap">
     <div class="disclaimer">
-      <strong>This is a decision aid, not the record.</strong> The authoritative records are the Incident Report Form (WCC-AIG-19), CAPA log (WCC-AIG-30), Risk Assessment Worksheet (WCC-AIG-07), AI Register (WCC-AIG-05) and Gate Log (WCC-AIG-36). Escalation timescales exclude weekends and do not account for bank holidays. Residual risk uses Likelihood × Impact × (Control ÷ 5) with the highest impact dimension, tiered per §4.4.8. Validate against the controlled documents before relying on it.
+      <strong>This is a decision aid, not the record.</strong> The authoritative records are the Incident Report Form (AI Incident Report), CAPA log (CAPA Log), Risk Assessment Worksheet (Risk Assessment Worksheet), AI Register (AI Register) and Gate Log (Gate Log). Escalation timescales exclude weekends and do not account for bank holidays. Residual risk uses Likelihood × Impact × (Control ÷ 5) with the highest impact dimension, tiered per §4.4.8. Validate against the controlled documents before relying on it.
     </div>
-    <p>Westminster City Council · AI Governance · Post-Deployment Governance Router · v0.4 draft · OFFICIAL</p>
-    <p>Draft for Council review. Nothing here is an assurance record until recorded in the controlled artefacts.</p>
+    <p>AI Governance Framework · AI Governance · Post-Deployment Governance Router · v0.4 draft · OFFICIAL</p>
+    <p>Draft for organisational review. Nothing here is an assurance record until recorded in the controlled artefacts.</p>
   </div>
 </footer>
 
@@ -441,7 +441,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   function partAText(sev){
     var L=[];
     L.push("AI INCIDENT REPORT — PART A (INITIAL REPORT)");
-    L.push("Westminster City Council · WCC-AIG-19 · Playbook §6.8");
+    L.push("AI Governance Framework · AI Incident Report · Playbook §6.8");
     L.push("Drafted with the Post-Deployment Governance Router (v0.4 draft)");
     L.push("");
     L.push("1. REPORTER AND SYSTEM");
@@ -501,7 +501,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     html+='<h3>Escalation route</h3><p class="kv">'+escHtml(R.route)+'</p>';
     html+='<p class="kv"><span class="k">Escalate to:</span> '+escHtml(R.to)+'</p>';
     html+='<p class="kv"><span class="k">Deadline:</span> <span class="deadline">'+R.clock.label+'</span>'+(deadline?' &nbsp;→ by '+ukDateTime(deadline):' <span class="note-inline">(set the date &amp; time identified to calculate the exact deadline)</span>')+'</p>';
-    html+='<p class="kv"><span class="k">Governance record:</span> '+(R.govRecord?'Required — Medium and above must be recorded in the Council\u2019s governance records.':'Not normally required beyond the Register entry, unless recurrence indicates a broader concern.')+'</p>';
+    html+='<p class="kv"><span class="k">Governance record:</span> '+(R.govRecord?'Required — Medium and above must be recorded in the organisation\u2019s governance records.':'Not normally required beyond the Register entry, unless recurrence indicates a broader concern.')+'</p>';
     html+='<div class="why"><strong>Why this severity:</strong> ';
     if(sev.trigs.length){
       var hb=sev.trigs.reduce(function(a,t){return ORDER.indexOf(t.band)>ORDER.indexOf(a)?t.band:a;},"Low");
@@ -527,16 +527,16 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     }
     var reassess=(sev.level==="Critical"||sev.level==="High"||breach||$('i_aggregate').checked);
     html+='<div class="result-card"><div class="card-body"><h3>Close the loop</h3><ul class="tight">';
-    html+='<li>Complete <strong>Part A of WCC-AIG-19</strong> (drafted below) and submit to the AI Governance Lead.</li>';
+    html+='<li>Complete <strong>Part A of AI Incident Report</strong> (drafted below) and submit to the AI Governance Lead.</li>';
     if(reassess){
       html+='<li><strong>Documented risk reassessment is indicated.</strong> A material incident is a mandatory reassessment trigger — use the <em>Assess a change</em> tab to recalculate residual risk and produce the Gate Log and Register updates.</li>';
     } else {
-      html+='<li>Record the outcome against the AIR-ID in the Post-Deployment Monitoring &amp; Review Log (WCC-AIG-39). Consider reassessment if this recurs.</li>';
+      html+='<li>Record the outcome against the AIR-ID in the Post-Deployment Monitoring &amp; Review Log (Monitoring & Review Log). Consider reassessment if this recurs.</li>';
     }
-    if(R.govRecord)html+='<li>Log corrective and preventative actions in the <strong>CAPA log (WCC-AIG-30)</strong> (row below).</li>';
+    if(R.govRecord)html+='<li>Log corrective and preventative actions in the <strong>CAPA log (CAPA Log)</strong> (row below).</li>';
     html+='</ul></div></div>';
 
-    html+='<div class="export-block"><h3>Incident Report Form — Part A</h3><p class="note-inline">Paste into WCC-AIG-19, or download to attach.</p>';
+    html+='<div class="export-block"><h3>Incident Report Form — Part A</h3><p class="note-inline">Paste into AI Incident Report, or download to attach.</p>';
     html+='<pre class="paste" id="i_paPre">'+escHtml(partAText(sev))+'</pre>';
     html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="i_cpPa">Copy Part A</button>';
     html+='<button type="button" class="op btn-ghost btn-sm" id="i_dlPa">Download Part A (.txt)</button>';
@@ -629,11 +629,11 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     }
     html+='</div></div>';
 
-    html+='<div class="export-block"><h3>Monitoring &amp; Review Log row — WCC-AIG-39</h3>'+
+    html+='<div class="export-block"><h3>Monitoring &amp; Review Log row — Monitoring & Review Log</h3>'+
       '<p class="note-inline">26 columns, no formulas — click the next empty row\u2019s cell <strong>A</strong> and paste the whole row. Or download as a record.</p>';
     var c=cells();
     html+='<pre class="paste">'+escHtml(c.row.map(function(v,i){return c.headers[i]+": "+v;}).join("\n"))+'</pre>';
-    html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="m_cpRow">Copy Log row (paste into WCC-AIG-39)</button>'+
+    html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="m_cpRow">Copy Log row (paste into Monitoring & Review Log)</button>'+
       '<button type="button" class="op btn-ghost btn-sm" id="m_dlRow">Download Log row (.csv)</button>'+
       '<button type="button" class="op btn-ghost btn-sm" onclick="window.print()">Print / Save as PDF</button></div></div>';
 
@@ -700,7 +700,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
 
     html+='<div class="result-card"><div class="verdict-head '+(required?'req':'no')+'">'+(required?'Documented reassessment required':'No mandatory trigger ticked')+'</div><div class="card-body">';
     if(required){html+='<p>The following trigger'+(trigs.length>1?'s':'')+' means a documented reassessment must be carried out and its outcome recorded:</p><ul class="tight">';trigs.forEach(function(t){html+='<li>'+escHtml(t)+'</li>';});html+='</ul>';}
-    else html+='<p>No mandatory reassessment trigger is present. Record the monitoring outcome against the AIR-ID in the Monitoring &amp; Review Log (WCC-AIG-39). If the situation recurs or worsens, re-run this check.</p>';
+    else html+='<p>No mandatory reassessment trigger is present. Record the monitoring outcome against the AIR-ID in the Monitoring &amp; Review Log (Monitoring & Review Log). If the situation recurs or worsens, re-run this check.</p>';
     html+='</div></div>';
 
     if(residual!==""){
@@ -717,7 +717,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
       html+='<div class="result-card"><div class="card-body"><h3>Recalculated residual risk</h3><p class="note-inline">Complete the impact dimensions, likelihood and control effectiveness to recalculate the tier. Reassessment still needs a documented risk score.</p></div></div>';
     }
 
-    html+='<div class="export-block"><h3>Gate Log event — WCC-AIG-36</h3><p class="note-inline">The governance re-entry event. Paste across the Gate Log columns, or download as a record.</p>';
+    html+='<div class="export-block"><h3>Gate Log event — Gate Log</h3><p class="note-inline">The governance re-entry event. Paste across the Gate Log columns, or download as a record.</p>';
     var gc=gateCells(ctx);
     html+='<pre class="paste" id="r_gatePre">'+escHtml(gc.row.map(function(v,i){return gc.headers[i]+": "+v;}).join("\n"))+'</pre>';
     html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="r_cpGate">Copy Gate Log row (paste into the log)</button>';
@@ -725,7 +725,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
 
     var rowN=esc($('r_row').value)||"the system's";
     var approval=move==="up"?"On hold":"Approved";
-    html+='<div class="export-block"><h3>Register update — WCC-AIG-05 (formula-safe)</h3>';
+    html+='<div class="export-block"><h3>Register update — AI Register (formula-safe)</h3>';
     html+='<div class="warn"><strong>Do not paste over columns T (Residual Risk) or U (Risk Tier).</strong> They are formulas and recalculate themselves once you update the inputs below.</div>';
     if(residual!==""){
       html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — click cell <strong>R'+rowN+'</strong> and paste. T and U then recalc.</div>';
