@@ -276,7 +276,7 @@
       <p class="note-inline">Reassessment is a governance re-entry. Record the forum, decision and any conditions for the Gate Log.</p>
       <div class="grid2">
         <div><label class="fld" for="r_forum">Gate / forum</label>
-          <select id="r_forum"><option>AI Governance Working Group</option><option>AI Governance Board</option><option>AI Assurance Board</option><option>Delegated officer decision</option><option>Other</option></select></div>
+          <select id="r_forum"><option>AI Governance Working Group</option><option>AI Assurance Board</option><option>AI Assurance Board</option><option>Delegated officer decision</option><option>Other</option></select></div>
         <div><label class="fld" for="r_decision">Decision</label>
           <select id="r_decision"><option>Noted</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></div>
         <div><label class="fld" for="r_dm">Decision-maker / role</label><input type="text" id="r_dm"></div>
@@ -410,7 +410,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     Low:{route:"Managed at Service Owner level through routine operational processes.",target:"Record in the AI Register within 10 working days.",clock:{days:10,label:"10 working days"},govRecord:false,to:"Service Owner"},
     Medium:{route:"Notify the AI Governance Lead. Documented remediation plan; the Lead assesses whether further oversight is needed.",target:"Notify the AI Governance Lead within 5 working days.",clock:{days:5,label:"5 working days"},govRecord:true,to:"AI Governance Lead"},
     High:{route:"Escalate to the AI Governance Working Group for formal governance review (root cause, impacts, control adequacy, whether reclassification is required).",target:"Escalate to the AI Governance Working Group within 2 working days.",clock:{days:2,label:"2 working days"},govRecord:true,to:"AI Governance Working Group"},
-    Critical:{route:"Immediately escalate to the AI Governance Board, Executive Sponsor and relevant Executive Leadership. Board provides strategic oversight of resolution.",target:"Escalate within 24 hours of identification.",clock:{hours:24,label:"24 hours"},govRecord:true,to:"AI Governance Board + Executive Sponsor + Executive Leadership"}
+    Critical:{route:"Immediately escalate to the AI Assurance Board, Executive Sponsor and relevant Executive Leadership. Board provides strategic oversight of resolution.",target:"Escalate within 24 hours of identification.",clock:{hours:24,label:"24 hours"},govRecord:true,to:"AI Assurance Board + Executive Sponsor + Executive Leadership"}
   };
   var CRIT_CONSIDER=["Temporary suspension or restriction of the system","Enhanced monitoring arrangements","Independent assurance review","Regulatory notification obligations","Reassessment of the system's risk classification","Additional governance controls and mitigations"];
   function addWorkingDays(date,n){var d=new Date(date.getTime());var a=0;while(a<n){d.setDate(d.getDate()+1);var g=d.getDay();if(g!==0&&g!==6)a++;}return d;}
@@ -670,8 +670,8 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   var CONSEQ={
     Low:["Service Owner review and routine monitoring.","Review following significant system changes."],
     Medium:["AI Governance Working Group review.","Responsible AI Assessment recommended; EIA where outputs may have differential impact.","Annual system review."],
-    High:["AI Governance Board approval required before continued operation if the tier has risen.","DPIA (normally), EIA (mandatory at score 11+), security review and Responsible AI Assessment.","Quarterly review and independent assurance."],
-    Critical:["AI Governance Board, Executive Sponsor and Executive Leadership involvement.","Human Rights Assessment (mandatory), DPIA, EIA and independent assurance review.","Continuous operational monitoring and regular Board reporting."]
+    High:["governance approval by the relevant forum (under delegated authority) required before continued operation if the tier has risen.","DPIA (normally), EIA (mandatory at score 11+), security review and Responsible AI Assessment.","Quarterly review and independent assurance."],
+    Critical:["AI Assurance Board, Executive Sponsor and Executive Leadership involvement.","Human Rights Assessment (mandatory), DPIA, EIA and independent assurance review.","Continuous operational monitoring and regular Board reporting."]
   };
   var CADENCE={Low:12,Medium:12,High:3,Critical:1};
 
