@@ -87,14 +87,98 @@
   [hidden]{display:none!important}
   @media print{form,.actions,.export-actions,.skip,.tabs{display:none!important}body{background:#fff}.result-card,.export-block,.overlay-breach{break-inside:avoid}}
 </style>
+<style id="walkthrough-visual-alignment">
+
+  html{scroll-padding-top:32px}
+  .brand-row{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.15)}
+  .brand-identity{display:flex;align-items:center;gap:14px}
+  .brand-mark{display:grid;width:50px;height:50px;flex:0 0 50px;place-items:center;border:1.5px solid #d4ad50;border-radius:12px;color:#edca74;font-size:15px;font-weight:800;letter-spacing:.08em}
+  .brand-identity strong,.brand-identity small{display:block}
+  .brand-identity strong{font-size:17px;line-height:1.25;color:#fff}
+  .brand-identity small{margin-top:3px;color:#b9c7d5;font-size:12px}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.07fr) minmax(350px,.93fr);gap:clamp(24px,5vw,68px);align-items:center;padding:64px 0 57px}
+  .eyebrow{display:flex;align-items:center;gap:15px;margin:0;color:#edca74;font-size:12px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+  .eyebrow::after{content:"";width:55px;height:1px;background:rgba(212,173,80,.75)}
+  .hero-copy h1{max-width:730px;margin:22px 0;color:#fff;font-family:Georgia,"Times New Roman",serif;font-size:clamp(42px,4.5vw,68px);font-weight:700;line-height:1.06;letter-spacing:-.035em}
+  .hero-copy h1 span{color:#edca74}
+  .hero-preview{min-width:0;border:1px solid rgba(255,255,255,.18);border-radius:19px;background:rgba(255,255,255,.09);padding:27px;box-shadow:0 34px 85px rgba(0,0,0,.18)}
+  .preview-top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#c8d4df;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .preview-chip{border:1px solid rgba(122,215,162,.42);border-radius:999px;padding:4px 10px;color:#a6e6be;font-size:11px;letter-spacing:0;white-space:nowrap}
+  .preview-identity{display:flex;align-items:center;gap:15px;margin:29px 0 31px}
+  .preview-id-icon{display:grid;width:58px;height:58px;place-items:center;flex:0 0 58px;border:1px solid rgba(212,173,80,.52);border-radius:50%;background:rgba(212,173,80,.09);color:#f0cc73;font-size:13px;font-weight:800}
+  .preview-identity small,.preview-identity strong{display:block}
+  .preview-identity small{color:#b7c7d6;font-size:13px}
+  .preview-identity strong{color:#fff;font-family:Georgia,serif;font-size:clamp(20px,2.3vw,25px)}
+  .preview-flow{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+  .preview-flow::before{content:"";position:absolute;top:20px;left:11%;right:11%;height:1px;background:rgba(212,173,80,.65)}
+  .preview-flow>div{z-index:1;display:grid;justify-items:center;gap:7px}
+  .preview-flow span{display:grid;width:42px;height:42px;place-items:center;border:1px solid rgba(212,173,80,.58);border-radius:50%;background:#0b2c50;color:#f0cc73;font-size:13px;font-weight:800}
+  .preview-flow small{color:#c5d2e0;font-size:12px}
+  .preview-note{display:flex;gap:11px;margin:27px 0 0;padding:14px 16px;border-left:2px solid #d4ad50;background:rgba(6,26,48,.45);color:#dce5ee;font-size:13px;line-height:1.55}
+  .preview-note>span{color:#e1be64;font-size:19px}
+  .hero-proof{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.19)}
+  .hero-proof>div{display:flex;align-items:center;gap:13px;min-height:72px;padding:15px 18px;border-right:1px solid rgba(255,255,255,.12)}
+  .hero-proof>div:last-child{border-right:0}
+  .hero-proof span{color:#edca74;font-size:11px;font-weight:800}
+  .hero-proof strong{color:#f1f4f8;font-size:13px;font-weight:650}
+  @media(max-width:850px){.hero-grid{grid-template-columns:1fr;gap:32px;padding:52px 0 45px}.hero-preview{max-width:640px}.hero-proof{grid-template-columns:repeat(2,1fr)}.hero-proof>div:nth-child(2){border-right:0}.hero-proof>div:nth-child(-n+2){border-bottom:1px solid rgba(255,255,255,.12)}}
+  @media(max-width:520px){.brand-identity small,.brand-shortcut{display:none!important}.hero-copy h1{font-size:clamp(37px,9vw,52px)}.hero-grid{padding:40px 0 34px}.hero-preview{padding:18px}.preview-top{font-size:11px}.preview-flow span{width:36px;height:36px}.preview-flow::before{top:18px}.hero-proof>div{min-height:63px;padding:12px 8px}.hero-proof strong{font-size:11px}}
+  @media print{.hero-preview,.hero-proof,.hero-actions,.brand-shortcut{display:none!important}.hero-grid{display:block;padding:10px 0}.hero-copy h1,.hero-copy h1 span,.brand-identity strong{color:#111!important}}
+
+  :root{--navy:#092542;--navy-2:#123a63;--gold:#d4ad50;--gold-dk:#735b1c;--ink:#172131;--muted:#536274;--line:#dce2e9;--wash:#f2f4f7}
+  body{font-family:"Segoe UI",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;padding-inline:20px}
+  header.masthead{padding:0;color:#fff;border:0;background:radial-gradient(circle at 75% 42%,rgba(212,173,80,.11),transparent 32%),linear-gradient(135deg,#061a30,#092542 52%,#0a2d53)}
+  .badge{background:transparent;border:1px solid rgba(212,173,80,.65);border-radius:999px;color:#edca74;font-size:11px;padding:5px 12px}
+  .hero-copy .sub{max-width:650px;margin:0;color:#d0dae5;font-size:16px;line-height:1.65}
+  .hero-copy .hero-intro{max-width:570px;margin:20px 0 0;color:#fff;font-size:16px}
+  .task-nav-label{padding-top:25px;border-top:1px solid rgba(255,255,255,.18);color:#edca74;font-size:12px;font-weight:750;letter-spacing:.14em}
+  .tabs{gap:9px;flex-wrap:wrap;margin-top:14px;padding-bottom:21px}
+  .tab{min-height:47px;padding:10px 18px;border:1px solid rgba(255,255,255,.26);border-radius:9px;color:#fff;background:rgba(255,255,255,.06);font-family:inherit;font-size:14px}
+  .tab:hover{background:rgba(255,255,255,.16)}
+  .tab[aria-selected="true"]{color:#092542;background:#d4ad50;border-color:#d4ad50}
+  main{padding:44px 0 75px}
+  .lede{padding:19px 22px;border-radius:13px;box-shadow:0 8px 25px rgba(7,32,61,.04);font-size:15px;line-height:1.65}
+  fieldset{padding:20px 24px 25px;border-radius:14px;margin-bottom:18px;box-shadow:0 8px 25px rgba(7,32,61,.04)}
+  legend{font-family:Georgia,serif;font-size:21px;padding:0 9px}
+  legend .n{width:29px;height:29px;line-height:29px;font-family:"Segoe UI",Arial,sans-serif;font-size:13px}
+  label.fld{font-size:14px;margin-top:13px}.hint,.note-inline{font-size:13px}
+  input[type=text],input[type=email],input[type=datetime-local],input[type=date],textarea,select{min-height:43px;padding:9px 12px;border-radius:8px;font-size:15px}
+  textarea{min-height:75px}.grid2,.grid3{gap:15px}
+  .chkgroup{gap:8px 12px}.chk{padding:11px 12px;border-radius:9px;font-size:14px;line-height:1.45}
+  .band-hdr{padding:5px 9px;border-radius:6px;font-size:13px}
+  button.op{border-radius:9px;padding:11px 18px;font-family:inherit;font-size:14px}
+  .btn-primary{background:#092542}.btn-primary:hover{background:#123a63}
+  .btn-ghost{border-color:#c4d1df}.btn-ghost:hover{background:#f2f4f7}
+  .result-card,.export-block{border-radius:14px;box-shadow:0 8px 25px rgba(7,32,61,.04)}
+  .card-body,.export-block{padding:18px 22px}
+  .why,.warn,.disclaimer{border-radius:9px;padding:12px 15px}
+  .cols,.move{border-radius:5px}.tierbox{border-radius:9px}
+  pre.paste{padding:15px;border-radius:9px;max-height:310px;font-size:13px}
+  footer{font-size:13px}
+  @media(max-width:640px){.wrap{padding-inline:15px}fieldset{padding:16px}.tabs{display:grid;grid-template-columns:1fr}.tab{text-align:left}.hero-copy .sub{font-size:15px}}
+  @media print{header.masthead{background:#fff!important;color:#111!important}.hero-copy .sub,.hero-intro,.badge{color:#111!important}.task-nav-label,.hero-preview,.hero-proof{display:none!important}}
+</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
   <div class="wrap">
-    <span class="badge">OFFICIAL</span>
-    <h1>AI Post-Deployment Governance Router</h1>
-    <p class="sub">Westminster City Council &nbsp;·&nbsp; AI Governance Playbook §6.8, §5.10, §4.5.6 and post-deployment monitoring &nbsp;·&nbsp; classify incidents, route changes and log monitoring</p>
+    <div class="brand-row"><div class="brand-identity"><span class="brand-mark" aria-hidden="true">AI</span><div><strong>AI Governance Toolkit</strong><small>Practical governance for complex organisations</small></div></div><span class="badge">OFFICIAL</span></div>
+    <div class="hero-grid">
+      <div class="hero-copy"><p class="eyebrow">POST-DEPLOYMENT GOVERNANCE</p><h1>Keep oversight active.<br><span>Respond with a record.</span></h1>
+        <p class="sub">AI Governance Playbook §6.8, §5.10, §4.5.6 and post-deployment monitoring &nbsp;·&nbsp; classify incidents, route changes and log monitoring</p>
+        <p class="hero-intro">Choose a task below to classify an incident, assess a change or record a monitoring check.</p>
+      </div>
+      <div class="hero-preview" aria-label="Post-deployment governance workflow">
+        <div class="preview-top">Governance thread <span class="preview-chip">Live oversight</span></div>
+        <div class="preview-identity"><span class="preview-id-icon" aria-hidden="true">AIR</span><div><small>Connected to your system record</small><strong>From signal to action</strong></div></div>
+        <div class="preview-flow"><div><span>1</span><small>Identify</small></div><div><span>2</span><small>Assess</small></div><div><span>3</span><small>Route</small></div><div><span>4</span><small>Record</small></div></div>
+        <p class="preview-note"><span aria-hidden="true">↳</span> Use the relevant route below to prepare the right handover and artefact entries.</p>
+      </div>
+    </div>
+    <div class="hero-proof" aria-label="Post-deployment tasks"><div><span>01</span><strong>Incident escalation</strong></div><div><span>02</span><strong>Change reassessment</strong></div><div><span>03</span><strong>Monitoring record</strong></div><div><span>04</span><strong>Artefact handover</strong></div></div>
+    <div class="task-nav-label">CHOOSE YOUR TASK</div>
     <div class="tabs" role="tablist" aria-label="Choose a task">
       <button class="tab" id="tab-inc" role="tab" aria-controls="panel-incident" aria-selected="true">Report an incident</button>
       <button class="tab" id="tab-rea" role="tab" aria-controls="panel-reassess" aria-selected="false">Assess a change</button>
@@ -369,7 +453,7 @@
     <div class="disclaimer">
       <strong>This is a decision aid, not the record.</strong> The authoritative records are the Incident Report Form (WCC-AIG-19), CAPA log (WCC-AIG-30), Risk Assessment Worksheet (WCC-AIG-07), AI Register (WCC-AIG-05) and Gate Log (WCC-AIG-36). Escalation timescales exclude weekends and do not account for bank holidays. Residual risk uses Likelihood × Impact × (Control ÷ 5) with the highest impact dimension, tiered per §4.4.8. Validate against the controlled documents before relying on it.
     </div>
-    <p>Westminster City Council · AI Governance · Post-Deployment Governance Router · v0.4.1 draft · OFFICIAL</p>
+    <p>AI Governance · Post-Deployment Governance Router · v0.4.1 draft · OFFICIAL</p>
     <p>Draft for Council review. Nothing here is an assurance record until recorded in the controlled artefacts.</p>
   </div>
 </footer>
@@ -441,7 +525,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   function partAText(sev){
     var L=[];
     L.push("AI INCIDENT REPORT — PART A (INITIAL REPORT)");
-    L.push("Westminster City Council · WCC-AIG-19 · Playbook §6.8");
+    L.push("AI Governance · WCC-AIG-19 · Playbook §6.8");
     L.push("Drafted with the Post-Deployment Governance Router (v0.4.1 draft)");
     L.push("");
     L.push("1. REPORTER AND SYSTEM");
@@ -751,3 +835,4 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
 </script>
 </body>
 </html>
+
