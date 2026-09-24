@@ -209,10 +209,10 @@
     <a href="#panel-incident" data-open-tab="tab-inc"><strong>19 · Incident Report</strong><span>Part A handover · every reported incident</span></a>
     <a href="#panel-incident" data-open-tab="tab-inc"><strong>30 · CAPA Log</strong><span>Exact log row · when an AIMS nonconformity is opened</span></a>
     <a href="#panel-monitor" data-open-tab="tab-mon"><strong>39 · Monitoring &amp; Review Log</strong><span>Exact log row · every completed monitoring review</span></a>
-    <a href="#panel-reassess" data-open-tab="tab-rea"><strong>07 · Risk Assessment</strong><span>Reassessment handover · when a trigger applies</span></a>
+    <a href="#panel-reassess" data-open-tab="tab-rea"><strong>07 · Risk Assessment</strong><span>Field and value handover · assessor confirms the worksheet</span></a>
     <a href="#panel-reassess" data-open-tab="tab-rea"><strong>05 · AI Register</strong><span>Proposed changes to the system's current-state row</span></a>
     <a href="#panel-reassess" data-open-tab="tab-rea"><strong>36 · Gate Log</strong><span>Exact event row · after a forum decision is recorded</span></a>
-    <a href="#panel-reassess" data-open-tab="tab-rea"><strong>16 · Governance Decision Record</strong><span>Significant decision rationale, authority and conditions</span></a>
+    <a href="#panel-reassess" data-open-tab="tab-rea"><strong>16 · Governance Decision Record</strong><span>Draft handover · forum completes rationale and authority</span></a>
     <a href="#panel-monitor" data-open-tab="tab-mon"><strong>41 · Contestability &amp; Redress</strong><span>Apply when a person challenges an AI-influenced decision</span></a>
   </div>
 </section>
@@ -757,6 +757,16 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     var err=$('m_formErr');
     if(!$('m_air').value.trim()){err.hidden=false;err.textContent="Add the AIR-ID from WCC-AIG-05 so this monitoring row joins to the correct system.";$('m_air').focus();return;}
     if(!$('m_cat').value&&!$('m_metric').value.trim()){err.hidden=false;err.textContent="Add a metric category or indicator to log.";$('m_cat').focus();return;}
+    var proofFields=[
+      ['m_period','Add the monitoring period for this review.'],
+      ['m_owner','Name the monitoring owner responsible for the result.'],
+      ['m_metric','Name the measured indicator; a metric category alone cannot evidence a completed review.'],
+      ['m_threshold','Enter the approved threshold or documented qualitative tolerance before confirming whether it was breached.'],
+      ['m_actual','Enter the observed result supporting the breach decision.'],
+      ['m_evidence','Provide the location of the underlying monitoring evidence.']
+    ];
+    var missing=proofFields.find(function(item){return !$(item[0]).value.trim();});
+    if(missing){err.hidden=false;err.textContent=missing[1];$(missing[0]).focus();return;}
     if(!$('m_breach').value||!$('m_material').value||!$('m_escalation').value||!$('m_status').value){err.hidden=false;err.textContent="Confirm threshold breach, material change, escalation and review status before preparing the WCC-AIG-39 row.";$('m_breach').focus();return;}
     if($('m_breach').value==='Yes'&&!$('m_sev').value){err.hidden=false;err.textContent="Choose a provisional severity for this threshold breach.";$('m_sev').focus();return;}
     var sampleIds=['m_sampleSource','m_selection','m_population','m_sampleSize','m_sampleWindow'];
@@ -840,6 +850,42 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   function gateTSV(ctx){return gateCells(ctx).row.map(tsvCell).join("\t");}
   function gateCSV(ctx){var c=gateCells(ctx);return c.headers.map(csvCell).join(",")+"\r\n"+c.row.map(csvCell).join(",");}
 
+  function decisionHandover(ctx){
+    var lines=[
+      'WCC-AIG-16 — GOVERNANCE DECISION RECORD (DRAFT FIELD HANDOVER)',
+      'Transfer these values into the controlled document. The authorised decision-maker must complete all remaining fields.',
+      '',
+      '1. DECISION REFERENCE',
+      'Decision record ID: [assign in controlled record]',
+      'AIR-ID: '+esc($('r_air').value),
+      'System identity: '+esc($('r_sys').value)+' (confirm against WCC-AIG-05)',
+      'Decision date: '+isoToUk($('r_gateDate').value),
+      'Decision-making body: '+esc($('r_forum').value)+' (verify delegated authority)',
+      'Risk classification: [confirm effective governance tier in WCC-AIG-07; indicative residual tier is '+(ctx.newTier||'not calculated')+']',
+      'Decision authority / delegation reference: [decision-maker completes]',
+      'Meeting / written-decision reference: '+esc($('r_minutes').value),
+      '',
+      '2. DECISION',
+      'Decision: [decision-maker selects Approved / Approved with conditions / Deferred / Rejected; do not automatically translate Gate Log outcome]',
+      'Summary of decision and reasoning: [decision-maker completes]',
+      'Related WCC-AIG-36 Gate Log decision: '+esc($('r_decision').value),
+      '',
+      '3. ASSESSMENT FINDINGS CONSIDERED',
+      'Assessments reviewed: [list controlled evidence references]',
+      'Key findings: [decision-maker completes]',
+      '',
+      '4. CONDITIONS, ACTIONS AND REVIEW',
+      'Conditions of approval: [confirm against authorised decision; proposed Gate Log conditions: '+(esc($('r_conditions').value)||'none entered')+']',
+      'Assigned actions, owners and due dates: [complete, including condition due '+(isoToUk($('r_condDue').value)||'not entered')+']',
+      'Review requirements, escalation and evidence of action closure: [decision-maker completes]',
+      '',
+      '5. AUTHORISATION',
+      'Recorded by / chair / approver / signature / authority / quorum / conflicts / evidence pack: [complete in controlled record]',
+      'Decision-maker / role entered for WCC-AIG-36: '+esc($('r_dm').value)
+    ];
+    return lines.join('\r\n');
+  }
+
   function riskHandoffCSV(ctx,L,C){
     var dims=[['Resident Impact','r_imp_res'],['Legal & Regulatory Impact','r_imp_legal'],['Reputational Impact','r_imp_rep'],['Operational Impact','r_imp_op'],['Financial Impact','r_imp_fin']];
     var rows=[['WCC-AIG-07','Risk Assessment','AIR-ID',esc($('r_air').value),'Confirm against WCC-AIG-05'],['WCC-AIG-07','Risk Assessment','System / model name',esc($('r_sys').value),'Confirm identity'],['WCC-AIG-07','Risk Assessment','Reason for reassessment',esc($('r_change').value),'Record evidence / case reference']];
@@ -905,15 +951,17 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
       html+='<pre class="paste" id="r_gatePre">'+escHtml(gc.row.map(function(v,i){return gc.headers[i]+": "+v;}).join("\n"))+'</pre>';
       html+='<div class="actions export-actions"><button type="button" class="op btn-ghost btn-sm" id="r_cpGate">Copy Gate Log row (paste at A)</button>';
       html+='<button type="button" class="op btn-ghost btn-sm" id="r_dlGate">Download WCC-AIG-36 row (.csv)</button></div></div>';
-      html+='<div class="route-box"><h3>Significant decision · WCC-AIG-16</h3><p>Complete the Governance Decision Record with the decision-maker’s delegated authority, reasoning, evidence and conditions. Put its decision record ID in column O of WCC-AIG-36; this tool cannot establish the authority or write the decision rationale for the forum.</p></div>';
+      html+='<div class="route-box"><h3>Significant decision · WCC-AIG-16</h3><p>Download a field-labelled draft for the Governance Decision Record. Complete the actual decision, delegated authority, reasoning, evidence, quorum and authorisation in the controlled form. Put its assigned record ID in column O of WCC-AIG-36.</p><div class="actions"><button type="button" class="op btn-ghost btn-sm" id="r_dlDecision">Download WCC-AIG-16 draft (.txt)</button></div></div>';
     }else html+='<div class="route-box"><h3>WCC-AIG-36 · Awaiting decision</h3><p>Return to the Governance decision section after the forum has decided. No Gate Log decision row is exported while Decision is pending.</p></div>';
     if(trigs.some(function(x){return /autonomous action authority|model|data or datasets|supplier or model update/i.test(x);}))html+='<div class="route-box"><h3>Agentic change check · WCC-AIG-45 / 46</h3><p>If this system can act, review the Agent Record (ASBOM), authority graph, connected tools, boundaries and kill switch. Record any material agentic decision in the relevant controlled record, including WCC-AIG-50 where an action decision requires it. These records need owner and specialist assessment; no automatic approval is implied.</p></div>';
 
-    var rowN=esc($('r_row').value)||"the system's";
+    var rowN=esc($('r_row').value).trim();
+    var knownRow=/^[1-9]\d*$/.test(rowN);
+    var rowInstruction=knownRow?'click cell <strong>R'+escHtml(rowN)+'</strong> and paste':'identify the system’s existing row by AIR-ID, then paste into column R of that row';
     html+='<div class="export-block"><h3>WCC-AIG-05 · AI Register proposed changes</h3>';
     html+='<div class="warn"><strong>Review against AIR-ID '+escHtml($('r_air').value)+'</strong> and the controlled Risk Assessment before updating the existing system row. Do not paste over T (Residual Risk) or U (Risk Tier): these are formulas. No approval or operational status is inferred from a score.</div>';
     if(residual!==""){
-      html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — click cell <strong>R'+rowN+'</strong> and paste. T and U then recalc.</div>';
+      html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — '+rowInstruction+'. T and U then recalc.</div>';
       html+='<pre class="paste">'+escHtml("R (Inherent Risk): "+inherent+"\nS (Control Effectiveness): "+C)+'</pre>';
       html+='<button type="button" class="op btn-ghost btn-sm" id="r_cpR">Copy R:S</button>';
     }
@@ -928,7 +976,8 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     $('r_dlRisk').addEventListener('click',function(){download('WCC-AIG-07_Reassessment_handover_'+fileKey($('r_air').value)+'.csv',riskHandoffCSV(ctx,L,C),'text/csv');});
     if($('r_cpGate'))wireCopy($('r_cpGate'),gateTSV(ctx),'Copied — paste into the next empty Gate Log row');
     if($('r_dlGate'))$('r_dlGate').addEventListener('click',function(){download('WCC-AIG-36_Gate_Log_row_'+fileKey($('r_air').value)+'.csv',gateCSV(ctx),'text/csv');});
-    if(residual!=="")wireCopy($('r_cpR'),[inherent,C].map(tsvCell).join("\t"),'Copied — click R'+rowN+' and paste');
+    if($('r_dlDecision'))$('r_dlDecision').addEventListener('click',function(){download('WCC-AIG-16_Decision_draft_'+fileKey($('r_air').value)+'.txt',decisionHandover(ctx));});
+    if(residual!=="")wireCopy($('r_cpR'),[inherent,C].map(tsvCell).join("\t"),knownRow?'Copied — click R'+rowN+' and paste':'Copied — find the AIR-ID row and paste into its column R');
     if($('r_dlRegister'))$('r_dlRegister').addEventListener('click',function(){download('WCC-AIG-05_Register_changes_'+fileKey($('r_air').value)+'.csv',registerCSV,'text/csv');});
     var rr=$('r_results');if(rr.scrollIntoView)rr.scrollIntoView({behavior:"smooth",block:"start"});
   }
