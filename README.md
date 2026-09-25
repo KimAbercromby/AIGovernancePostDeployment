@@ -6,9 +6,9 @@ A public, static working aid for the operate-and-monitor part of the AI governan
 
 ## Workflows
 
-- **Report an incident** — provisionally classifies selected severity indicators, suggests an internal route and indicative deadline, highlights a suspected personal-data-breach referral, and prepares a field/value draft for WCC-AIG-19. A WCC-AIG-30 draft is optional and labelled for owner review; incident severity does not establish an AIMS nonconformity.
-- **Assess a change** — collects reassessment triggers and optional inputs for an indicative residual-risk calculation. It prepares WCC-AIG-07 and, when relevant, current-state review handovers. It can separately prepare a prospective **Gate Plan**, a dated **Gate Event** handover only after the user confirms a real authorised decision, and an event-linked **Gate Condition** handover. The condition export does not invent an event ID; the 36 owner links it after logging the event.
-- **Log monitoring** — requires an existing AIR-ID confirmed against the current register, review period/date and owner, indicator, approved threshold, observed result and evidence location. Metric category is optional. It hands breach, material change or deteriorating trend to the change workflow. Optional sampling fields must be completed together.
+- **Report an incident** — captures WCC-AIG-19 Part A contact, identification source, classification, what/when/how discovered, system activity, affected data/decision impact, immediate action, selected severity indicators and any manual-uplift rationale. Part A is to be submitted as soon as the incident is identified; no severity-based deadlines are added. An optional, separate Part B pointer captures controller-awareness and the competent owner’s rights-risk/DPO-informed notifiability assessment without making a legal finding. A WCC-AIG-30 draft remains optional and labelled for owner review.
+- **Assess a change** — collects reassessment triggers and WCC-AIG-07 risk inputs. It mirrors the worksheet’s residual formula (inherent score × control factor C/5), but does not infer residual tier bands absent from the worksheet. It prepares WCC-AIG-07 and, when relevant, a contextual WCC-AIG-05 review handover that does not update the current register. Gate Plan, Gate Condition and Gate Event transfer-checklist downloads use the integrated WCC-AIG-36 fields; IDs are never invented. The Gate Event checklist requires actual decision, authority and evidence references, but its decision/state controlled-value mapping remains pending owner confirmation and it is not an authoritative event record.
+- **Log monitoring** — requires a verified existing AIR-ID, system identity, review evidence and disposition, plus evidence version/checker/data cut. It keeps the observed metric denominator and observed-result state (including zero versus blank/unknown/not applicable) distinct from the sampling population and sample size, and includes reproducibility/high-impact review and control-failure/access-expansion signals.
 
 ## Governance boundaries
 
@@ -33,11 +33,11 @@ node --check src/app.js
 node --test qa-smoke.test.cjs
 ```
 
-The automated checks cover incident severity floors and deadline arithmetic, residual-risk scoring, screening requirements, safe draft CSV handovers, file/HTML escaping, and static page governance boundaries.
+The automated checks cover incident and optional Part B validation barriers, WCC-AIG-07 score arithmetic without unsupported tiers, Gate Plan/Event/Condition barriers and field names, WCC-AIG-39 identity/provenance/sampling validation, screening requirements, safe draft CSV handovers, file/HTML escaping, and static page governance boundaries.
 
 ## Limitations
 
 - Draft handovers intentionally do not claim to match live or exact 05/36/39 worksheet headers. A controlled-record owner must verify the current integrated workbook and map fields before transfer.
-- The user attests that an entered AIR-ID, decision and references are real; this static tool cannot verify a record or delegation.
+- The user attests that an entered AIR-ID, decision, authority and evidence references are real; this static tool cannot verify a record, delegation or local controlled-value mapping.
 - Business-day calculations exclude weekends but not bank holidays. Internal route labels and timescales need validation against current approved procedures.
 - The application is an aid, not an assurance control, records-management system, case-management tool or legal advice.

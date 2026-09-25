@@ -95,20 +95,26 @@
     </aside>
 
     <section class="panel" id="panel-incident" role="tabpanel" aria-labelledby="tab-incident">
-      <p class="intro">Classify an incident, near miss or concern provisionally, identify an internal route, and prepare a draft Part A handover for WCC-AIG-19. Severity alone does not establish an AIMS nonconformity.</p>
+      <p class="intro">Report an incident, near miss or concern, identify a provisional internal route, and prepare the WCC-AIG-19 Part A handover. Submit Part A to the AI Governance Lead as soon as the incident is identified. Severity alone does not establish an AIMS nonconformity.</p>
       <form id="incident-form" novalidate>
         <fieldset><legend>Incident and system</legend>
           <div class="grid">
             <label class="field">System / service name<input id="i-system" type="text" autocomplete="off"></label>
             <label class="field">Existing AIR-ID, if known<input id="i-air" type="text" placeholder="Use only an ID verified in current 05"></label>
             <label class="check"><input id="i-air-verified" type="checkbox"><span>If entered, this existing AIR-ID was checked against the current 05 register.</span></label>
-            <label class="field">Reporter or team<input id="i-reporter" type="text"></label>
+            <label class="field">Reported by<input id="i-reporter" type="text" autocomplete="name"></label>
             <label class="field">Reporter role / service team<input id="i-role" type="text"></label>
+            <label class="field">Contact email<input id="i-email" type="email" autocomplete="email"></label>
             <label class="field">Date and time identified<input id="i-date" type="datetime-local"></label>
-            <label class="field">Event type<select id="i-kind"><option>Incident</option><option>Near miss</option><option>Concern</option></select></label>
+            <label class="field">Event classification<select id="i-kind"><option value="">Select classification</option><option>Incident</option><option>Near miss</option><option>Concern</option></select><small>Near misses follow the same early-reporting and triage route.</small></label>
             <label class="field">Ongoing?<select id="i-ongoing"><option>Unknown</option><option>Yes</option><option>No</option></select></label>
           </div>
-          <label class="field">What happened?<textarea id="i-description" placeholder="Describe the issue without identifying residents or including case records."></textarea></label>
+          <label class="field">What occurred?<textarea id="i-description" placeholder="Describe the issue without identifying residents or including case records."></textarea></label>
+          <div class="grid">
+            <label class="field">When did it occur?<input id="i-when" type="text" placeholder="Date/time or Unknown"></label>
+            <label class="field">How was it identified? — source<input id="i-discovery" type="text" placeholder="e.g. monitoring, feedback, complaint, audit, supplier notice, or Unknown"></label>
+          </div>
+          <label class="field">What was the AI system doing at the time?<textarea id="i-ai-activity"></textarea></label>
           <strong>Potentially affected</strong>
           <div class="check-list">
             <label class="check"><input type="checkbox" data-affected><span>Residents / service users</span></label>
@@ -119,8 +125,27 @@
             <label class="check"><input type="checkbox" data-affected><span>Individual decision-making</span></label>
             <label class="check"><input type="checkbox" data-affected><span>Supplier / third party</span></label>
           </div>
+          <label class="field">Who / what was affected? Include approximate number or state Unknown<textarea id="i-affected-details" placeholder="Describe in general terms; do not enter names or case-level personal data."></textarea></label>
+          <div class="grid">
+            <label class="field">Affected data and impact<textarea id="i-data-impact" placeholder="Describe data types and impact, or state Unknown / not applicable."></textarea></label>
+            <label class="field">Decision impact<textarea id="i-decision-impact" placeholder="Describe actual or potential decision impact, or state Unknown / not applicable."></textarea></label>
+          </div>
           <label class="field">Potential impact and approximate number affected<textarea id="i-impact" placeholder="Describe in general terms; do not enter names or case-level personal data."></textarea></label>
           <label class="field">Immediate containment / action<textarea id="i-action"></textarea></label>
+        </fieldset>
+        <fieldset><legend>Optional Part B pointer — controller awareness and rights-risk review</legend>
+          <p class="section-note">Part B is not a legal finding or incident record. Complete it only from the responsible controller/DPO route; this separate handover points to their assessment and decision. Leave every field blank if no Part B pointer is being prepared.</p>
+          <div class="grid">
+            <label class="field">Controller-awareness date and time<input id="i-controller-awareness" type="datetime-local"><small>Responsible owner records when the controller had a reasonable degree of certainty that a breach occurred.</small></label>
+            <label class="field">Rights and freedoms risk assessment<textarea id="i-rights-risk" placeholder="Assessment and rationale, or the responsible owner’s reference. No conclusion is made here."></textarea></label>
+            <label class="field">Rights-risk assessor<input id="i-rights-assessor" type="text"></label>
+            <label class="field">Rights-risk assessment date<input id="i-rights-date" type="date"></label>
+            <label class="field">DPO-informed ICO notifiability decision<select id="i-ico-decision"><option value="">Select</option><option>Notifiable</option><option>Not notifiable</option><option>Further assessment</option></select></label>
+            <label class="field">Decision rationale<input id="i-ico-rationale" type="text"></label>
+            <label class="field">Decision owner<input id="i-ico-owner" type="text"></label>
+            <label class="field">DPO advice reference<input id="i-dpo-ref" type="text"></label>
+          </div>
+          <p class="small">The competent owner determines any notification duty, recipient, deadline and action. This tool does not decide breach status or notifiability.</p>
         </fieldset>
         <fieldset><legend>Potential severity indicators</legend>
           <p class="section-note">Provisional triage only. The highest selected band sets the floor; aggregation or manual uplift can raise it, never lower it. An authorised owner reviews severity and routing.</p>
@@ -198,34 +223,59 @@
             <label class="field">Operational impact (1–5)<select id="c-impact-op"></select></label>
             <label class="field">Financial impact (1–5)<select id="c-impact-fin"></select></label>
             <label class="field">Likelihood (1–5)<select id="c-likelihood"></select></label>
-            <label class="field">Control effectiveness (1–5)<select id="c-control"></select></label>
+            <label class="field">Control effectiveness (1 very strong – 5 ineffective)<select id="c-control"></select></label>
           </div>
         </fieldset>
         <fieldset><legend>Prospective Gate Plan — separate from a decision</legend>
-          <p class="section-note">A plan is prospective scheduling only. It is not an approval, a Gate Event, nor evidence that an assurance condition is met.</p>
+          <p class="section-note">A plan is prospective scheduling only. It is not an approval, a Gate Event, nor evidence that an assurance condition is met. Provide the current workbook source version; the Council assigns Plan ID.</p>
           <div class="grid">
-            <label class="field">Planned gate / review point<input id="p-gate" type="text" placeholder="e.g. post-change assurance review"></label>
+            <label class="field">Gate / forum<input id="p-gate" type="text"></label>
+            <label class="field">Trigger / lifecycle stage<input id="p-trigger" type="text"></label>
+            <label class="field">Requirement<select id="p-requirement"><option value="">Select</option><option>Required</option><option>Not required</option></select></label>
+            <label class="field">Basis / triage reference<input id="p-basis" type="text"></label>
             <label class="field">Target date<input id="p-date" type="date"></label>
-            <label class="field">Planning owner / role<input id="p-owner" type="text"></label>
-            <label class="field">Planned criteria / evidence to bring<textarea id="p-criteria"></textarea></label>
+            <label class="field">Responsible role<input id="p-owner" type="text"></label>
+            <label class="field">Plan state<input id="p-state" type="text"></label>
+            <label class="field">N-A / waiver rationale and authority reference<input id="p-waiver" type="text"></label>
+            <label class="field">Source version<input id="p-source-version" type="text"></label>
+            <label class="field">Existing Plan ID, if assigned<input id="p-planid" type="text"></label>
+            <label class="check"><input id="p-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against current 36.</span></label>
           </div>
         </fieldset>
-        <fieldset><legend>Dated Gate Event — only after a real authorised decision</legend>
-          <p class="section-note">The formal decision remains in WCC-AIG-16 or authorised native forum minutes. WCC-AIG-36 should point to that record; WCC-AIG-45 governs agent authority. This draft creates no decision, permission, event ID or approval.</p>
+        <fieldset><legend>Dated Gate Event transfer checklist — only after a real authorised decision</legend>
+          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in WCC-AIG-16 or authorised native forum minutes. WCC-AIG-36 should point to that record; WCC-AIG-45 governs agent authority. Local decision/state controlled-value mapping is pending owner confirmation against the current 36 workbook. This draft creates no decision, permission, event ID or approval.</p>
           <div class="grid">
-            <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option></select></label>
+            <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></label>
+            <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
+            <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against current 36. Do not invent one.</span></label>
             <label class="field">Decision date<input id="e-date" type="date"></label>
-            <label class="field">Forum / decision route<input id="e-forum" type="text"></label>
+            <label class="field">Gate / forum<input id="e-forum" type="text"></label>
+            <label class="field">Lifecycle stage<input id="e-lifecycle" type="text"></label>
+            <label class="field">Assurance opinion reference<input id="e-opinion" type="text"></label>
             <label class="field">Decision-maker / role<input id="e-maker" type="text"></label>
+            <label class="field">Next gate<input id="e-next-gate" type="text"></label>
+            <label class="field">Event notes<textarea id="e-notes"></textarea></label>
             <label class="field">WCC-AIG-16 or native minutes reference<input id="e-record" type="text"></label>
             <label class="field">WCC-AIG-45 authority / delegation reference<input id="e-authority" type="text"></label>
-            <label class="check"><input id="e-confirmed" type="checkbox"><span>I confirm that this records a decision already made by an authorised decision-maker; references above are real and checked.</span></label>
+            <label class="field">Technical snapshot / as-at reference<input id="e-snapshot" type="text"></label>
+            <label class="field">Event record state<input id="e-record-state" type="text" placeholder="Transcribe current controlled value; owner mapping pending"><small>Exact current WCC-AIG-36 state vocabulary is not confirmed by this tool.</small></label>
+            <label class="field">Recorded by / role<input id="e-recorded-by" type="text"></label>
+            <label class="field">Evidence source / URI<input id="e-evidence" type="text"></label>
+            <label class="field">Existing Plan ID, optional<input id="e-planid" type="text"></label>
+            <label class="check"><input id="e-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against current 36.</span></label>
+            <label class="field">Priority before override<input id="e-priority-before" type="text"></label>
+            <label class="field">Priority after override<input id="e-priority-after" type="text"></label>
+            <label class="field">Assurance priority update reference<input id="e-priority-ref" type="text"></label>
+            <label class="check"><input id="e-confirmed" type="checkbox"><span>I confirm this transcribes a decision already made by an authorised decision-maker and that the decision record, authority/delegation and evidence source references above are present, real and checked. This does not confirm local controlled-value mapping.</span></label>
           </div>
-          <h3>Optional event-linked condition (prepare separately)</h3>
+          <h3>Optional event-linked condition (requires an existing 36 Event ID)</h3>
           <div class="grid">
             <label class="field">Condition / required action<input id="e-condition" type="text"></label>
             <label class="field">Condition owner / role<input id="e-condition-owner" type="text"></label>
             <label class="field">Condition due date<input id="e-condition-due" type="date"></label>
+            <label class="field">Condition state<select id="e-condition-state"><option value="">Select</option><option>Open</option><option>Resolved</option><option>Waived</option></select></label>
+            <label class="field">Resolved / waived on<input id="e-condition-resolved" type="date"></label>
+            <label class="field">Resolution evidence / waiver authority<input id="e-condition-evidence" type="text"></label>
           </div>
         </fieldset>
         <div class="screening">
@@ -248,6 +298,7 @@
       <p class="intro">Prepare a draft monitoring review for WCC-AIG-39 and hand a breach, deteriorating drift or material change to reassessment. This does not create a live workbook row or implement runtime controls.</p>
       <form id="monitor-form" novalidate>
         <fieldset><legend>System, period and measurement</legend>
+          <p class="section-note">Record the observed result and its state separately from the observed metric denominator. “Observed zero” is an actual value of 0; “Blank / unknown” means no value was observed. The denominator is also separate from the sampling population and reviewed sample.</p>
           <div class="grid">
             <label class="field">Existing AIR-ID<input id="m-air" type="text" placeholder="Required — verify in current 05"></label>
             <label class="field">Confirm AIR-ID checked against current 05<input id="m-air-verified" type="checkbox"> <small>No fabricated identifiers.</small></label>
@@ -258,26 +309,53 @@
             <label class="field">Metric / indicator<input id="m-metric" type="text"></label>
             <label class="field">Metric category<select id="m-category"><option value="">Select</option><option>Performance</option><option>Fairness / bias</option><option>Drift</option><option>Error / failure</option><option>Human oversight</option><option>Complaints / challenges</option><option>Privacy</option><option>Security</option><option>Benefits / outcomes</option><option>Agentic security</option><option>Agentic operations</option><option>Other</option></select></label>
             <label class="field">Approved threshold / tolerance reference<input id="m-threshold" type="text"></label>
-            <label class="field">Observed result<input id="m-actual" type="text"></label>
+            <label class="field">Observed result<input id="m-actual" type="text" placeholder="Enter the value only when state is Observed non-zero or Observed zero"></label>
+            <label class="field">Observed-result state<select id="m-result-state"><option value="">Select</option><option>Observed non-zero</option><option>Observed zero</option><option>Blank / unknown</option><option>Not applicable</option></select></label>
+            <label class="field">Blank / not-applicable result reason<input id="m-result-reason" type="text" placeholder="Required only when result state is Blank / unknown or Not applicable"></label>
             <label class="field">Evidence location / versioned pointer<input id="m-evidence" type="text"></label>
-            <label class="field">Trend<select id="m-trend"><option value="">Select</option><option>Improving</option><option>Stable</option><option>Deteriorating</option><option>New / baseline</option></select></label>
-            <label class="field">Threshold breached?<select id="m-breach"><option value="">Select</option><option>No</option><option>Yes</option></select></label>
+            <label class="field">Evidence version<input id="m-evidence-version" type="text"></label>
+            <label class="field">Evidence checked by<input id="m-checker" type="text"></label>
+            <label class="field">Evidence data cut / as-at date and time<input id="m-data-cut" type="datetime-local"></label>
+            <label class="field">Observed metric denominator<input id="m-observed-denominator" type="text" inputmode="numeric" placeholder="Enter an observed whole-number denominator, including 0"></label>
+            <label class="field">Observed-denominator state<select id="m-denominator-state"><option value="">Select</option><option>Observed positive</option><option>Observed zero</option><option>Blank / unknown</option><option>Not applicable</option></select></label>
+            <label class="field">Denominator context / source<textarea id="m-denominator" placeholder="Explain the denominator source; for Blank / unknown or Not applicable, explain why. This is separate from the sampling population and sample."></textarea></label>
+            <label class="field">Trend<select id="m-trend"><option value="">Select</option><option>Improving</option><option>Stable</option><option>Deteriorating</option><option>New / baseline</option><option>Unknown</option></select></label>
+            <label class="field">Threshold breached?<select id="m-breach"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
             <label class="field">Provisional severity, if breached<select id="m-severity"><option value="">Select</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></label>
-            <label class="field">Material change since last review?<select id="m-material"><option value="">Select</option><option>No</option><option>Yes</option></select></label>
-            <label class="field">Governance escalation required?<select id="m-escalation"><option value="">Select</option><option>No</option><option>Yes</option></select></label>
+            <label class="field">Material change since last review?<select id="m-material"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
+            <label class="field">Governance escalation required?<select id="m-escalation"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
             <label class="field">Review status<select id="m-status"><option value="">Select</option><option>Reviewed</option><option>Open</option><option>Action open</option><option>Escalated</option></select></label>
           </div>
-          <label class="field">Action / follow-up<input id="m-action" type="text"></label>
-          <label class="field">Complaint / challenge signal, if any<input id="m-challenge" type="text"></label>
-        </fieldset>
-        <fieldset><legend>Sampling evidence — if a sample was taken</legend>
-          <p class="section-note">Leave all fields blank if no sample was taken. Otherwise complete all fields. Do not enter case-level personal data.</p>
           <div class="grid">
-            <label class="field">Sample source / population<input id="m-source" type="text"></label>
-            <label class="field">Selection basis<select id="m-selection"><option value="">Select</option><option>Full population (census)</option><option>Random</option><option>Stratified random</option><option>Risk-weighted / targeted</option><option>Exception-based</option></select></label>
+            <label class="field">Action / decision<input id="m-action" type="text"></label>
+            <label class="field">Action owner<input id="m-action-owner" type="text"></label>
+            <label class="field">Action due date<input id="m-due-date" type="date"></label>
+            <label class="field">Incident / CAPA reference<input id="m-incident-ref" type="text"></label>
+            <label class="field">Risk reassessment required?<select id="m-reassessment"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></label>
+            <label class="field">Residual risk after review<input id="m-residual-risk" type="text" placeholder="Enter verified result, or state Unknown / not assessed"></label>
+            <label class="field">Gate Log reference<input id="m-gate-ref" type="text"></label>
+            <label class="field">Human override rate / trend<input id="m-human-override" type="text"></label>
+            <label class="field">Next review date<input id="m-next-date" type="date"></label>
+          </div>
+          <label class="field">Complaint / challenge signal, if any<input id="m-challenge" type="text"></label>
+          <div class="grid">
+            <label class="field">Control failure observed / reviewed?<select id="m-control-failure"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></label>
+            <label class="field">Control failure signal / review note<input id="m-control-failure-detail" type="text"></label>
+            <label class="field">Access expansion observed / reviewed?<select id="m-access-expansion"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></label>
+            <label class="field">Access expansion signal / review note<input id="m-access-expansion-detail" type="text"></label>
+          </div>
+        </fieldset>
+        <fieldset><legend>Sampling evidence — required for every result</legend>
+          <p class="section-note">WCC-AIG-39 requires sample source, selection basis, population size, sample size and window for each result. Record the source population and sample separately; an empty population and a zero observed result are distinct from missing data. Review the highest-impact decision types in full. Do not enter case-level personal data.</p>
+          <div class="grid">
+            <label class="field">Sample source / population of record<input id="m-source" type="text"></label>
+            <label class="field">Selection basis<select id="m-selection"><option value="">Select</option><option>Full population (census)</option><option>Simple random</option><option>Stratified random</option><option>Risk-weighted / targeted</option><option>Exception-based</option></select></label>
             <label class="field">Population size<input id="m-population" type="text" inputmode="numeric"></label>
             <label class="field">Sample size reviewed<input id="m-sample" type="text" inputmode="numeric"></label>
             <label class="field">Sampling window<input id="m-window" type="text"></label>
+            <label class="field">Random selection reproduction detail (method / seed / draw date)<input id="m-sample-method" type="text"><small>Required for a random or stratified random selection; otherwise enter not applicable.</small></label>
+            <label class="field">Highest-impact decisions reviewed in full?<select id="m-high-impact"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></label>
+            <label class="field">Highest-impact decision review note<input id="m-high-impact-detail" type="text"></label>
           </div>
         </fieldset>
         <div class="screening">
