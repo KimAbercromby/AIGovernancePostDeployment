@@ -6,23 +6,19 @@
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
-      target: "Routine management route; record and review under the current approved procedure.",
-      deadline: "10 working days (indicative internal aid)"
+      target: "Service Owner review and local remediation."
     },
     Medium: {
       recipient: "AI Governance Lead",
-      target: "Notify and agree a documented remediation / review route.",
-      deadline: "5 working days (indicative internal aid)"
+      target: "Notify the AI Governance Lead and agree a documented remediation route."
     },
     High: {
-      recipient: "AI Governance Lead and relevant governance forum",
-      target: "Escalate for documented review of impacts, controls and reassessment.",
-      deadline: "2 working days (indicative internal aid)"
+      recipient: "AI Governance Working Group",
+      target: "Formal governance review."
     },
     Critical: {
-      recipient: "AI Governance Lead, relevant executive and assurance owners",
-      target: "Immediate escalation and consideration of containment and specialist referrals.",
-      deadline: "24 hours (indicative internal aid)"
+      recipient: "AI Assurance Board, Executive Sponsor and Executive Leadership",
+      target: "Immediate escalation."
     }
   };
 
@@ -31,50 +27,23 @@
   }
 
   function severity(indicators, aggregate, uplift) {
-    let floor = "Low";
     const selected = Array.isArray(indicators) ? indicators : [];
+    let floor = "";
     selected.forEach(function (level) {
       if (SEVERITY_ORDER.indexOf(level) > SEVERITY_ORDER.indexOf(floor)) floor = level;
     });
     let aggregated = false;
-    if (aggregate) {
+    if (aggregate && floor) {
       const index = SEVERITY_ORDER.indexOf(floor);
       if (index < SEVERITY_ORDER.length - 1) {
         floor = SEVERITY_ORDER[index + 1];
         aggregated = true;
       }
     }
-    const uplifted = SEVERITY_ORDER.indexOf(uplift) > SEVERITY_ORDER.indexOf(floor);
+    const uplifted = SEVERITY_ORDER.indexOf(uplift) >= 0 &&
+      (!floor || SEVERITY_ORDER.indexOf(uplift) > SEVERITY_ORDER.indexOf(floor));
     if (uplifted) floor = uplift;
-    return { level: floor, aggregated: aggregated, uplifted: uplifted };
-  }
-
-  function addWorkingDays(dateValue, count) {
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return null;
-    let added = 0;
-    while (added < count) {
-      date.setDate(date.getDate() + 1);
-      if (date.getDay() !== 0 && date.getDay() !== 6) added += 1;
-    }
-    return date;
-  }
-
-  function deadlineFor(level, identifiedAt) {
-    const identified = new Date(identifiedAt);
-    if (!identifiedAt || Number.isNaN(identified.getTime())) return null;
-    if (level === "Critical") {
-      return new Date(identified.getTime() + 24 * 60 * 60 * 1000);
-    }
-    const days = level === "High" ? 2 : level === "Medium" ? 5 : 10;
-    return addWorkingDays(identified, days);
-  }
-
-  function tierFor(score) {
-    if (score <= 5) return "Low";
-    if (score <= 10) return "Medium";
-    if (score <= 15) return "High";
-    return "Critical";
+    return { level: floor || "Unclassified", aggregated: aggregated, uplifted: uplifted };
   }
 
   function calculateRisk(impacts, likelihood, control) {
@@ -87,8 +56,11 @@
       !Number.isInteger(c) || c < 1 || c > 5) return null;
     const impact = Math.max.apply(null, values);
     const inherent = l * impact;
+    // WCC-AIG-07 defines inherent as L × I, control factor as C ÷ 5, and
+    // residual as inherent × control factor. Its residual tier bands are not
+    // specified here, so do not infer a tier.
     const residual = Math.round(inherent * c / 5 * 10) / 10;
-    return { impact, likelihood: l, control: c, inherent, residual, tier: tierFor(residual) };
+    return { impact, likelihood: l, control: c, inherent, residual, tier: null, authoritative: true };
   }
 
   function csvCell(value) {
@@ -130,24 +102,203 @@
     if (!text(data.metric)) {
       return "Enter the monitoring indicator; metric category is an optional classification.";
     }
-    const required = ["period", "date", "owner", "threshold", "actual", "evidence"];
+    const required = [
+      "system", "period", "date", "owner", "threshold", "trend", "evidence",
+      "evidenceVersion", "checker", "dataCut", "controlFailure", "accessExpansion", "reassessment",
+      "source", "selection", "population", "sample", "window", "sampleMethod", "highImpact", "highImpactDetail",
+      "denominatorState", "resultState"
+    ];
     if (required.some((key) => !text(data[key]))) {
-      return "For a monitoring handover, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, actual result and evidence location are all required.";
+      return "For a WCC-AIG-39 handover, system identity, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, result state, evidence location and version, checker, data cut, observed-denominator state/context, control-failure review and access-expansion review are required.";
     }
     if (!text(data.breach) || !text(data.material) || !text(data.escalation) || !text(data.status)) {
       return "Confirm threshold breach, material change, governance escalation and review status.";
     }
+    if (!["Yes", "No", "Unknown"].includes(text(data.breach)) ||
+      !["Yes", "No", "Unknown"].includes(text(data.material)) ||
+      !["Yes", "No", "Unknown"].includes(text(data.escalation)) ||
+      !["Yes", "No", "Unknown"].includes(text(data.reassessment))) {
+      return "Select Yes, No or Unknown for breach, material change, governance escalation and risk reassessment.";
+    }
     if (data.breach === "Yes" && !text(data.severity)) {
       return "Choose a provisional severity for the reported breach; an authorised owner confirms it.";
+    }
+    const denominatorState = text(data.denominatorState);
+    const observedDenominator = text(data.observedDenominator);
+    if (!["Observed positive", "Observed zero", "Blank / unknown", "Not applicable"].includes(denominatorState)) {
+      return "Select the observed-denominator state separately from sample population and sample size.";
+    }
+    if (denominatorState === "Observed positive" &&
+      (!/^\d+$/.test(observedDenominator) || Number(observedDenominator) < 1)) {
+      return "An observed positive denominator must be a whole number greater than zero.";
+    }
+    if (denominatorState === "Observed zero" && observedDenominator !== "0") {
+      return "An observed zero denominator must be entered explicitly as 0.";
+    }
+    if (["Blank / unknown", "Not applicable"].includes(denominatorState) && observedDenominator) {
+      return "Clear the numeric denominator when its state is Blank / unknown or Not applicable.";
+    }
+    const resultState = text(data.resultState);
+    const actual = text(data.actual);
+    const numericActual = /^-?(?:\d+(?:\.\d*)?|\.\d+)%?$/.test(actual)
+      ? Number(actual.replace(/%$/, "")) : null;
+    if (resultState === "Observed zero" &&
+      (numericActual === null || numericActual !== 0)) {
+      return "For Observed zero, enter an actual numeric zero; do not leave the result blank.";
+    }
+    if (resultState === "Observed non-zero" && (!actual || numericActual === 0)) {
+      return "For Observed non-zero, enter an observed value that is not zero.";
+    }
+    if (resultState === "Observed non-zero" &&
+      /^(blank|unknown|not applicable|n\/?a|none|null)$/i.test(actual)) {
+      return "For Observed non-zero, replace unknown/blank/not-applicable text with the observed value or select its actual state.";
+    }
+    if (["Blank / unknown", "Not applicable"].includes(resultState) && actual) {
+      return "Clear Actual Result when its state is Blank / unknown or Not applicable; enter the reason separately.";
+    }
+    if (["Blank / unknown", "Not applicable"].includes(resultState) && !text(data.resultReason)) {
+      return "Explain why the observed result is Blank / unknown or Not applicable.";
+    }
+    if (!["Observed non-zero", "Observed zero", "Blank / unknown", "Not applicable"].includes(resultState)) {
+      return "Select an explicit observed-result state so zero, blank and not applicable cannot be confused.";
+    }
+    if (["Observed non-zero", "Observed zero"].includes(resultState) &&
+      denominatorState === "Blank / unknown") {
+      return "An observed result cannot use an unknown denominator. Enter the verified denominator, or select Not applicable and explain why this metric has no denominator.";
+    }
+    if (!text(data.denominator)) {
+      return "Explain the observed denominator source, or why a denominator is unknown or not applicable.";
+    }
+    if (text(data.action) && (!text(data.actionOwner) || !text(data.dueDate))) {
+      return "When an action/decision is recorded, provide its owner and due date; otherwise leave the action blank.";
+    }
+    if (data.controlFailure === "Yes" && !text(data.controlFailureDetail)) {
+      return "Describe the control failure signal, or change the answer if no failure was observed.";
+    }
+    if (data.accessExpansion === "Yes" && !text(data.accessExpansionDetail)) {
+      return "Describe the access-expansion signal, or change the answer if no expansion was observed.";
+    }
+    if (!["Yes", "No", "Unknown"].includes(text(data.controlFailure)) ||
+      !["Yes", "No", "Unknown"].includes(text(data.accessExpansion))) {
+      return "Select Yes, No or Unknown for control-failure and access-expansion review.";
+    }
+    if (!["Yes", "No", "Unknown"].includes(text(data.highImpact))) {
+      return "Select Yes, No or Unknown for review of highest-impact decisions.";
+    }
+    if (["Simple random", "Stratified random"].includes(text(data.selection)) &&
+      /^(n\/?a|not applicable)$/i.test(text(data.sampleMethod))) {
+      return "Record the random-selection method, seed or draw date so the sample can be reproduced.";
     }
     const samples = ["source", "selection", "population", "sample", "window"].map((key) => text(data[key]));
     const sampleStarted = samples.some(Boolean);
     if (sampleStarted && samples.some((item) => !item)) {
-      return "Complete all five sampling fields or clear all five if no sample was taken.";
+      return "Complete all five WCC-AIG-39 sampling-frame fields for the monitoring result.";
     }
     if (sampleStarted && (!/^\d+$/.test(text(data.population)) || !/^\d+$/.test(text(data.sample)) ||
-      Number(data.sample) < 1 || Number(data.sample) > Number(data.population))) {
-      return "Population and sample sizes must be whole numbers; sample size must be between one and the population size.";
+      Number(data.sample) > Number(data.population) ||
+      (Number(data.population) > 0 && Number(data.sample) < 1))) {
+      return "Population and sample sizes must be whole numbers; sample size must be zero only for an empty population and otherwise between one and the population size.";
+    }
+    if (text(data.selection) === "Full population (census)" &&
+      Number(data.sample) !== Number(data.population)) {
+      return "A full-population census must report the same population and sample sizes.";
+    }
+    if (Number(data.population) === 0 && text(data.selection) !== "Full population (census)") {
+      return "An empty population must use the full-population census basis; record the zero population explicitly.";
+    }
+    return "";
+  }
+
+  function validateIncident(data) {
+    const required = [
+      "system", "reporter", "role", "email", "identifiedAt", "classification",
+      "happened", "when", "discovery", "aiActivity", "affected", "impact",
+      "dataImpact", "decisionImpact"
+    ];
+    if (required.some((key) => !text(data[key]))) {
+      return "Complete WCC-AIG-19 Part A reporter/contact, system, identified time, classification, what/when/how discovered, AI activity, affected people/data/decisions and impact fields. State Unknown or not applicable where appropriate.";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(data.email))) {
+      return "Enter a valid reporter contact email for WCC-AIG-19 Part A.";
+    }
+    if (text(data.uplift) && !text(data.upliftReason)) {
+      return "Provide the rationale for a manual severity uplift.";
+    }
+    if (!text(data.uplift) && text(data.upliftReason)) {
+      return "Clear the uplift rationale when no manual severity uplift is selected.";
+    }
+    const partB = [
+      "controllerAwareness", "rightsRisk", "rightsAssessor", "rightsAssessmentDate",
+      "icoDecision", "decisionRationale", "decisionOwner", "dpoAdviceRef"
+    ].map((key) => text(data[key]));
+    if (partB.some(Boolean) && partB.some((item) => !item)) {
+      return "For the optional Part B pointer, complete controller-awareness time, rights-risk assessment and its assessor/date, and the DPO-informed notifiability decision, rationale and owner; otherwise leave every Part B field blank.";
+    }
+    return "";
+  }
+
+  function validateChange(data) {
+    if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
+      return "Enter a system name and an existing AIR-ID confirmed against current WCC-AIG-05; this tool cannot issue or verify identifiers.";
+    }
+    const planKeys = ["planGate", "planTrigger", "planRequirement", "planDate", "planRole", "planState", "planSourceVersion"];
+    const plan = planKeys.map((key) => text(data[key]));
+    const planStarted = plan.some(Boolean) || text(data.planBasis) || text(data.planWaiver) || text(data.planId);
+    if (planStarted && plan.some((item) => !item)) {
+      return "Complete every Gate Plan prompt, including source version and any N-A/waiver rationale and authority, or leave the plan blank.";
+    }
+    if (planStarted && text(data.planRequirement) === "Required" && !text(data.planBasis)) {
+      return "A Required Gate Plan needs a basis reference.";
+    }
+    if (planStarted && text(data.planRequirement) === "Not required" && !text(data.planWaiver)) {
+      return "A Not required Gate Plan needs its rationale and authority reference.";
+    }
+    if (planStarted && !["Required", "Not required"].includes(text(data.planRequirement))) {
+      return "Select the actual Gate Plan requirement status; do not infer it.";
+    }
+    if (text(data.planId) && !data.planIdVerified) {
+      return "Only enter an existing Plan ID checked against current WCC-AIG-36.";
+    }
+    const eventStarted = [
+      "decision", "eventId", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
+      "eventAuthority", "eventState", "assuranceOpinion", "nextGate", "eventNotes", "technicalSnapshot",
+      "recordedBy", "evidenceSource", "planEventId", "priorityBefore", "priorityAfter", "priorityRef"
+    ].some((key) => text(data[key]));
+    if (eventStarted && (!text(data.decision) || !text(data.eventDate) || !text(data.eventForum) ||
+      !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventRecord) ||
+      !text(data.eventAuthority) || !text(data.evidenceSource) || !text(data.eventState) || !data.eventConfirmed)) {
+      return "A Gate Event transfer checklist requires an actual authorised decision, date, forum, lifecycle stage, decision-maker, decision-record/minutes reference, evidence source/URI, recorded state, checked authority reference and confirmation.";
+    }
+    if (text(data.eventId) && !data.eventIdVerified) {
+      return "Only enter an existing Event ID checked against current WCC-AIG-36; do not invent one.";
+    }
+    if (text(data.planEventId) && !data.planEventIdVerified) {
+      return "Only enter an existing Plan ID checked against current WCC-AIG-36.";
+    }
+    const priority = ["priorityBefore", "priorityAfter", "priorityRef"].map((key) => text(data[key]));
+    if (priority.some(Boolean) && (priority.some((item) => !item) || priority[0] === priority[1])) {
+      return "Priority override fields must include before, after and the actual assurance priority update reference; the before and after values must differ.";
+    }
+    if (priority.some(Boolean) && text(data.decision) !== "Priority override") {
+      return "Only complete priority override fields for an actual Priority override decision.";
+    }
+    if (text(data.decision) === "Priority override" && !priority.every(Boolean)) {
+      return "A Priority override decision requires before/after priority values and the actual assurance priority update reference.";
+    }
+    const condition = ["condition", "conditionOwner", "conditionDue", "conditionState",
+      "conditionResolved", "conditionEvidence"].map((key) => text(data[key]));
+    if (condition.some(Boolean) && (!condition[0] || !condition[1] || !condition[2] || !condition[3] ||
+      !text(data.eventId) || !data.eventIdVerified)) {
+      return "A Gate Condition requires its action, owner, due date and an existing Event ID checked against current WCC-AIG-36.";
+    }
+    if (text(data.decision) === "Progress with condition" && !condition.some(Boolean)) {
+      return "Progress with condition requires a Gate Condition handover linked to the existing Event ID.";
+    }
+    if (condition[3] === "Resolved" && (!condition[4] || !condition[5])) {
+      return "A resolved Gate Condition needs its recorded resolution date and evidence reference.";
+    }
+    if (condition[3] === "Waived" && (!condition[4] || !condition[5])) {
+      return "A waived Gate Condition needs its recorded waiver date and evidence/authority reference.";
     }
     return "";
   }
@@ -166,7 +317,6 @@
     ROUTES,
     SEVERITY_ORDER,
     calculateRisk,
-    deadlineFor,
     escapeHtml,
     fileKey,
     handoverCsv,
@@ -174,7 +324,8 @@
     screeningEntries,
     severity,
     text,
-    tierFor,
+    validateChange,
+    validateIncident,
     validateMonitoring
   };
   root.GovernanceLogic = api;
