@@ -1,42 +1,43 @@
 # AI Post-Deployment Governance Router
 
-A single-page decision aid that supports the **operate-and-monitor** half of the AI governance lifecycle for a local authority. It sits alongside the AI Governance Triage Calculator and Lifecycle Walkthrough and covers what happens *after* a system goes live.
+A public, static working aid for the operate-and-monitor part of the AI governance lifecycle. It preserves three user tasks: incident triage, change reassessment and monitoring review. It produces draft handovers only; it is not a system of record, legal decision, approval workflow or runtime control.
 
-It is a **working aid, not a system of record.** Nothing it produces is an assurance record until it is saved into the controlled artefacts.
+**Suite status:** the integrated Westminster AI governance suite referenced by this tool is a proposed draft for Council review, not an approved or live suite. This tool must not be described as Council-approved.
 
-## What it does
+## Workflows
 
-Three tasks, behind one tab bar:
+- **Report an incident** — provisionally classifies selected severity indicators, suggests an internal route and indicative deadline, highlights a suspected personal-data-breach referral, and prepares a field/value draft for WCC-AIG-19. A WCC-AIG-30 draft is optional and labelled for owner review; incident severity does not establish an AIMS nonconformity.
+- **Assess a change** — collects reassessment triggers and optional inputs for an indicative residual-risk calculation. It prepares WCC-AIG-07 and, when relevant, current-state review handovers. It can separately prepare a prospective **Gate Plan**, a dated **Gate Event** handover only after the user confirms a real authorised decision, and an event-linked **Gate Condition** handover. The condition export does not invent an event ID; the 36 owner links it after logging the event.
+- **Log monitoring** — requires an existing AIR-ID confirmed against the current register, review period/date and owner, indicator, approved threshold, observed result and evidence location. Metric category is optional. It hands breach, material change or deteriorating trend to the change workflow. Optional sampling fields must be completed together.
 
-- **Report an incident** — classifies an AI incident by severity, routes it to the right forum on the right deadline, applies the data-breach overlay, and drafts a Part A for the Incident Report Form plus a row for the CAPA log.
-- **Assess a change** — tests whether a material change means a documented reassessment is required, recalculates indicative residual risk, prepares a field/value Risk Assessment handover and proposed Register changes, and prepares a Gate Log event and Governance Decision Record draft only when a decision is entered.
-- **Log monitoring** — requires an AIR-ID, review period, monitoring owner, indicator, approved threshold/tolerance, observed result and evidence location before preparing a Monitoring & Review Log row. It hands a breach or deteriorating drift straight to *Assess a change*.
+## Governance boundaries
 
-## How it maps to the framework
+- The proposed 05/36 design is one integrated workbook. **05** owns the permanent Council-issued AIR-ID and current assurance state. **36** separates prospective Gate Plans, dated Gate Events and event-linked Gate Conditions. Downloads from this tool are field/value drafts, not exact worksheet rows. Verify the current workbook headers and controlled lists before transferring any values.
+- The formal decision remains in WCC-AIG-16 or authorised native forum minutes; a Gate Event points to that record. WCC-AIG-45 governs agent authority and delegations. A role, score, forum label, handover or assurance opinion is not itself authority or approval.
+- No workflow creates an AIR-ID, event ID, approval, permission, legal scope finding, FRIA completion, publication or ISO conformity. The tool never connects to or updates a Council workbook, does not persist form data, and has no telemetry, account or upload.
+- AGPI is a prioritisation aid, not a waiver. Every tier requires case-specific screening for Equality Act 2010 section 149, Human Rights Act 1998 section 6, privacy/data protection and other applicable duties. The screening prompts confirm only that a matter was recorded or referred; they do not decide legal applicability or establish compliance.
+- EU AI Act, ATRS and procurement requirements are conditional. A case-specific legal or procurement owner must confirm applicability. Suspected personal data breaches should be referred to the DPO / Information Governance owner; this tool does not determine reportability or make a notification.
+- Risk calculations and incident routes are indicative. Review them against the current approved procedure, controlled assessment, competent owner and relevant holiday calendar before reliance.
 
-- Incident classification and escalation: Playbook §6.8 and §5.10
-- Reassessment triggers: Playbook §4.5.6 and the post-deployment reassessment triggers
-- Residual risk and tiering: Likelihood × Impact × (Control ÷ 5), highest impact dimension, tiered per §4.4.8 (≤5 Low, ≤10 Medium, ≤15 High, else Critical)
+Do not enter residents' names, case records, special-category data or other unnecessary personal information. Keep evidence in its native source and use approved, versioned pointers when recording evidence references.
 
-It prepares exact ordered spreadsheet rows for the CAPA log (WCC-AIG-30), Gate Log (WCC-AIG-36) and Monitoring & Review Log (WCC-AIG-39). Its Incident Report (WCC-AIG-19) Part A and Governance Decision Record (WCC-AIG-16) downloads are **draft text handovers**; the WCC-AIG-07 and WCC-AIG-05 CSVs are **field/value and proposed-change handovers**, not direct worksheet rows. Owners must confirm controlled lists and complete the controlled forms.
+## Static deployment
 
-Run `node --test qa-smoke.test.cjs` after edits to check that incomplete monitoring cannot be marked ready and that the decision gate and downloads still work.
+There are no runtime or build dependencies. Deploy **both** `index.html` and the `src/` directory at the same path on GitHub Pages (for example, the repository root on the Pages branch). The HTML loads the maintainable plain JavaScript modules at `src/logic.js` and `src/app.js`; keep those relative paths intact. No server, API, bundler or credentials are needed.
 
-## Deploying
+For local checks, run:
 
-It is a single `index.html` with no dependencies and no build step.
+```sh
+node --check src/logic.js
+node --check src/app.js
+node --test qa-smoke.test.cjs
+```
 
-1. Upload `index.html` to the repository root.
-2. Settings → Pages → Deploy from a branch → `main` → `/ (root)`.
-3. The tool is then live at the repository's GitHub Pages URL.
-
-To update, edit or re-upload `index.html`; Pages redeploys automatically.
+The automated checks cover incident severity floors and deadline arithmetic, residual-risk scoring, screening requirements, safe draft CSV handovers, file/HTML escaping, and static page governance boundaries.
 
 ## Limitations
 
-- A decision aid, not an assurance control. Outputs must be recorded in the controlled artefacts to have any evidential value.
-- Escalation deadlines exclude weekends and do not account for bank holidays.
-- Residual risk is re-entered by the user, not read from the Register, so the "before" comparison depends on correct current values.
-- Register updates paste into a row the user identifies by AIR-ID and, where known, sheet row number; check that AIR-ID before pasting. Never overwrite formula columns T/U.
-
-Draft, for Council review. Clause references should be validated against the Council's licensed copy of the controlled documents.
+- Draft handovers intentionally do not claim to match live or exact 05/36/39 worksheet headers. A controlled-record owner must verify the current integrated workbook and map fields before transfer.
+- The user attests that an entered AIR-ID, decision and references are real; this static tool cannot verify a record or delegation.
+- Business-day calculations exclude weekends but not bank holidays. Internal route labels and timescales need validation against current approved procedures.
+- The application is an aid, not an assurance control, records-management system, case-management tool or legal advice.
