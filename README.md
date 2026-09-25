@@ -2,7 +2,7 @@
 
 A public, static working aid for the operate-and-monitor part of the AI governance lifecycle. It preserves three user tasks: incident triage, change reassessment and monitoring review. It produces draft handovers only; it is not a system of record, legal decision, approval workflow or runtime control.
 
-**Suite status:** the integrated Westminster AI governance suite referenced by this tool is a proposed draft for Council review, not an approved or live suite. This tool must not be described as Council-approved.
+**Suite status:** the integrated AI governance suite referenced by this tool is a proposed draft for owner review, not an approved or live suite. This tool must not be described as approved.
 
 ## Workflows
 
