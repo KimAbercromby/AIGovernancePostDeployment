@@ -388,7 +388,7 @@
       <p class="note-inline">Reassessment may re-enter governance. Leave the decision blank until the authorised forum has decided. A Gate Log row is prepared only when the decision and decision date are entered.</p>
       <div class="grid2">
         <div><label class="fld" for="r_forum">Gate / forum</label>
-          <select id="r_forum"><option value="">— select forum —</option><option>AI Governance Working Group</option><option>AI Assurance Board</option><option>Delegated officer decision</option><option>Other</option></select></div>
+          <select id="r_forum"><option value="">— select forum —</option><option>AI Governance Working Group (assurance)</option><option>AI Assurance Board (assurance opinion only)</option><option>Delegated officer decision</option><option>Other delegated Council forum</option></select></div>
         <div><label class="fld" for="r_decision">Decision</label>
           <select id="r_decision"><option value="">Decision pending — leave blank until forum</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></div>
         <div><label class="fld" for="r_gateDate">Decision date</label><input type="date" id="r_gateDate"></div>
@@ -410,6 +410,7 @@
         <div><label class="fld" for="r_approval">New Governance Approval Status (AB)</label><select id="r_approval"><option value="">No status change proposed</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>On hold</option><option>Retrospective intake — pending</option></select></div>
         <div><label class="fld" for="r_operational">New operational Status (AF)</label><select id="r_operational"><option value="">No status change proposed</option><option>Active</option><option>Suspended</option><option>Decommissioned</option></select></div>
         <div><label class="fld" for="r_nextReview">Confirmed next review date (AE)</label><input type="date" id="r_nextReview"></div>
+        <div><label class="fld" for="r_agenticEvidence">If action authority changed: control and decision evidence reference <span class="hint">20 / 45 / 16 / 36; required before proposing Approved or Active</span></label><input type="text" id="r_agenticEvidence"></div>
       </div>
     </fieldset>
 
@@ -425,6 +426,7 @@
 <!-- ============ PANEL: MONITOR ============ -->
 <section id="panel-monitor" role="tabpanel" aria-labelledby="tab-mon" hidden>
   <p class="lede">Record a monitoring result against a live system's AIR-ID for the Monitoring &amp; Review Log (WCC-AIG-39). A within-tolerance result is the <strong>negative-assurance record</strong> that the system was monitored; a breach, deteriorating drift or material change is flagged and can be handed straight to <em>Assess a change</em> with the context carried over.</p>
+  <p class="note-inline">For action-capable agents at any base risk tier, agree applicable thresholds and owners before live use for denied tool calls, authority changes, persistent/shared memory writes, loops and delegation, external destinations, human overrides and time to containment. Use WCC-AIG-20/45 for ASI01–ASI10 control tests and WCC-AIG-50 action IDs in the evidence reference. This logger records an actual review result; it does not implement a runtime control.</p>
 
   <form id="m_form" novalidate>
     <fieldset>
@@ -441,6 +443,7 @@
     <fieldset>
       <legend><span class="n">2</span>Measurement and result</legend>
       <div class="grid2">
+        <div><label class="fld" for="m_agenticMetric">Agentic metric prompt <span class="hint">optional; sets the exact metric text below</span></label><select id="m_agenticMetric"><option value="">— choose if applicable —</option><option>Denied tool calls</option><option>Authority changes</option><option>Memory writes</option><option>Loops and delegation</option><option>External destinations</option><option>Human overrides</option><option>Time to containment</option></select></div>
         <div><label class="fld" for="m_cat">Metric category</label><select id="m_cat"></select></div>
         <div><label class="fld" for="m_metric">Metric / indicator</label><input type="text" id="m_metric" placeholder="e.g. accuracy vs ground truth"></div>
         <div><label class="fld" for="m_threshold">Approved threshold / tolerance</label><input type="text" id="m_threshold" placeholder="e.g. ≥ 95%"></div>
@@ -709,11 +712,12 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   function esc(s){return(s==null?"":String(s));}
   function isoToUk(v){if(!v)return"";var p=v.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:v;}
 
-  var CATS=["Performance","Fairness / Bias","Drift","Error / Failure","Human Oversight","Complaints / Challenges","Privacy","Security","Benefits / Outcomes","Other"];
+  var CATS=["Performance","Fairness / Bias","Drift","Error / Failure","Human Oversight","Complaints / Challenges","Privacy","Security","Benefits / Outcomes","Agentic security","Agentic operations","Other"];
   (function(){var o='<option value="">—</option>';CATS.forEach(function(c){o+='<option>'+c+'</option>';});$('m_cat').innerHTML=o;})();
+  $('m_agenticMetric').addEventListener('change',function(){if(!this.value)return;$('m_metric').value=this.value;$('m_cat').value=/tool|authority|memory|destination|containment/i.test(this.value)?'Agentic security':'Agentic operations';});
 
   // reassessment is indicated by breach, material change, or deteriorating drift/performance/error/fairness
-  var DRIFTY=["Drift","Performance","Error / Failure","Fairness / Bias"];
+  var DRIFTY=["Drift","Performance","Error / Failure","Fairness / Bias","Agentic security","Agentic operations"];
   function reassessIndicated(){
     if($('m_breach').value==="Yes")return true;
     if($('m_material').value==="Yes")return true;
@@ -757,16 +761,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     var err=$('m_formErr');
     if(!$('m_air').value.trim()){err.hidden=false;err.textContent="Add the AIR-ID from WCC-AIG-05 so this monitoring row joins to the correct system.";$('m_air').focus();return;}
     if(!$('m_cat').value&&!$('m_metric').value.trim()){err.hidden=false;err.textContent="Add a metric category or indicator to log.";$('m_cat').focus();return;}
-    var proofFields=[
-      ['m_period','Add the monitoring period for this review.'],
-      ['m_owner','Name the monitoring owner responsible for the result.'],
-      ['m_metric','Name the measured indicator; a metric category alone cannot evidence a completed review.'],
-      ['m_threshold','Enter the approved threshold or documented qualitative tolerance before confirming whether it was breached.'],
-      ['m_actual','Enter the observed result supporting the breach decision.'],
-      ['m_evidence','Provide the location of the underlying monitoring evidence.']
-    ];
-    var missing=proofFields.find(function(item){return !$(item[0]).value.trim();});
-    if(missing){err.hidden=false;err.textContent=missing[1];$(missing[0]).focus();return;}
+    if(/^Agentic /.test($('m_cat').value)&&(!$('m_owner').value.trim()||!$('m_threshold').value.trim()||!$('m_actual').value.trim()||!$('m_evidence').value.trim())){err.hidden=false;err.textContent="For an agentic result, record the monitoring owner, approved threshold, actual result and WCC-AIG-50 or other operating evidence reference.";$('m_owner').focus();return;}
     if(!$('m_breach').value||!$('m_material').value||!$('m_escalation').value||!$('m_status').value){err.hidden=false;err.textContent="Confirm threshold breach, material change, escalation and review status before preparing the WCC-AIG-39 row.";$('m_breach').focus();return;}
     if($('m_breach').value==='Yes'&&!$('m_sev').value){err.hidden=false;err.textContent="Choose a provisional severity for this threshold breach.";$('m_sev').focus();return;}
     var sampleIds=['m_sampleSource','m_selection','m_population','m_sampleSize','m_sampleWindow'];
@@ -842,7 +837,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
   var CADENCE={Low:12,Medium:12,High:3,Critical:1};
 
   function gateCells(ctx){
-    var notes="Reassessment following change: "+(ctx.change||"see risk assessment")+". Residual "+(ctx.residual!==""?ctx.residual:"n/a")+" ("+(ctx.newTier||"n/a")+")"+(ctx.prevTier?", was "+ctx.prevTier:"")+".";
+    var notes="Reassessment following change: "+(ctx.change||"see risk assessment")+". Residual "+(ctx.residual!==""?ctx.residual:"n/a")+" ("+(ctx.newTier||"n/a")+")"+(ctx.prevTier?", was "+ctx.prevTier:"")+"."+($('r_agenticEvidence').value.trim()?" Agentic controls and decision evidence: "+$('r_agenticEvidence').value.trim()+".":"");
     var headers=["Event ID","AIR-ID","System / Model Name","Gate / forum","Lifecycle stage","Date","Decision","Conditions set","Condition due","Condition status","Assurance opinion ref","Decision-maker / role","Next gate","Notes","Decision record / minutes ref"];
     var row=["",esc($('r_air').value),esc($('r_sys').value),esc($('r_forum').value),"Risk Assessment and Review",isoToUk($('r_gateDate').value),esc($('r_decision').value),esc($('r_conditions').value),isoToUk($('r_condDue').value),($('r_conditions').value?"Open":"Not applicable"),"",esc($('r_dm').value),esc($('r_nextGate').value),notes,esc($('r_minutes').value)];
     return {headers:headers,row:row};
@@ -860,9 +855,10 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
       'AIR-ID: '+esc($('r_air').value),
       'System identity: '+esc($('r_sys').value)+' (confirm against WCC-AIG-05)',
       'Decision date: '+isoToUk($('r_gateDate').value),
-      'Decision-making body: '+esc($('r_forum').value)+' (verify delegated authority)',
+      'Decision-making body: '+(/assurance/.test($('r_forum').value)?'[delegated Council decision forum pending; assurance opinion only]':esc($('r_forum').value)+' (verify delegated authority)'),
       'Risk classification: [confirm effective governance tier in WCC-AIG-07; indicative residual tier is '+(ctx.newTier||'not calculated')+']',
       'Decision authority / delegation reference: [decision-maker completes]',
+      'Agentic control, monitoring and decision evidence reference: '+(esc($('r_agenticEvidence').value)||'[complete when action authority changed]'),
       'Meeting / written-decision reference: '+esc($('r_minutes').value),
       '',
       '2. DECISION',
@@ -911,6 +907,8 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     var err=$('r_formErr');
     if(!$('r_air').value.trim()){err.hidden=false;err.textContent="Add the AIR-ID from WCC-AIG-05 so the reassessment and exports join to the right system.";$('r_air').focus();return;}
     if($('r_decision').value&&(!$('r_forum').value||!$('r_gateDate').value||!$('r_dm').value.trim())){err.hidden=false;err.textContent="To export a WCC-AIG-36 decision, enter the forum, decision date and decision-maker; otherwise leave Decision pending.";$('r_forum').focus();return;}
+    if(/assurance/.test($('r_forum').value)&&($('r_approval').value==='Approved'||$('r_operational').value==='Active')){err.hidden=false;err.textContent="The AI governance forums give assurance opinions. Select the Council forum with confirmed delegation before proposing Approved or Active.";$('r_forum').focus();return;}
+    if(triggers().indexOf('Change to autonomous action authority')!==-1&&($('r_approval').value==='Approved'||$('r_operational').value==='Active')&&!$('r_agenticEvidence').value.trim()){err.hidden=false;err.textContent="For changed action authority, cite the reviewed WCC-AIG-20/45 controls, WCC-AIG-16/36 delegated decision and WCC-AIG-39 monitoring plan before proposing Approved or Active.";$('r_agenticEvidence').focus();return;}
     err.hidden=true;
     var trigs=triggers(),required=trigs.length>0;
     var I=impactMax(),L=$('r_lik').value?+$('r_lik').value:null,C=$('r_ctrl').value?+$('r_ctrl').value:null;
@@ -955,13 +953,11 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     }else html+='<div class="route-box"><h3>WCC-AIG-36 · Awaiting decision</h3><p>Return to the Governance decision section after the forum has decided. No Gate Log decision row is exported while Decision is pending.</p></div>';
     if(trigs.some(function(x){return /autonomous action authority|model|data or datasets|supplier or model update/i.test(x);}))html+='<div class="route-box"><h3>Agentic change check · WCC-AIG-45 / 46</h3><p>If this system can act, review the Agent Record (ASBOM), authority graph, connected tools, boundaries and kill switch. Record any material agentic decision in the relevant controlled record, including WCC-AIG-50 where an action decision requires it. These records need owner and specialist assessment; no automatic approval is implied.</p></div>';
 
-    var rowN=esc($('r_row').value).trim();
-    var knownRow=/^[1-9]\d*$/.test(rowN);
-    var rowInstruction=knownRow?'click cell <strong>R'+escHtml(rowN)+'</strong> and paste':'identify the system’s existing row by AIR-ID, then paste into column R of that row';
+    var rowN=esc($('r_row').value)||"the system's";
     html+='<div class="export-block"><h3>WCC-AIG-05 · AI Register proposed changes</h3>';
     html+='<div class="warn"><strong>Review against AIR-ID '+escHtml($('r_air').value)+'</strong> and the controlled Risk Assessment before updating the existing system row. Do not paste over T (Residual Risk) or U (Risk Tier): these are formulas. No approval or operational status is inferred from a score.</div>';
     if(residual!==""){
-      html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — '+rowInstruction+'. T and U then recalc.</div>';
+      html+='<div class="blockrow"><span class="cols">R:S</span> Inherent Risk, Control Effectiveness — click cell <strong>R'+rowN+'</strong> and paste. T and U then recalc.</div>';
       html+='<pre class="paste">'+escHtml("R (Inherent Risk): "+inherent+"\nS (Control Effectiveness): "+C)+'</pre>';
       html+='<button type="button" class="op btn-ghost btn-sm" id="r_cpR">Copy R:S</button>';
     }
@@ -977,7 +973,7 @@ function wireCopy(btn,text,msg){if(!btn)return;btn.addEventListener('click',func
     if($('r_cpGate'))wireCopy($('r_cpGate'),gateTSV(ctx),'Copied — paste into the next empty Gate Log row');
     if($('r_dlGate'))$('r_dlGate').addEventListener('click',function(){download('WCC-AIG-36_Gate_Log_row_'+fileKey($('r_air').value)+'.csv',gateCSV(ctx),'text/csv');});
     if($('r_dlDecision'))$('r_dlDecision').addEventListener('click',function(){download('WCC-AIG-16_Decision_draft_'+fileKey($('r_air').value)+'.txt',decisionHandover(ctx));});
-    if(residual!=="")wireCopy($('r_cpR'),[inherent,C].map(tsvCell).join("\t"),knownRow?'Copied — click R'+rowN+' and paste':'Copied — find the AIR-ID row and paste into its column R');
+    if(residual!=="")wireCopy($('r_cpR'),[inherent,C].map(tsvCell).join("\t"),'Copied — click R'+rowN+' and paste');
     if($('r_dlRegister'))$('r_dlRegister').addEventListener('click',function(){download('WCC-AIG-05_Register_changes_'+fileKey($('r_air').value)+'.csv',registerCSV,'text/csv');});
     var rr=$('r_results');if(rr.scrollIntoView)rr.scrollIntoView({behavior:"smooth",block:"start"});
   }
