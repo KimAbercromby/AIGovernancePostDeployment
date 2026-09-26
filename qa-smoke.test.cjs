@@ -97,6 +97,10 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     ...event, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
     conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open'
   }), '');
+  assert.equal(governance.validateChange({
+    ...base, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
+    conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open'
+  }), '', 'an existing event-linked condition does not require a new decision');
   assert.match(governance.validateChange({
     ...base, mapChangeDate: '2026-09-25', mapChangeType: 'Change access',
     mapPrevious: 'Read', mapNext: 'Write', mapExpansion: 'Yes', mapOwner: 'Owner'
@@ -221,6 +225,12 @@ test('three distinct post-deployment workflows and exports are present', () => {
   }
   assert.match(app, /Existing verified Event ID/);
   assert.match(app, /Event ID.*Existing verified Event ID/);
+});
+
+test('condition-only handoff is independent from decision export', () => {
+  const app = read('src/app.js');
+  assert.match(app, /if \(decision\) \{[\s\S]*?\n    \}\n    if \(conditionStarted\) \{/);
+  assert.match(app, /AIG-DEC-04 event-linked Gate Condition/);
 });
 
 test('map change handoff carries reassessment and only an existing Gate Event link', () => {

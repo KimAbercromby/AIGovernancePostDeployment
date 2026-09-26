@@ -418,19 +418,19 @@
         ["Authority / delegation reference", value("e-authority"), "AIG-AGT-04 reference; verify exact scope"],
         ["Handover boundary", "Pointer only — not the decision record", "Do not replace, copy or treat this handover as the authoritative record"]
       ], value("c-air"));
-      if (conditionStarted) {
-        addDownload(downloads, "AIG-DEC-04 event-linked Gate Condition", "AIG-DEC-04 Gate Condition draft (.csv)", [
-          ["Condition ID", "", "Council assigns; do not invent"],
-          ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
-          ["AIR-ID derived", value("c-air"), "Derived from the verified parent system record"],
-          ["action", value("e-condition"), "Copy only if present in the authorised decision"],
-          ["owner", value("e-condition-owner"), "Confirm assignment"],
-          ["due", value("e-condition-due"), "Confirm against the authorised decision"],
-          ["state", value("e-condition-state"), "Use current controlled state; tool does not close a condition"],
-          ["resolved/waived on", value("e-condition-resolved"), "Leave blank unless resolution/waiver is recorded"],
-          ["resolution evidence/waiver authority", value("e-condition-evidence"), "Reference actual evidence or authority only"]
-        ], value("c-air"));
-      }
+    }
+    if (conditionStarted) {
+      addDownload(downloads, "AIG-DEC-04 event-linked Gate Condition", "AIG-DEC-04 Gate Condition draft (.csv)", [
+        ["Condition ID", "", "Council assigns; do not invent"],
+        ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
+        ["AIR-ID derived", value("c-air"), "Derived from the verified parent system record"],
+        ["action", value("e-condition"), "Copy only if present in the authorised decision"],
+        ["owner", value("e-condition-owner"), "Confirm assignment"],
+        ["due", value("e-condition-due"), "Confirm against the authorised decision"],
+        ["state", value("e-condition-state"), "Use current controlled state; tool does not close a condition"],
+        ["resolved/waived on", value("e-condition-resolved"), "Leave blank unless resolution/waiver is recorded"],
+        ["resolution evidence/waiver authority", value("e-condition-evidence"), "Reference actual evidence or authority only"]
+      ], value("c-air"));
     }
 
     const mandatory = triggers.length > 0;
