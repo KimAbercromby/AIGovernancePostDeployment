@@ -38,12 +38,17 @@ test('AIG-ASS-02 arithmetic does not infer undocumented residual-tier bands', ()
 test('AIG-OPS-03 Part A and optional Part B reject missing or misleading inputs', () => {
   const partA = {
     system: 'Service', reporter: 'Reporter', role: 'Officer', email: 'reporter@example.org',
+    useScope: 'Unknown',
     identifiedAt: '2026-09-25T09:00', classification: 'Near miss', happened: 'Unexpected output',
     when: '2026-09-25T08:30', discovery: 'Monitoring alert', aiActivity: 'Ranking cases',
     affected: 'Residents; Unknown number', impact: 'Potential delay', dataImpact: 'Unknown',
     decisionImpact: 'No decision known'
   };
   assert.equal(governance.validateIncident(partA), '');
+  assert.match(governance.validateIncident({ ...partA, useScope: '' }), /explicit use scope/i);
+  assert.match(governance.validateIncident({ ...partA, useScope: 'UC-ID specific' }), /exact UC-ID/i);
+  assert.match(governance.validateIncident({ ...partA, useScope: 'Shared system baseline', ucId: 'UC-1' }), /Clear the UC-ID/i);
+  assert.equal(governance.validateIncident({ ...partA, useScope: 'UC-ID specific', ucId: 'UC-1' }), '');
   assert.match(governance.validateIncident({ ...partA, uplift: 'High' }), /rationale for a manual severity uplift/i);
   assert.match(governance.validateIncident({ ...partA, upliftReason: 'Additional harm context' }), /Clear the uplift rationale/i);
   assert.equal(governance.validateIncident({ ...partA, uplift: 'High', upliftReason: 'Additional harm context' }), '');
@@ -64,28 +69,47 @@ test('AIG-OPS-03 Part A and optional Part B reject missing or misleading inputs'
 });
 
 test('AIG-DEC-04 change handover requires real plan, event and condition references', () => {
-  const base = { airId: 'AIR-REAL-1', airIdVerified: true, system: 'Service' };
+  const base = { airId: 'AIR-REAL-1', airIdVerified: true, system: 'Service', useScope: 'Unknown' };
   assert.equal(governance.validateChange(base), '');
   assert.match(governance.validateChange({ ...base, airIdVerified: false }), /existing AIR-ID/i);
-  assert.match(governance.validateChange({ ...base, planGate: 'Assurance review' }), /Complete every Gate Plan prompt/i);
+  assert.match(governance.validateChange({ ...base, planGate: 'Assurance review', planUseScope: 'Unknown' }), /Complete every Gate Plan prompt/i);
   const plan = {
     ...base, planGate: 'Review forum', planTrigger: 'Pre-release', planRequirement: 'Required',
+    planUseScope: 'UC-ID specific', planUcId: 'UC-REAL-1',
     planBasis: 'Existing change record', planDate: '2026-11-01', planRole: 'Service Owner',
     planState: 'Planned', planSourceVersion: '1.5 draft', planCriteria: 'Assurance evidence pack'
   };
   assert.equal(governance.validateChange(plan), '');
+  assert.match(governance.validateChange({ ...plan, planUcId: '' }), /exact UC-ID covered/i);
   assert.match(governance.validateChange({ ...plan, planBasis: '' }), /basis reference/i);
   assert.match(governance.validateChange({
     ...base, planGate: 'Review', planTrigger: 'Before release', planRequirement: 'Not required',
+    planUseScope: 'Unknown',
     planDate: '2026-11-01', planRole: 'Owner', planState: 'Planned', planSourceVersion: '1.5'
   }), /rationale and authority/i);
   const event = {
     ...base, decision: 'Progress', eventDate: '2026-09-25', eventForum: 'Board',
+    eventUseScope: 'Unknown',
     eventLifecycle: 'Pre-deployment', eventMaker: 'Authorised role', eventRecord: 'Minute ref',
     eventAuthority: 'AIG-AGT-04 ref', evidenceSource: 'Approved evidence URI',
     eventState: 'Owner-entered state', eventConfirmed: true
   };
   assert.equal(governance.validateChange(event), '');
+  assert.match(governance.validateChange({ ...event, eventUseScope: '' }), /decision scope/i);
+  const scopedEvent = {
+    ...event, eventUseScope: 'UC-ID specific', eventUcId: 'UC-REAL-1',
+    useDecisionRef: 'DEC-UC-42', permittedPurpose: 'Triage only', permittedUsers: 'Reviewers',
+    permittedData: 'Submitted application data', permittedActions: 'Rank for review',
+    exclusions: 'No final decisions', permittedConditions: 'Human review required'
+  };
+  assert.equal(governance.validateChange(scopedEvent), '');
+  assert.match(governance.validateChange({ ...scopedEvent, useDecisionRef: '' }), /per-UC decision reference/i);
+  assert.match(governance.validateChange({ ...event, eventUseScope: 'Unknown', eventUcId: 'UC-REAL-1' }), /Clear UC-specific/i);
+  assert.match(governance.validateChange({
+    ...scopedEvent, eventId: 'EVT-REAL-1', eventIdVerified: true,
+    condition: 'Keep human review', conditionOwner: 'Owner', conditionDue: '2026-10-10',
+    conditionState: 'Open', conditionUseScope: 'UC-ID specific', conditionUcId: 'UC-OTHER'
+  }), /match the event.s exact use scope/i);
   assert.match(governance.validateChange({ ...event, eventAuthority: '' }), /actual authorised decision/i);
   assert.match(governance.validateChange({ ...event, eventRecord: '' }), /decision-record\/minutes reference/i);
   assert.match(governance.validateChange({ ...event, evidenceSource: '' }), /transfer checklist requires.*evidence source/i);
@@ -95,16 +119,20 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
   assert.match(governance.validateChange({ ...event, decision: 'Priority override' }), /requires before\/after priority values/i);
   assert.equal(governance.validateChange({
     ...event, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
-    conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open'
+    conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open',
+    conditionUseScope: 'Unknown'
   }), '');
   assert.equal(governance.validateChange({
     ...base, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
-    conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open'
+    conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open',
+    conditionUseScope: 'Unknown'
   }), '', 'an existing event-linked condition does not require a new decision');
   assert.match(governance.validateChange({
     ...base, mapChangeDate: '2026-09-25', mapChangeType: 'Change access',
     mapPrevious: 'Read', mapNext: 'Write', mapExpansion: 'Yes', mapOwner: 'Owner'
   }), /reassessment reference/i);
+  assert.match(governance.validateChange({ ...base, ucId: 'UC-1' }), /Clear the UC-ID/i);
+  assert.equal(governance.validateChange({ ...base, useScope: 'UC-ID specific', ucId: 'UC-1' }), '');
 });
 
 test('all case-specific duty screening prompts are required for ready handover', () => {
@@ -117,7 +145,8 @@ test('all case-specific duty screening prompts are required for ready handover',
 
 test('AIG-OPS-02 handover requires identity, provenance, denominators and review signals', () => {
   const complete = {
-    airId: 'AIR-TEST-VALID', airIdVerified: true, system: 'Service', category: 'Performance', metric: 'Accuracy',
+    airId: 'AIR-TEST-VALID', airIdVerified: true, system: 'Service', useScope: 'Unknown',
+    category: 'Performance', metric: 'Accuracy',
     period: '2026-Q3', date: '2026-09-25', owner: 'Service Owner', threshold: 'Approved threshold ref',
     actual: '93%', evidence: 'Versioned evidence pointer', breach: 'No', material: 'No',
     escalation: 'No', reassessment: 'No', status: 'Reviewed', severity: '',
@@ -131,14 +160,17 @@ test('AIG-OPS-02 handover requires identity, provenance, denominators and review
     trend: 'Stable'
   };
   assert.equal(governance.validateMonitoring(complete), '');
-  for (const field of ['airIdVerified', 'system', 'date', 'period', 'owner', 'metric', 'threshold',
+  assert.match(governance.validateMonitoring({ ...complete, useScope: 'Explicit shared system measure', ucId: 'UC-1' }), /Clear the UC-ID/i);
+  assert.match(governance.validateMonitoring({ ...complete, useScope: 'UC-ID specific' }), /exact UC-ID/i);
+  assert.equal(governance.validateMonitoring({ ...complete, useScope: 'UC-ID specific', ucId: 'UC-1' }), '');
+  for (const field of ['airIdVerified', 'system', 'useScope', 'date', 'period', 'owner', 'metric', 'threshold',
     'evidence', 'evidenceVersion', 'checker', 'dataCut', 'denominator', 'controlFailure',
     'accessExpansion', 'reassessment', 'denominatorState', 'resultState']) {
     const incomplete = { ...complete, [field]: field === 'airIdVerified' ? false : '' };
     assert.notEqual(governance.validateMonitoring(incomplete), '', `${field} must block a handover`);
   }
   assert.match(governance.validateMonitoring({ ...complete, breach: 'Yes' }), /provisional severity/i);
-  assert.match(governance.validateMonitoring({ ...complete, source: '' }), /For a AIG-OPS-02 handover/i);
+  assert.match(governance.validateMonitoring({ ...complete, source: '' }), /For an AIG-OPS-02 handover/i);
   assert.match(governance.validateMonitoring({ ...complete, controlFailure: 'Yes' }), /control failure signal/i);
   assert.match(governance.validateMonitoring({ ...complete, accessExpansion: 'Yes' }), /access-expansion signal/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '' }), /enter an actual numeric zero/i);
@@ -206,12 +238,17 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /permanent .*AIR-ID and current assurance state/i);
   assert.match(html + app, /prospective plan, dated event and event-linked conditions/);
   assert.match(html, /AIG-AGT-04/);
-  assert.match(html, /AIG-INV-04 is the Register and owns each system.s permanent AIR-ID/i);
+  assert.match(html, /AIG-INV-04 is the Register and owns one permanent AIR-ID.*per system/i);
+  assert.match(html, /system-level Approved baseline does not approve any UC-ID/i);
+  assert.match(html, /Unknown is not shared scope/i);
   assert.match(html, /Proposed controlled AIG-INV-05 is a relationship map only.*decision, permission or approval source/i);
   assert.match(app, /current AIG-INV-04/);
   assert.match(app, /AIG-DEC-03.*native minutes/);
   assert.match(app, /PENDING OWNER VERIFICATION/);
   assert.match(app, /current AIG-DEC-04 controlled vocabulary/);
+  assert.match(app, /Use-specific decision reference/);
+  assert.match(html + app, /Permitted purpose/);
+  assert.match(html + app, /Use-specific operating conditions/);
   assert.match(html + app, /separate standalone draft workbooks/);
   assert.doesNotMatch(html + app, /Westminster/i);
 });
@@ -245,6 +282,8 @@ test('map change handoff carries reassessment and only an existing Gate Event li
   assert.match(app, /Capabilities and System Map change handoff \(\.csv\)/);
   const entries = governance.mapChangeHandoverEntries({
     airId: 'AIR-EXISTING',
+    useScope: 'UC-ID specific',
+    ucId: 'UC-REAL-1',
     changeDate: '2026-09-25',
     changeType: 'Change access',
     previous: 'Read access',
@@ -255,6 +294,7 @@ test('map change handoff carries reassessment and only an existing Gate Event li
     eventId: ''
   });
   assert.equal(entries.find((row) => row[0] === 'Change ID')[1], '');
+  assert.equal(entries.find((row) => row[0] === 'UC-ID')[1], 'UC-REAL-1');
   assert.equal(entries.find((row) => row[0] === 'Edge ID')[1], '');
   assert.equal(entries.find((row) => row[0] === 'Review / reassessment ref')[1], 'RA-2026-14');
   assert.equal(entries.find((row) => row[0] === 'Gate Event ID (if needed)')[1], '');
