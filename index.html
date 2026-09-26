@@ -90,18 +90,18 @@
   <main id="main" class="wrap">
     <aside class="notice" role="note">
       <strong>Draft handovers only — never approval or a system of record.</strong>
-      The 05 Register, 36 Gate Log and Capabilities and System Map drafts are separate proposed workbooks, not approved/live records. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Confirm exact fields in the current controlled records before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
+      <strong>Record key:</strong> AIG-INV-04 is the Register and owns each system’s permanent AIR-ID and current assurance state; AIG-DEC-04 is the separate Gate Log for plans, events and conditions. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Confirm exact fields in the current controlled records before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
       <p class="small">AGPI is prioritisation, not a waiver. Equality Act 2010 section 149, Human Rights Act 1998 section 6, privacy and other case-specific duties require screening for every tier. EU AI Act, ATRS and procurement duties are conditional: ask the legal/procurement owner to confirm applicability for the case.</p>
     </aside>
 
     <section class="panel" id="panel-incident" role="tabpanel" aria-labelledby="tab-incident">
-      <p class="intro">Report an incident, near miss or concern, identify a provisional internal route, and prepare the WCC-AIG-19 Part A handover. Submit Part A to the AI Governance Lead as soon as the incident is identified. Severity alone does not establish an AIMS nonconformity.</p>
+      <p class="intro">Report an incident, near miss or concern, identify a provisional internal route, and prepare the AIG-OPS-03 Part A handover. Submit Part A to the AI Governance Lead as soon as the incident is identified. Severity alone does not establish an AIMS nonconformity.</p>
       <form id="incident-form" novalidate>
         <fieldset><legend>Incident and system</legend>
           <div class="grid">
             <label class="field">System / service name<input id="i-system" type="text" autocomplete="off"></label>
-            <label class="field">Existing AIR-ID, if known<input id="i-air" type="text" placeholder="Use only an ID verified in current 05"></label>
-            <label class="check"><input id="i-air-verified" type="checkbox"><span>If entered, this existing AIR-ID was checked against the current 05 register.</span></label>
+            <label class="field">Existing AIR-ID, if known<input id="i-air" type="text" placeholder="Use only an ID verified in AIG-INV-04"></label>
+            <label class="check"><input id="i-air-verified" type="checkbox"><span>If entered, this existing AIR-ID was checked against the AIG-INV-04 Register.</span></label>
             <label class="field">Reported by<input id="i-reporter" type="text" autocomplete="name"></label>
             <label class="field">Reporter role / service team<input id="i-role" type="text"></label>
             <label class="field">Contact email<input id="i-email" type="email" autocomplete="email"></label>
@@ -193,19 +193,19 @@
     </section>
 
     <section class="panel" id="panel-change" role="tabpanel" aria-labelledby="tab-change" hidden>
-      <p class="intro">Screen a change, calculate indicative WCC-AIG-07 risk arithmetic, and prepare separate draft handovers for 07, 05, prospective 36 Gate Plans, dated 36 Gate Events and event-linked 36 Gate Conditions. The map handoff is separate; this tool writes into no workbook.</p>
+      <p class="intro">Screen a change, calculate indicative AIG-ASS-02 risk arithmetic, and prepare separate draft handovers for AIG-ASS-02, AIG-INV-04, prospective AIG-DEC-04 Gate Plans, dated Gate Events and event-linked Gate Conditions. The AIG-INV-05 map handoff is separate; this tool writes into no workbook.</p>
       <form id="change-form" novalidate>
         <fieldset><legend>Existing system and change</legend>
           <div class="grid">
-            <label class="field">Existing AIR-ID<input id="c-air" type="text" placeholder="Required — verify in current 05"></label>
-            <label class="field">Confirm AIR-ID checked against current 05<input id="c-air-verified" type="checkbox"> <small>Do not use a proposed or guessed identifier.</small></label>
+            <label class="field">Existing AIR-ID<input id="c-air" type="text" placeholder="Required — verify in AIG-INV-04"></label>
+            <label class="field">Confirm AIR-ID checked against AIG-INV-04<input id="c-air-verified" type="checkbox"> <small>Do not use a proposed or guessed identifier.</small></label>
             <label class="field">System / service name<input id="c-system" type="text"></label>
             <label class="field">Current tier, if confirmed<select id="c-current-tier"><option value="">Not entered / not confirmed</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></label>
           </div>
           <label class="field">Describe the change / signal<textarea id="c-description"></textarea></label>
         </fieldset>
         <fieldset><legend>Reassessment trigger and indicative residual risk</legend>
-          <p class="section-note">Any selected trigger indicates documented reassessment for this aid. The risk score is indicative, not an approval or legal screening outcome. The separate Capabilities and System Map draft is a relationship catalogue, not a second register.</p>
+          <p class="section-note">Any selected trigger indicates documented reassessment for this aid. The risk score is indicative, not an approval or legal screening outcome. The proposed controlled AIG-INV-05 Capabilities and System Map is a relationship catalogue, not a second register; it is not approved or live.</p>
           <div class="check-list">
             <label class="check"><input type="checkbox" data-trigger><span>Model, data, supplier or system change</span></label>
             <label class="check"><input type="checkbox" data-trigger><span>Purpose, population or deployment-scope change</span></label>
@@ -227,7 +227,7 @@
           </div>
         </fieldset>
         <fieldset><legend>Optional Capabilities and System Map change handoff</legend>
-          <p class="section-note">Use this section to prepare a separate map-change handoff. A new or expanded system/tool access edge requires owner review and a reassessment reference. This map does not grant access or authority: 45 remains authoritative for agent scope and permissions; 46 covers derived delegation paths. A Gate Event link is optional and must be an existing Event ID verified in 36. If no event has been logged, leave it blank; never invent an ID.</p>
+          <p class="section-note">Use this section to prepare a separate map-change handoff. A new or expanded system/tool access edge requires owner review and a reassessment reference. Proposed controlled artefact AIG-INV-05 is not approved/adopted and does not grant access or authority: AIG-AGT-04 remains authoritative for agent scope and permissions; AIG-AGT-05 covers derived delegation paths. A Gate Event link is optional and must be an existing Event ID verified in AIG-DEC-04. If no event has been logged, leave it blank; never invent an ID.</p>
           <div class="grid">
             <label class="field">Map change date<input id="map-change-date" type="date"></label>
             <label class="field">Change type<select id="map-change-type"><option value="">Select</option><option>Add relationship</option><option>Update relationship</option><option>Remove relationship</option><option>Change access</option><option>Other</option></select></label>
@@ -236,7 +236,7 @@
             <label class="field">Access expansion?<select id="map-expansion"><option value="">Select</option><option>No</option><option>Yes</option><option>Unsure</option></select></label>
             <label class="field">Change owner / role<input id="map-owner" type="text"></label>
             <label class="field">Reassessment reference<input id="map-reassessment" type="text"><small>Required when access expansion is Yes or Unsure; cite the actual reassessment record/reference.</small></label>
-            <label class="field">Existing Gate Event ID, if appropriate<input id="map-event" type="text"><small>Only use an actual Event ID checked in 36. Leave blank until an event is logged by its owner.</small></label>
+            <label class="field">Existing Gate Event ID, if appropriate<input id="map-event" type="text"><small>Only use an actual Event ID checked in AIG-DEC-04. Leave blank until an event is logged by its owner.</small></label>
           </div>
         </fieldset>
         <fieldset><legend>Prospective Gate Plan — separate from a decision</legend>
@@ -252,16 +252,16 @@
             <label class="field">N-A / waiver rationale and authority reference<input id="p-waiver" type="text"></label>
             <label class="field">Source version<input id="p-source-version" type="text"></label>
             <label class="field">Existing Plan ID, if assigned<input id="p-planid" type="text"></label>
-            <label class="check"><input id="p-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against current 36.</span></label>
+            <label class="check"><input id="p-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against current AIG-DEC-04.</span></label>
             <label class="field">Planned criteria / evidence to bring<textarea id="p-criteria"></textarea></label>
           </div>
         </fieldset>
         <fieldset><legend>Dated Gate Event transfer checklist — only after a real authorised decision</legend>
-          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in WCC-AIG-16 or authorised native forum minutes. WCC-AIG-36 should point to that record; WCC-AIG-45 governs agent authority. Local decision/state controlled-value mapping is pending owner confirmation against the current 36 workbook. This draft creates no decision, permission, event ID or approval.</p>
+          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in AIG-DEC-03 or authorised native forum minutes. AIG-DEC-04 should point to that record; AIG-AGT-04 governs agent authority. Local decision/state controlled-value mapping is pending owner confirmation against the current AIG-DEC-04 workbook. This draft creates no decision, permission, event ID or approval.</p>
           <div class="grid">
             <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></label>
             <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
-            <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against current 36. Do not invent one.</span></label>
+            <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against AIG-DEC-04. Do not invent one.</span></label>
             <label class="field">Decision date<input id="e-date" type="date"></label>
             <label class="field">Gate / forum<input id="e-forum" type="text"></label>
             <label class="field">Lifecycle stage<input id="e-lifecycle" type="text"></label>
@@ -269,20 +269,20 @@
             <label class="field">Decision-maker / role<input id="e-maker" type="text"></label>
             <label class="field">Next gate<input id="e-next-gate" type="text"></label>
             <label class="field">Event notes<textarea id="e-notes"></textarea></label>
-            <label class="field">WCC-AIG-16 or native minutes reference<input id="e-record" type="text"></label>
-            <label class="field">WCC-AIG-45 authority / delegation reference<input id="e-authority" type="text"></label>
+            <label class="field">AIG-DEC-03 or native minutes reference<input id="e-record" type="text"></label>
+            <label class="field">AIG-AGT-04 authority / delegation reference<input id="e-authority" type="text"></label>
             <label class="field">Technical snapshot / as-at reference<input id="e-snapshot" type="text"></label>
-            <label class="field">Event record state<input id="e-record-state" type="text" placeholder="Transcribe current controlled value; owner mapping pending"><small>Exact current WCC-AIG-36 state vocabulary is not confirmed by this tool.</small></label>
+            <label class="field">Event record state<input id="e-record-state" type="text" placeholder="Transcribe current controlled value; owner mapping pending"><small>Exact current AIG-DEC-04 state vocabulary is not confirmed by this tool.</small></label>
             <label class="field">Recorded by / role<input id="e-recorded-by" type="text"></label>
             <label class="field">Evidence source / URI<input id="e-evidence" type="text"></label>
             <label class="field">Existing Plan ID, optional<input id="e-planid" type="text"></label>
-            <label class="check"><input id="e-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against current 36.</span></label>
+            <label class="check"><input id="e-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against AIG-DEC-04.</span></label>
             <label class="field">Priority before override<input id="e-priority-before" type="text"></label>
             <label class="field">Priority after override<input id="e-priority-after" type="text"></label>
             <label class="field">Assurance priority update reference<input id="e-priority-ref" type="text"></label>
             <label class="check"><input id="e-confirmed" type="checkbox"><span>I confirm this transcribes a decision already made by an authorised decision-maker and that the decision record, authority/delegation and evidence source references above are present, real and checked. This does not confirm local controlled-value mapping.</span></label>
           </div>
-          <h3>Optional event-linked condition (requires an existing 36 Event ID)</h3>
+          <h3>Optional event-linked condition (requires an existing AIG-DEC-04 Event ID)</h3>
           <div class="grid">
             <label class="field">Condition / required action<input id="e-condition" type="text"></label>
             <label class="field">Condition owner / role<input id="e-condition-owner" type="text"></label>
@@ -309,13 +309,13 @@
     </section>
 
     <section class="panel" id="panel-monitor" role="tabpanel" aria-labelledby="tab-monitor" hidden>
-      <p class="intro">Prepare a draft WCC-AIG-39 monitoring review and hand a breach, deteriorating drift, material change, control failure or access expansion to reassessment. This does not create a live workbook row or implement runtime controls.</p>
+      <p class="intro">Prepare a draft AIG-OPS-02 monitoring review and hand a breach, deteriorating drift, material change, control failure or access expansion to reassessment. This does not create a live workbook row or implement runtime controls.</p>
       <form id="monitor-form" novalidate>
         <fieldset><legend>System, period and measurement</legend>
           <p class="section-note">Record the observed result and its state separately from the observed metric denominator. “Observed zero” is an actual value of 0; “Blank / unknown” means no value was observed. The denominator is also separate from the sampling population and reviewed sample.</p>
           <div class="grid">
-            <label class="field">Existing AIR-ID<input id="m-air" type="text" placeholder="Required — verify in current 05"></label>
-            <label class="field">Confirm AIR-ID checked against current 05<input id="m-air-verified" type="checkbox"> <small>No fabricated identifiers.</small></label>
+            <label class="field">Existing AIR-ID<input id="m-air" type="text" placeholder="Required — verify in AIG-INV-04"></label>
+            <label class="field">Confirm AIR-ID checked against AIG-INV-04<input id="m-air-verified" type="checkbox"> <small>No fabricated identifiers.</small></label>
             <label class="field">System / service<input id="m-system" type="text"></label>
             <label class="field">Monitoring period<input id="m-period" type="text" placeholder="e.g. 2026-Q3"></label>
             <label class="field">Review date<input id="m-date" type="date"></label>
@@ -360,7 +360,7 @@
           </div>
         </fieldset>
         <fieldset><legend>Sampling evidence — required for every result</legend>
-          <p class="section-note">WCC-AIG-39 requires sample source, selection basis, population size, sample size and window for each result. Record the source population and sample separately; an empty population and a zero observed result are distinct from missing data. Review the highest-impact decision types in full. Do not enter case-level personal data.</p>
+          <p class="section-note">AIG-OPS-02 requires sample source, selection basis, population size, sample size and window for each result. Record the source population and sample separately; an empty population and a zero observed result are distinct from missing data. Review the highest-impact decision types in full. Do not enter case-level personal data.</p>
           <div class="grid">
             <label class="field">Sample source / population<input id="m-source" type="text"></label>
             <label class="field">Selection basis<select id="m-selection"><option value="">Select</option><option>Full population (census)</option><option>Simple random</option><option>Stratified random</option><option>Risk-weighted / targeted</option><option>Exception-based</option></select></label>
