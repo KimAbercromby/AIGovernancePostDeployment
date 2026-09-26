@@ -276,9 +276,13 @@
     clearOutput("c-results", "c-error");
     const changeError = G.validateChange({
       airId: value("c-air"), airIdVerified: isChecked("c-air-verified"), system: value("c-system"),
+      mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
+      mapPrevious: value("map-previous"), mapNext: value("map-new"), mapExpansion: value("map-expansion"),
+      mapOwner: value("map-owner"), mapReassessment: value("map-reassessment"), mapEventId: value("map-event"),
       planGate: value("p-gate"), planTrigger: value("p-trigger"), planRequirement: value("p-requirement"),
       planBasis: value("p-basis"), planDate: value("p-date"), planRole: value("p-owner"),
       planState: value("p-state"), planWaiver: value("p-waiver"), planSourceVersion: value("p-source-version"),
+      planCriteria: value("p-criteria"),
       planId: value("p-planid"), planIdVerified: isChecked("p-planid-verified"),
       decision: value("e-decision"), eventId: value("e-eventid"), eventIdVerified: isChecked("e-eventid-verified"),
       eventDate: value("e-date"), eventForum: value("e-forum"), eventLifecycle: value("e-lifecycle"),
@@ -322,10 +326,14 @@
       ["Responsible role", value("p-owner"), "Confirm assignment"],
       ["Plan state", value("p-state"), "Use the current controlled value"],
       ["N-A / waiver rationale and authority ref", value("p-waiver"), "Required where Requirement is Not required"],
-      ["Source version", value("p-source-version"), "Enter actual source workbook version"]
+      ["Source version", value("p-source-version"), "Enter actual source workbook version"],
+      ["Planned criteria / evidence to bring", value("p-criteria"), "Planning note only; confirm against approved plan"]
     ];
     const planStarted = ["p-gate", "p-trigger", "p-requirement", "p-basis", "p-date", "p-owner",
-      "p-state", "p-waiver", "p-source-version"].some((id) => value(id));
+      "p-state", "p-waiver", "p-source-version", "p-planid", "p-criteria"].some((id) => value(id));
+    const mapFields = ["map-change-date", "map-change-type", "map-previous", "map-new",
+      "map-expansion", "map-owner", "map-reassessment", "map-event"];
+    const mapChangeStarted = mapFields.some((id) => value(id));
 
     const riskEntries = [
       ["Existing AIR-ID", value("c-air"), "Recheck current WCC-AIG-05"],
@@ -336,7 +344,7 @@
     const currentStateEntries = [
       ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in 05"],
       ["System / service name", value("c-system"), "System identity supplied for review; reconcile against current 05"],
-      ["Current assurance state", "Not read or changed by this tool", "Verify directly in current integrated 05/36 workbook"],
+      ["Current assurance state", "Not read or changed by this tool", "Verify directly in the current 05 record"],
       ["Change / reassessment context", value("c-description"), "Owner determines any current-state change"],
       ["Reassessment trigger(s)", triggers.join("; ") || "None selected", "Context only; owner records any reassessment outcome"],
       ["User-entered current tier for comparison", value("c-current-tier"), value("c-current-tier") ?
@@ -356,7 +364,22 @@
     }
     if (planStarted) {
       addDownload(downloads, "WCC-AIG-36 prospective Gate Plan", "WCC-AIG-36 Gate Plan draft (.csv)",
-        planEntries, value("c-air"));
+        planEntries.concat(screeningRows(screening)), value("c-air"));
+    }
+    if (mapChangeStarted) {
+      const mapChangeEntries = G.mapChangeHandoverEntries({
+        airId: value("c-air"),
+        changeDate: value("map-change-date"),
+        changeType: value("map-change-type"),
+        previous: value("map-previous"),
+        next: value("map-new"),
+        expansion: value("map-expansion"),
+        owner: value("map-owner"),
+        reassessmentRef: value("map-reassessment"),
+        eventId: value("map-event")
+      }).concat(screeningRows(screening));
+      addDownload(downloads, "Capabilities and System Map change log", "Capabilities and System Map change handoff (.csv)",
+        mapChangeEntries, value("c-air"));
     }
     if (decision) {
       const eventEntries = [
@@ -421,7 +444,7 @@
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
         "Assessor confirms directly in WCC-AIG-07; no tier, approval, permission, AGPI priority or legal applicability is inferred.</p>" :
         "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness. The residual score then follows WCC-AIG-07 arithmetic; residual tier bands remain unspecified and no tier will be inferred.</p>",
-      '<p><strong>05/36 boundary:</strong> proposed 05/36 is one integrated workbook. 05 keeps the permanent issued AIR-ID and current assurance state; 36 separates prospective plan, dated event and event-linked conditions. The 05 output is a contextual review handover only: it neither reads nor updates the current register. The dated Gate Event output is a transfer checklist, not an authoritative event record; controlled decision/state vocabulary mapping remains pending owner confirmation. These downloads are draft field/value handovers, not exact worksheet rows.</p>',
+      '<p><strong>Workbook boundaries:</strong> 05, 36 and the Capabilities and System Map are separate standalone draft workbooks. 05 keeps the permanent issued AIR-ID and current assurance state; 36 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second register. These downloads are draft field/value handovers, not exact worksheet rows.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
         '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in WCC-AIG-45. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI is prioritisation only. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
@@ -434,7 +457,8 @@
     clearOutput("m-results", "m-error");
     const validationError = G.validateMonitoring({
       airId: value("m-air"), airIdVerified: isChecked("m-air-verified"),
-      system: value("m-system"), category: value("m-category"), metric: value("m-metric"),
+      system: value("m-system"),
+      category: value("m-category"), metric: value("m-metric"),
       period: value("m-period"), date: value("m-date"), owner: value("m-owner"),
       threshold: value("m-threshold"), actual: value("m-actual"), evidence: value("m-evidence"),
       resultState: value("m-result-state"), resultReason: value("m-result-reason"),
@@ -496,7 +520,7 @@
       ["Human Override Rate / Trend", value("m-human-override"), "Observed value / trend; distinguish blank from zero"],
       ["Evidence Location", value("m-evidence"), "Native evidence remains at source; 05 Evidence Index holds a versioned pointer"],
       ["Next Review Date", value("m-next-date"), "Enter only a planned/recorded date"],
-      ["Review Status", value("m-status"), "Draft status only; no condition / approval is closed"],
+      ["Review status", value("m-status"), "Draft status only; no condition / approval is closed"],
       ["Sample Source / Population of Record", value("m-source"), "Required by WCC-AIG-39 for every result"],
       ["Selection Basis", value("m-selection"), "Required by WCC-AIG-39 for every result"],
       ["Population Size", value("m-population"), "Separate denominator; zero only for an empty population"],
