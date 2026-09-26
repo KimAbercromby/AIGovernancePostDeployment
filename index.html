@@ -90,7 +90,7 @@
   <main id="main" class="wrap">
     <aside class="notice" role="note">
       <strong>Draft handovers only — never approval or a system of record.</strong>
-      <strong>Record key:</strong> AIG-INV-04 is the Register and owns each system’s permanent AIR-ID and current assurance state; AIG-DEC-04 is the separate Gate Log for plans, events and conditions. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Confirm exact fields in the current controlled records before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
+      <strong>Record key:</strong> AIG-INV-04 is the Register and owns one permanent AIR-ID and current assurance state per system; use cases require their own exact UC-ID scope and may share that AIR-ID. AIG-DEC-04 is the separate Gate Log for plans, events and conditions. A system-level Approved baseline does not approve any UC-ID, and unknown use scope is not shared scope. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Confirm exact fields in the current controlled records before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
       <p class="small">AGPI is prioritisation, not a waiver. Equality Act 2010 section 149, Human Rights Act 1998 section 6, privacy and other case-specific duties require screening for every tier. EU AI Act, ATRS and procurement duties are conditional: ask the legal/procurement owner to confirm applicability for the case.</p>
     </aside>
 
@@ -100,6 +100,8 @@
         <fieldset><legend>Incident and system</legend>
           <div class="grid">
             <label class="field">System / service name<input id="i-system" type="text" autocomplete="off"></label>
+            <label class="field">Use scope<select id="i-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select><small>Unknown remains unknown; do not treat a system baseline as use approval.</small></label>
+            <label class="field">Exact UC-ID, if known<input id="i-uc-id" type="text" placeholder="Required only for UC-ID-specific incident scope"></label>
             <label class="field">Existing AIR-ID, if known<input id="i-air" type="text" placeholder="Use only an ID verified in AIG-INV-04"></label>
             <label class="check"><input id="i-air-verified" type="checkbox"><span>If entered, this existing AIR-ID was checked against the AIG-INV-04 Register.</span></label>
             <label class="field">Reported by<input id="i-reporter" type="text" autocomplete="name"></label>
@@ -200,6 +202,8 @@
             <label class="field">Existing AIR-ID<input id="c-air" type="text" placeholder="Required — verify in AIG-INV-04"></label>
             <label class="field">Confirm AIR-ID checked against AIG-INV-04<input id="c-air-verified" type="checkbox"> <small>Do not use a proposed or guessed identifier.</small></label>
             <label class="field">System / service name<input id="c-system" type="text"></label>
+            <label class="field">Change / risk assessment scope<select id="c-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select><small>AIR-ID identifies the system only. Unknown is not shared scope or approval.</small></label>
+            <label class="field">Exact UC-ID, if known<input id="c-uc-id" type="text" placeholder="Required only for UC-ID-specific scope"></label>
             <label class="field">Current tier, if confirmed<select id="c-current-tier"><option value="">Not entered / not confirmed</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></label>
           </div>
           <label class="field">Describe the change / signal<textarea id="c-description"></textarea></label>
@@ -240,8 +244,10 @@
           </div>
         </fieldset>
         <fieldset><legend>Prospective Gate Plan — separate from a decision</legend>
-          <p class="section-note">A plan is prospective scheduling only. It is not an approval, a Gate Event, nor evidence that an assurance condition is met. Provide the current workbook source version; the Council assigns Plan ID.</p>
+          <p class="section-note">A plan is prospective scheduling only. It is not an approval, a Gate Event, nor evidence that an assurance condition is met. Provide its exact UC-ID or explicitly mark a shared system baseline; unknown scope is not shared scope. Provide the current workbook source version; the Council assigns Plan ID.</p>
           <div class="grid">
+            <label class="field">Gate Plan scope<select id="p-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
+            <label class="field">Exact UC-ID for this plan<input id="p-uc-id" type="text"></label>
             <label class="field">Gate / forum<input id="p-gate" type="text"></label>
             <label class="field">Trigger / lifecycle stage<input id="p-trigger" type="text"></label>
             <label class="field">Requirement<select id="p-requirement"><option value="">Select</option><option>Required</option><option>Not required</option></select></label>
@@ -257,8 +263,10 @@
           </div>
         </fieldset>
         <fieldset><legend>Dated Gate Event transfer checklist — only after a real authorised decision</legend>
-          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in AIG-DEC-03 or authorised native forum minutes. AIG-DEC-04 should point to that record; AIG-AGT-04 governs agent authority. Local decision/state controlled-value mapping is pending owner confirmation against the current AIG-DEC-04 workbook. This draft creates no decision, permission, event ID or approval.</p>
+          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in AIG-DEC-03 or authorised native forum minutes. AIG-DEC-04 should point to that record; AIG-AGT-04 governs agent authority. Local decision/state controlled-value mapping is pending owner confirmation against the current AIG-DEC-04 workbook. A system-baseline Approved state never approves a UC-ID. No operational-use claim is supported without a per-UC decision reference and its exact permitted scope and conditions; this draft creates no decision, permission, event ID or approval.</p>
           <div class="grid">
+            <label class="field">Decision scope<select id="e-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
+            <label class="field">Exact UC-ID covered by this decision<input id="e-uc-id" type="text"></label>
             <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></label>
             <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
             <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against AIG-DEC-04. Do not invent one.</span></label>
@@ -270,6 +278,13 @@
             <label class="field">Next gate<input id="e-next-gate" type="text"></label>
             <label class="field">Event notes<textarea id="e-notes"></textarea></label>
             <label class="field">AIG-DEC-03 or native minutes reference<input id="e-record" type="text"></label>
+            <label class="field">Use-specific decision reference<input id="e-use-decision-ref" type="text"><small>Required for UC-ID-specific decision scope; verify the actual per-UC decision record.</small></label>
+            <label class="field">Permitted purpose<input id="e-permitted-purpose" type="text"></label>
+            <label class="field">Permitted users / roles<input id="e-permitted-users" type="text"></label>
+            <label class="field">Permitted data<input id="e-permitted-data" type="text"></label>
+            <label class="field">Permitted actions / decisions<input id="e-permitted-actions" type="text"></label>
+            <label class="field">Exclusions / prohibited scope<input id="e-exclusions" type="text"></label>
+            <label class="field">Use-specific operating conditions<input id="e-permitted-conditions" type="text"></label>
             <label class="field">AIG-AGT-04 authority / delegation reference<input id="e-authority" type="text"></label>
             <label class="field">Technical snapshot / as-at reference<input id="e-snapshot" type="text"></label>
             <label class="field">Event record state<input id="e-record-state" type="text" placeholder="Transcribe current controlled value; owner mapping pending"><small>Exact current AIG-DEC-04 state vocabulary is not confirmed by this tool.</small></label>
@@ -283,7 +298,10 @@
             <label class="check"><input id="e-confirmed" type="checkbox"><span>I confirm this transcribes a decision already made by an authorised decision-maker and that the decision record, authority/delegation and evidence source references above are present, real and checked. This does not confirm local controlled-value mapping.</span></label>
           </div>
           <h3>Optional event-linked condition (requires an existing AIG-DEC-04 Event ID)</h3>
+          <p class="section-note">Record the condition's exact UC-ID scope or explicitly select a shared system baseline / Unknown. UC-specific conditions must point to the actual per-UC decision reference; a condition or system status does not itself authorize use.</p>
           <div class="grid">
+            <label class="field">Condition scope<select id="e-condition-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
+            <label class="field">Exact UC-ID covered by condition<input id="e-condition-uc-id" type="text"></label>
             <label class="field">Condition / required action<input id="e-condition" type="text"></label>
             <label class="field">Condition owner / role<input id="e-condition-owner" type="text"></label>
             <label class="field">Condition due date<input id="e-condition-due" type="date"></label>
@@ -312,11 +330,13 @@
       <p class="intro">Prepare a draft AIG-OPS-02 monitoring review and hand a breach, deteriorating drift, material change, control failure or access expansion to reassessment. This does not create a live workbook row or implement runtime controls.</p>
       <form id="monitor-form" novalidate>
         <fieldset><legend>System, period and measurement</legend>
-          <p class="section-note">Record the observed result and its state separately from the observed metric denominator. “Observed zero” is an actual value of 0; “Blank / unknown” means no value was observed. The denominator is also separate from the sampling population and reviewed sample.</p>
+          <p class="section-note">Record the exact UC-ID for a use-specific measure, or explicitly mark an intentionally shared system measure. Unknown is not shared. Shared system monitoring is not evidence that any individual use is approved. Record the observed result and its state separately from the observed metric denominator. “Observed zero” is an actual value of 0; “Blank / unknown” means no value was observed. The denominator is also separate from the sampling population and reviewed sample.</p>
           <div class="grid">
             <label class="field">Existing AIR-ID<input id="m-air" type="text" placeholder="Required — verify in AIG-INV-04"></label>
             <label class="field">Confirm AIR-ID checked against AIG-INV-04<input id="m-air-verified" type="checkbox"> <small>No fabricated identifiers.</small></label>
             <label class="field">System / service<input id="m-system" type="text"></label>
+            <label class="field">Monitoring measure scope<select id="m-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Explicit shared system measure</option><option>Unknown</option></select></label>
+            <label class="field">Exact UC-ID for this measure<input id="m-uc-id" type="text" placeholder="Required only for UC-ID-specific measures"></label>
             <label class="field">Monitoring period<input id="m-period" type="text" placeholder="e.g. 2026-Q3"></label>
             <label class="field">Review date<input id="m-date" type="date"></label>
             <label class="field">Monitoring owner<input id="m-owner" type="text"></label>
