@@ -78,6 +78,29 @@
     return rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
   }
 
+  function mapChangeHandoverEntries(data) {
+    const eventId = text(data.eventId);
+    const reassessmentRef = text(data.reassessmentRef);
+    return [
+      ["Change ID", "", "Map owner assigns under the approved map rules; this tool never issues IDs"],
+      ["AIR-ID", text(data.airId), "Existing permanent ID; user-confirmed against current 05, map owner rechecks"],
+      ["Edge ID", "", "Map owner matches the exact edge in the current map; do not invent an ID"],
+      ["Change date", text(data.changeDate), "Actual change/review date; confirm source evidence"],
+      ["Change type", text(data.changeType), "Proposed classification; map owner confirms"],
+      ["Previous link / access", text(data.previous), "Describe prior state; do not imply the access was authorised"],
+      ["New link / access", text(data.next), "Describe proposed/current state; map entry grants no permission"],
+      ["Access expansion?", text(data.expansion), "Owner confirms actual scope against authorised permissions in 45 and derived paths in 46"],
+      ["Change owner", text(data.owner), "Confirm accountable owner"],
+      ["Review / reassessment ref", reassessmentRef, reassessmentRef ?
+        "User-entered pointer; verify the actual reassessment record and outcome" :
+        "Blank; required by the map when access expansion is Yes or Unsure"],
+      ["Gate Event ID (if needed)", eventId, eventId ?
+        "User-entered existing Event ID; verify it against the dated event in 36 and its formal decision record" :
+        "Blank; if a Gate Event is appropriate, add its actual ID only after the 36 owner logs it; never invent one"],
+      ["Map change state", "Draft handover only", "Transfer to the standalone Capabilities and System Map draft only after map-owner verification; no live row is created"]
+    ];
+  }
+
   function screeningEntries(screening) {
     return SCREENING_KEYS.map(function (key) {
       const labels = {
@@ -241,9 +264,20 @@
     if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
       return "Enter a system name and an existing AIR-ID confirmed against current WCC-AIG-05; this tool cannot issue or verify identifiers.";
     }
+    const mapFields = ["mapChangeDate", "mapChangeType", "mapPrevious", "mapNext",
+      "mapExpansion", "mapOwner", "mapReassessment", "mapEventId"].map((key) => text(data[key]));
+    const mapStarted = mapFields.some(Boolean);
+    if (mapStarted && (!mapFields[0] || !mapFields[1] || !mapFields[4] || !mapFields[5] ||
+      (!mapFields[2] && !mapFields[3]))) {
+      return "For a Capabilities and System Map change handoff, complete the change date, type, access-expansion status, change owner and at least one previous/new link or access value; otherwise leave all map-change fields blank.";
+    }
+    if (mapStarted && ["Yes", "Unsure"].includes(mapFields[4]) && !mapFields[6]) {
+      return "A new or possibly expanded access edge needs a real reassessment reference before preparing the map-change handoff.";
+    }
     const planKeys = ["planGate", "planTrigger", "planRequirement", "planDate", "planRole", "planState", "planSourceVersion"];
     const plan = planKeys.map((key) => text(data[key]));
-    const planStarted = plan.some(Boolean) || text(data.planBasis) || text(data.planWaiver) || text(data.planId);
+    const planStarted = plan.some(Boolean) || text(data.planBasis) || text(data.planWaiver) ||
+      text(data.planId) || text(data.planCriteria);
     if (planStarted && plan.some((item) => !item)) {
       return "Complete every Gate Plan prompt, including source version and any N-A/waiver rationale and authority, or leave the plan blank.";
     }
@@ -320,6 +354,7 @@
     escapeHtml,
     fileKey,
     handoverCsv,
+    mapChangeHandoverEntries,
     screenMissing,
     screeningEntries,
     severity,

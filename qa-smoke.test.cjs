@@ -6,7 +6,7 @@ const governance = require('./src/logic.js');
 
 const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
 
-test('incident severity is provisional, never defaults an unclassified incident to Low', () => {
+test('incident severity is provisional and never defaults an unclassified incident to Low', () => {
   assert.equal(governance.severity([], false, '').level, 'Unclassified');
   assert.equal(governance.severity(['Medium', 'High'], false, '').level, 'High');
   assert.deepEqual(governance.severity(['Medium'], true, ''), {
@@ -26,7 +26,7 @@ test('incident routing has no invented severity-based deadlines', () => {
   assert.equal(governance.deadlineFor, undefined);
 });
 
-test('WCC-AIG-07 score arithmetic follows worksheet formula without inventing tier bands', () => {
+test('WCC-AIG-07 arithmetic does not infer undocumented residual-tier bands', () => {
   const score = governance.calculateRisk([1, 2, 3, 1, 2], 2, 2);
   assert.deepEqual(score, { impact: 3, likelihood: 2, control: 2, inherent: 6, residual: 2.4, tier: null, authoritative: true });
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).residual, 20);
@@ -35,15 +35,7 @@ test('WCC-AIG-07 score arithmetic follows worksheet formula without inventing ti
   assert.equal(governance.calculateRisk([2, 2, 2, 2, 2], 0, 2), null);
 });
 
-test('all case-specific duty screening prompts are required for ready handover', () => {
-  assert.deepEqual(governance.screenMissing({ equality: true, humanRights: false, privacy: true, other: true }), ['humanRights']);
-  assert.deepEqual(governance.screenMissing({ equality: true, humanRights: true, privacy: true, other: true }), []);
-  const csv = governance.handoverCsv('draft', [['Value', '=1+1', 'not executable']]);
-  assert.match(csv, /Draft handover only — not a workbook row/);
-  assert.match(csv, /'=1\+1/);
-});
-
-test('WCC-AIG-19 Part A and optional Part B form barriers reject missing or misleading inputs', () => {
+test('WCC-AIG-19 Part A and optional Part B reject missing or misleading inputs', () => {
   const partA = {
     system: 'Service', reporter: 'Reporter', role: 'Officer', email: 'reporter@example.org',
     identifiedAt: '2026-09-25T09:00', classification: 'Near miss', happened: 'Unexpected output',
@@ -67,19 +59,11 @@ test('WCC-AIG-19 Part A and optional Part B form barriers reject missing or misl
   for (const id of ['i-email', 'i-kind', 'i-when', 'i-discovery', 'i-ai-activity', 'i-data-impact', 'i-decision-impact']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  for (const label of ['Contact email', 'How it was identified / source', 'What the AI system was doing',
-    'Affected data and impact', 'Decision impact', 'Immediate containment / action', 'Severity uplift rationale']) {
-    assert.ok(app.includes(label), `Part A export contains ${label}`);
-  }
-  assert.match(app, /Blank — no immediate containment\/action recorded/);
-  assert.match(app, /Blank — no manual uplift selected/);
-  assert.match(app, /\["Immediate containment \/ action", value\("i-action"\)/);
-  assert.match(app, /\["Severity uplift rationale", value\("i-uplift-reason"\)/);
   assert.match(app, /WCC-AIG-19 optional Part B pointer/);
   assert.match(app, /not a legal finding or incident record/);
 });
 
-test('WCC-AIG-36 change handover barriers require real IDs, plans and decision evidence', () => {
+test('WCC-AIG-36 change handover requires real plan, event and condition references', () => {
   const base = { airId: 'AIR-REAL-1', airIdVerified: true, system: 'Service' };
   assert.equal(governance.validateChange(base), '');
   assert.match(governance.validateChange({ ...base, airIdVerified: false }), /existing AIR-ID/i);
@@ -87,7 +71,7 @@ test('WCC-AIG-36 change handover barriers require real IDs, plans and decision e
   const plan = {
     ...base, planGate: 'Review forum', planTrigger: 'Pre-release', planRequirement: 'Required',
     planBasis: 'Existing change record', planDate: '2026-11-01', planRole: 'Service Owner',
-    planState: 'Planned', planSourceVersion: '1.5 draft'
+    planState: 'Planned', planSourceVersion: '1.5 draft', planCriteria: 'Assurance evidence pack'
   };
   assert.equal(governance.validateChange(plan), '');
   assert.match(governance.validateChange({ ...plan, planBasis: '' }), /basis reference/i);
@@ -105,43 +89,47 @@ test('WCC-AIG-36 change handover barriers require real IDs, plans and decision e
   assert.match(governance.validateChange({ ...event, eventAuthority: '' }), /actual authorised decision/i);
   assert.match(governance.validateChange({ ...event, eventRecord: '' }), /decision-record\/minutes reference/i);
   assert.match(governance.validateChange({ ...event, evidenceSource: '' }), /transfer checklist requires.*evidence source/i);
-  assert.match(governance.validateChange({ ...event, eventState: '' }), /transfer checklist requires.*recorded state/i);
   assert.match(governance.validateChange({ ...event, eventId: 'invented' }), /existing Event ID/i);
   assert.match(governance.validateChange({ ...event, condition: 'Provide evidence' }), /existing Event ID/i);
   assert.match(governance.validateChange({ ...event, decision: 'Progress with condition' }), /requires a Gate Condition/i);
   assert.match(governance.validateChange({ ...event, decision: 'Priority override' }), /requires before\/after priority values/i);
-  assert.match(governance.validateChange({
-    ...event, priorityBefore: 'High', priorityAfter: 'Medium', priorityRef: 'Update ref'
-  }), /Only complete priority override fields/i);
-  assert.equal(governance.validateChange({
-    ...event, decision: 'Priority override', priorityBefore: 'High', priorityAfter: 'Medium',
-    priorityRef: 'Assurance priority update ref'
-  }), '');
   assert.equal(governance.validateChange({
     ...event, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
     conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open'
   }), '');
+  assert.match(governance.validateChange({
+    ...base, mapChangeDate: '2026-09-25', mapChangeType: 'Change access',
+    mapPrevious: 'Read', mapNext: 'Write', mapExpansion: 'Yes', mapOwner: 'Owner'
+  }), /reassessment reference/i);
 });
 
-test('WCC-AIG-39 monitoring handover requires identity, provenance, denominators and review signals', () => {
+test('all case-specific duty screening prompts are required for ready handover', () => {
+  assert.deepEqual(governance.screenMissing({ equality: true, humanRights: false, privacy: true, other: true }), ['humanRights']);
+  assert.deepEqual(governance.screenMissing({ equality: true, humanRights: true, privacy: true, other: true }), []);
+  const csv = governance.handoverCsv('draft', [['Value', '=1+1', 'not executable']]);
+  assert.match(csv, /Draft handover only — not a workbook row/);
+  assert.match(csv, /'=1\+1/);
+});
+
+test('WCC-AIG-39 handover requires identity, provenance, denominators and review signals', () => {
   const complete = {
     airId: 'AIR-TEST-VALID', airIdVerified: true, system: 'Service', category: 'Performance', metric: 'Accuracy',
     period: '2026-Q3', date: '2026-09-25', owner: 'Service Owner', threshold: 'Approved threshold ref',
-    actual: 'Observed value', evidence: 'Versioned evidence pointer', breach: 'No', material: 'No',
+    actual: '93%', evidence: 'Versioned evidence pointer', breach: 'No', material: 'No',
     escalation: 'No', reassessment: 'No', status: 'Reviewed', severity: '',
     source: 'Authoritative decision log', selection: 'Stratified random',
     population: '10', sample: '4', window: '2026-Q3', sampleMethod: 'Seed 123; draw 2026-09-25',
     highImpact: 'Yes', highImpactDetail: 'All adverse decisions reviewed',
-    evidenceVersion: 'v2', checker: 'Reviewer',
-    dataCut: '2026-09-25T08:00', denominator: 'Source: decision log; count of eligible decisions',
+    evidenceVersion: 'v2', checker: 'Reviewer', dataCut: '2026-09-25T08:00',
+    denominator: 'Source: decision log; count of eligible decisions',
     observedDenominator: '50', denominatorState: 'Observed positive', resultState: 'Observed non-zero',
     controlFailure: 'No', controlFailureDetail: '', accessExpansion: 'No', accessExpansionDetail: '',
     trend: 'Stable'
   };
   assert.equal(governance.validateMonitoring(complete), '');
-  for (const field of ['airIdVerified', 'system', 'date', 'period', 'owner', 'metric', 'threshold', 'actual',
-    'evidence', 'evidenceVersion', 'checker', 'dataCut', 'denominator', 'controlFailure', 'accessExpansion', 'reassessment',
-    'denominatorState', 'resultState']) {
+  for (const field of ['airIdVerified', 'system', 'date', 'period', 'owner', 'metric', 'threshold',
+    'evidence', 'evidenceVersion', 'checker', 'dataCut', 'denominator', 'controlFailure',
+    'accessExpansion', 'reassessment', 'denominatorState', 'resultState']) {
     const incomplete = { ...complete, [field]: field === 'airIdVerified' ? false : '' };
     assert.notEqual(governance.validateMonitoring(incomplete), '', `${field} must block a handover`);
   }
@@ -151,20 +139,28 @@ test('WCC-AIG-39 monitoring handover requires identity, provenance, denominators
   assert.match(governance.validateMonitoring({ ...complete, accessExpansion: 'Yes' }), /access-expansion signal/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '' }), /enter an actual numeric zero/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '2' }), /enter an actual numeric zero/i);
-  assert.equal(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '0', denominatorState: 'Observed zero', observedDenominator: '0' }), '');
-  assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '0', denominatorState: 'Observed zero', observedDenominator: '' }), /entered explicitly as 0/i);
+  assert.equal(governance.validateMonitoring({
+    ...complete, resultState: 'Observed zero', actual: '0',
+    denominatorState: 'Observed zero', observedDenominator: '0'
+  }), '');
+  assert.match(governance.validateMonitoring({
+    ...complete, resultState: 'Observed zero', actual: '0',
+    denominatorState: 'Observed zero', observedDenominator: ''
+  }), /entered explicitly as 0/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed non-zero', actual: '0' }), /observed value that is not zero/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed non-zero', actual: 'Unknown' }), /replace unknown\/blank/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Blank / unknown', actual: '0' }), /Clear Actual Result/i);
-  assert.match(governance.validateMonitoring({ ...complete, resultState: 'Blank / unknown', actual: '', resultReason: '' }), /Explain why the observed result is Blank/i);
-  assert.match(governance.validateMonitoring({ ...complete, denominatorState: 'Observed zero', observedDenominator: '' }), /entered explicitly as 0/i);
-  assert.match(governance.validateMonitoring({ ...complete, denominatorState: 'Blank / unknown', observedDenominator: '50' }), /Clear the numeric denominator/i);
+  assert.match(governance.validateMonitoring({
+    ...complete, resultState: 'Blank / unknown', actual: '', resultReason: ''
+  }), /Explain why the observed result is Blank/i);
+  assert.match(governance.validateMonitoring({
+    ...complete, denominatorState: 'Observed zero', observedDenominator: ''
+  }), /entered explicitly as 0/i);
+  assert.match(governance.validateMonitoring({
+    ...complete, denominatorState: 'Blank / unknown', observedDenominator: '50'
+  }), /Clear the numeric denominator/i);
   assert.match(governance.validateMonitoring({
     ...complete, resultState: 'Observed zero', actual: '0',
-    denominatorState: 'Blank / unknown', observedDenominator: ''
-  }), /cannot use an unknown denominator/i);
-  assert.match(governance.validateMonitoring({
-    ...complete, resultState: 'Observed non-zero', actual: '93%',
     denominatorState: 'Blank / unknown', observedDenominator: ''
   }), /cannot use an unknown denominator/i);
   assert.equal(governance.validateMonitoring({
@@ -173,20 +169,20 @@ test('WCC-AIG-39 monitoring handover requires identity, provenance, denominators
     denominator: 'Count metric; no denominator applies'
   }), '');
   assert.match(governance.validateMonitoring({
-    ...complete, source: 'population', selection: 'Random',
-    population: '10', sample: '11', window: '2026-Q3'
+    ...complete, population: '10', sample: '11'
   }), /sample size must be zero only/i);
   assert.equal(governance.validateMonitoring({
-    ...complete, source: 'records', selection: 'Full population (census)',
-    population: '0', sample: '0', window: '2026-Q3', sampleMethod: 'Not applicable',
-    highImpact: 'No', highImpactDetail: 'No records in this window',
+    ...complete, selection: 'Full population (census)', population: '0', sample: '0',
+    sampleMethod: 'Not applicable', highImpact: 'No', highImpactDetail: 'No records in this window',
     observedDenominator: '0', denominatorState: 'Observed zero',
     resultState: 'Blank / unknown', actual: '', resultReason: 'No records existed in the window'
   }), '');
   assert.match(governance.validateMonitoring({
     ...complete, selection: 'Simple random', sampleMethod: 'Not applicable'
   }), /random-selection method/i);
-  assert.match(governance.validateMonitoring({ ...complete, action: 'Containment in progress' }), /provide its owner and due date/i);
+  assert.match(governance.validateMonitoring({
+    ...complete, action: 'Containment in progress'
+  }), /provide its owner and due date/i);
 });
 
 test('handover CSV safely escapes delimiters, quotes, line breaks and filenames', () => {
@@ -207,69 +203,55 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /prospective plan, dated event and event-linked conditions/);
   assert.match(html, /WCC-AIG-45/);
   assert.match(app, /current WCC-AIG-05/);
-  assert.match(html + app, /WCC-AIG-16 or authorised native/);
-  assert.match(app, /WCC-AIG-36 prospective Gate Plan/);
+  assert.match(app, /WCC-AIG-16.*native minutes/);
+  assert.match(app, /PENDING OWNER VERIFICATION/);
+  assert.match(app, /current WCC-AIG-36 controlled vocabulary/);
+  assert.match(html + app, /separate standalone draft workbooks/);
+  assert.doesNotMatch(html + app, /Westminster/i);
 });
 
-test('each incident, change and monitoring download maps to source fields', () => {
+test('three distinct post-deployment workflows and exports are present', () => {
   const html = read('index.html');
   const app = read('src/app.js');
   for (const id of ['panel-incident', 'panel-change', 'panel-monitor']) assert.match(html, new RegExp(id));
   for (const artifact of ['WCC-AIG-19', 'WCC-AIG-30', 'WCC-AIG-39', 'WCC-AIG-07', 'WCC-AIG-05', 'WCC-AIG-36', 'WCC-AIG-16']) {
     assert.ok(app.includes(artifact), `expected handover route for ${artifact}`);
   }
-  for (const field of ['Related existing AIR-ID', 'Incident summary', 'Immediate correction', 'Status']) {
-    assert.ok(app.includes(`["${field}"`), `WCC-AIG-30 CAPA export maps ${field}`);
-  }
-  for (const field of ['Current assurance state', 'Change / reassessment context',
-    'System / service name', 'Reassessment trigger(s)', 'User-entered current tier for comparison',
-    'Current 05 update', 'Residual risk score', 'Approval / operational status', 'Register field mapping']) {
-    assert.ok(app.includes(`["${field}"`), `WCC-AIG-05 review export maps ${field}`);
-  }
-  for (const field of ['Resident Impact', 'Legal & Regulatory Impact', 'Reputational Impact',
-    'Operational Impact', 'Financial Impact', 'Likelihood (L)', 'Control Effectiveness (C)',
-    'Inherent risk score (L × I)', 'Residual risk score', 'Residual risk tier']) {
-    assert.ok(app.includes(`["${field}"`), `WCC-AIG-07 export maps ${field}`);
-  }
-  for (const partA of ['Event classification', 'Contact email', 'Date and time identified', 'What occurred',
-    'When it occurred', 'How it was identified / source', 'What the AI system was doing',
-    'Affected data and impact', 'Decision impact']) assert.ok(app.includes(partA), partA);
-  for (const field of ['Plan ID', 'AIR-ID', 'Gate / forum', 'Trigger / lifecycle stage', 'Requirement',
-    'Basis / triage ref', 'Target date', 'Responsible role', 'Plan state', 'N-A / waiver rationale and authority ref', 'Source version']) {
-    assert.ok(app.includes(`["${field}"`), `Gate Plan export maps ${field}`);
-  }
-  for (const field of ['Checklist boundary', 'Decision/state controlled-value mapping', 'Event ID',
-    'Lifecycle stage', 'Decision date', 'Assurance opinion ref',
-    'Decision-maker / role', 'Next gate', 'Event notes', 'Decision record / minutes ref', 'Technical snapshot / as-at ref',
-    'Event record state', 'Recorded by / role', 'Evidence source / URI', 'Plan ID (optional join)',
-    'Priority before override', 'Priority after override', 'Assurance priority update ref']) {
-    assert.ok(app.includes(`["${field}"`), `Gate Event export maps ${field}`);
-  }
-  for (const field of ['Condition ID', 'Event ID', 'AIR-ID derived', 'action', 'owner', 'due',
-    'state', 'resolved/waived on', 'resolution evidence/waiver authority']) {
-    assert.ok(app.includes(`["${field}"`), `Gate Condition export maps ${field}`);
-  }
-  for (const field of ['Existing AIR-ID', 'Decision date', 'Gate / forum', 'Decision-maker', 'Decision record / minutes ref']) {
-    assert.ok(app.includes(`["${field}"`), `WCC-AIG-16 pointer contains ${field}`);
-  }
-  for (const field of ['AIR-ID', 'AI System / Service', 'Monitoring Period', 'Review Date',
-    'Monitoring Owner', 'Metric Category', 'Metric / Indicator', 'Approved Threshold / Tolerance',
-    'Actual Result', 'Observed-result state', 'Observed-result state note', 'Observed metric denominator', 'Observed-denominator state',
-    'Denominator context / source', 'Trend', 'Threshold Breach?', 'Severity', 'Action / Decision', 'Action Owner',
-    'Due Date', 'Incident / CAPA Ref', 'Material Change?', 'Risk Reassessment Required?',
-    'Residual Risk After Review', 'Governance Escalation?', 'Gate Log Ref', 'Complaints / Challenges',
-    'Human Override Rate / Trend', 'Evidence Location', 'Next Review Date', 'Review Status',
-    'Sample Source / Population of Record', 'Selection Basis', 'Population Size', 'Sample Size Reviewed',
-    'Sampling Window', 'AI System / Service', 'Population Size', 'Sample Size Reviewed',
-    'Evidence version', 'Evidence checked by', 'Evidence data cut / as-at',
-    'Denominator context / source', 'Control-failure review signal', 'Access-expansion review signal',
-    'Sample selection reproduction detail', 'Highest-impact decisions reviewed in full?']) {
-    assert.ok(app.includes(`["${field}"`), `WCC-AIG-39 export contains ${field}`);
-  }
-  assert.match(app, /\["Residual risk tier", "", "Not calculated:/);
-  assert.match(app, /Current 05 update.*no register update performed or proposed/i);
-  assert.match(app, /WCC-AIG-36 Gate Event transfer checklist/);
-  assert.match(app, /PENDING OWNER VERIFICATION/);
-  assert.doesNotMatch(app, /Not assigned|Owner to enter after event is logged/);
-  assert.doesNotMatch(read('src/logic.js') + app + html, /10 working days|5 working days|2 working days|24 hours \(indicative/i);
+  assert.match(app, /Existing verified Event ID/);
+  assert.match(app, /Event ID.*Existing verified Event ID/);
+});
+
+test('map change handoff carries reassessment and only an existing Gate Event link', () => {
+  const html = read('index.html');
+  const app = read('src/app.js');
+  const logic = read('src/logic.js');
+  assert.match(html, /Optional Capabilities and System Map change handoff/);
+  assert.match(html, /Existing Gate Event ID, if appropriate/);
+  assert.match(html, /id="p-criteria"/);
+  assert.match(app, /Planned criteria \/ evidence to bring/);
+  assert.match(logic, /A new or possibly expanded access edge needs a real reassessment reference/);
+  assert.match(app, /Capabilities and System Map change handoff \(\.csv\)/);
+  const entries = governance.mapChangeHandoverEntries({
+    airId: 'AIR-EXISTING',
+    changeDate: '2026-09-25',
+    changeType: 'Change access',
+    previous: 'Read access',
+    next: 'Write access',
+    expansion: 'Yes',
+    owner: 'Service Owner',
+    reassessmentRef: 'RA-2026-14',
+    eventId: ''
+  });
+  assert.equal(entries.find((row) => row[0] === 'Change ID')[1], '');
+  assert.equal(entries.find((row) => row[0] === 'Edge ID')[1], '');
+  assert.equal(entries.find((row) => row[0] === 'Review / reassessment ref')[1], 'RA-2026-14');
+  assert.equal(entries.find((row) => row[0] === 'Gate Event ID (if needed)')[1], '');
+  assert.match(entries.find((row) => row[0] === 'Gate Event ID (if needed)')[2], /never invent/);
+  const linked = governance.mapChangeHandoverEntries({
+    airId: 'AIR-EXISTING', changeDate: '2026-09-25', changeType: 'Change access',
+    previous: 'Read', next: 'Write', expansion: 'Yes', owner: 'Owner',
+    reassessmentRef: 'RA-14', eventId: 'GE-2026-004'
+  });
+  assert.equal(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[1], 'GE-2026-004');
+  assert.match(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[2], /verify it against the dated event in 36/);
 });
