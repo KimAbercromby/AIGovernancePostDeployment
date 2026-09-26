@@ -293,11 +293,15 @@
     if (text(data.planId) && !data.planIdVerified) {
       return "Only enter an existing Plan ID checked against current AIG-DEC-04.";
     }
+    const conditionDraftStarted = [
+      "condition", "conditionOwner", "conditionDue", "conditionState",
+      "conditionResolved", "conditionEvidence"
+    ].some((key) => text(data[key]));
     const eventStarted = [
-      "decision", "eventId", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
+      "decision", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
       "eventAuthority", "eventState", "assuranceOpinion", "nextGate", "eventNotes", "technicalSnapshot",
       "recordedBy", "evidenceSource", "planEventId", "priorityBefore", "priorityAfter", "priorityRef"
-    ].some((key) => text(data[key]));
+    ].some((key) => text(data[key])) || (text(data.eventId) && !conditionDraftStarted);
     if (eventStarted && (!text(data.decision) || !text(data.eventDate) || !text(data.eventForum) ||
       !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventRecord) ||
       !text(data.eventAuthority) || !text(data.evidenceSource) || !text(data.eventState) || !data.eventConfirmed)) {
