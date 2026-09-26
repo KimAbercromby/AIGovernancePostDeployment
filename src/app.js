@@ -101,6 +101,7 @@
       "i-ico-decision", "i-ico-rationale", "i-ico-owner", "i-dpo-ref"];
     const incidentValidation = G.validateIncident({
       system: value("i-system"), reporter: value("i-reporter"), role: value("i-role"),
+      useScope: value("i-use-scope"), ucId: value("i-uc-id"),
       email: value("i-email"), identifiedAt: value("i-date"), classification: value("i-kind"),
       happened: value("i-description"), when: value("i-when"), discovery: value("i-discovery"),
       aiActivity: value("i-ai-activity"), affected: value("i-affected-details"), impact: value("i-impact"),
@@ -155,6 +156,9 @@
       ["Reporter role / service team", value("i-role"), "Verify"],
       ["Contact email", value("i-email"), "Verify contact details before transfer"],
       ["System / service", value("i-system"), "Confirm identity against current AIG-INV-04"],
+      ["Use scope", value("i-use-scope"), "Incident scope only; Unknown is not shared scope or approval"],
+      ["Exact UC-ID", value("i-uc-id"), value("i-use-scope") === "UC-ID specific" ?
+        "Verify this exact use identifier against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
       ["Existing AIR-ID", value("i-air"), "Optional; never invent. Confirm against current AIG-INV-04"],
       ["Date and time identified", value("i-date"), "Keep distinct from any controller-awareness time"],
       ["What occurred", value("i-description"), "Review for unnecessary personal data before transfer"],
@@ -208,6 +212,8 @@
         filename: "AIG-AIMS-08_CAPA_draft_" + G.fileKey(value("i-air")) + ".csv",
         contents: G.handoverCsv("AIG-AIMS-08 CAPA field/value draft", handoverEntries([
           ["Related existing AIR-ID", value("i-air"), "Confirm in current AIG-INV-04; optional, do not invent"],
+          ["Incident use scope", value("i-use-scope"), "Unknown is not shared scope or approval"],
+          ["Exact UC-ID", value("i-uc-id"), "Blank unless the incident is explicitly UC-ID specific"],
           ["Incident summary", value("i-description"), "AIMS owner determines whether a nonconformity exists"],
           ["Immediate correction", value("i-action"), "Owner validates"],
           ["Status", "Draft / owner review required", "Assign no NC ID and do not add a live row"]
@@ -219,6 +225,9 @@
       run: function () {
         byId("m-air").value = value("i-air");
         byId("m-system").value = value("i-system");
+        byId("m-use-scope").value = value("i-use-scope") === "UC-ID specific" ? "UC-ID specific" :
+          value("i-use-scope") === "Shared system baseline" ? "Explicit shared system measure" : "Unknown";
+        byId("m-uc-id").value = value("i-uc-id");
         byId("m-air-verified").checked = isChecked("i-air-verified");
         byId("m-metric").value = "Incident follow-up";
         byId("m-action").value = value("i-action");
@@ -231,6 +240,8 @@
         run: function () {
           byId("c-air").value = value("i-air");
           byId("c-system").value = value("i-system");
+          byId("c-use-scope").value = value("i-use-scope");
+          byId("c-uc-id").value = value("i-uc-id");
           byId("c-description").value = "Incident follow-up: " + value("i-description");
           byId("panel-change").querySelector('[data-trigger]').checked = true;
           selectTab("tab-change");
@@ -276,6 +287,7 @@
     clearOutput("c-results", "c-error");
     const changeError = G.validateChange({
       airId: value("c-air"), airIdVerified: isChecked("c-air-verified"), system: value("c-system"),
+      useScope: value("c-use-scope"), ucId: value("c-uc-id"),
       mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
       mapPrevious: value("map-previous"), mapNext: value("map-new"), mapExpansion: value("map-expansion"),
       mapOwner: value("map-owner"), mapReassessment: value("map-reassessment"), mapEventId: value("map-event"),
@@ -283,6 +295,7 @@
       planBasis: value("p-basis"), planDate: value("p-date"), planRole: value("p-owner"),
       planState: value("p-state"), planWaiver: value("p-waiver"), planSourceVersion: value("p-source-version"),
       planCriteria: value("p-criteria"),
+      planUseScope: value("p-use-scope"), planUcId: value("p-uc-id"),
       planId: value("p-planid"), planIdVerified: isChecked("p-planid-verified"),
       decision: value("e-decision"), eventId: value("e-eventid"), eventIdVerified: isChecked("e-eventid-verified"),
       eventDate: value("e-date"), eventForum: value("e-forum"), eventLifecycle: value("e-lifecycle"),
@@ -295,6 +308,12 @@
       condition: value("e-condition"), conditionOwner: value("e-condition-owner"),
       conditionDue: value("e-condition-due"), conditionState: value("e-condition-state"),
       conditionResolved: value("e-condition-resolved"), conditionEvidence: value("e-condition-evidence"),
+      conditionUseScope: value("e-condition-scope"), conditionUcId: value("e-condition-uc-id"),
+      eventUseScope: value("e-use-scope"), eventUcId: value("e-uc-id"),
+      useDecisionRef: value("e-use-decision-ref"), permittedPurpose: value("e-permitted-purpose"),
+      permittedUsers: value("e-permitted-users"), permittedData: value("e-permitted-data"),
+      permittedActions: value("e-permitted-actions"), exclusions: value("e-exclusions"),
+      permittedConditions: value("e-permitted-conditions"),
       priorityBefore: value("e-priority-before"), priorityAfter: value("e-priority-after"),
       priorityRef: value("e-priority-ref")
     });
@@ -318,6 +337,9 @@
     const planEntries = [
       ["Plan ID", value("p-planid"), "Council-assigned only; blank if no existing Plan ID"],
       ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
+      ["Gate Plan scope", value("p-use-scope") || "Unknown", "Prospective scope only; Unknown is not shared or approved"],
+      ["UC-ID covered by Gate Plan", value("p-uc-id"), value("p-use-scope") === "UC-ID specific" ?
+        "Exact UC-ID; verify against controlled use-case index" : "Blank unless plan scope is UC-ID specific"],
       ["Gate / forum", value("p-gate"), "Prospective plan only; not a Gate Event or approval"],
       ["Trigger / lifecycle stage", value("p-trigger"), "Enter the actual lifecycle context"],
       ["Requirement", value("p-requirement"), "Use only after owner review"],
@@ -337,12 +359,18 @@
 
     const riskEntries = [
       ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
+      ["Change / assessment scope", value("c-use-scope"), "Unknown is not shared or approved"],
+      ["Exact UC-ID", value("c-uc-id"), value("c-use-scope") === "UC-ID specific" ?
+        "Verify against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
       ["System / service", value("c-system"), "Reconcile to existing system record"],
       ["Reason for reassessment", value("c-description"), "Assessor records source evidence"],
       ["Reassessment triggers", triggers.join("; ") || "None selected", "Owner confirms against current procedure"]
     ].concat(formatRiskEntries(risk), screeningRows(screening));
     const currentStateEntries = [
       ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in 05"],
+      ["Change / assessment scope", value("c-use-scope"), "Unknown is not shared or approved"],
+      ["Exact UC-ID", value("c-uc-id"), value("c-use-scope") === "UC-ID specific" ?
+        "Verify against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
       ["System / service name", value("c-system"), "System identity supplied for review; reconcile against current AIG-INV-04"],
       ["Current assurance state", "Not read or changed by this tool", "Verify directly in the current AIG-INV-04 record"],
       ["Change / reassessment context", value("c-description"), "Owner determines any current-state change"],
@@ -369,6 +397,8 @@
     if (mapChangeStarted) {
       const mapChangeEntries = G.mapChangeHandoverEntries({
         airId: value("c-air"),
+        useScope: value("c-use-scope"),
+        ucId: value("c-uc-id"),
         changeDate: value("map-change-date"),
         changeType: value("map-change-type"),
         previous: value("map-previous"),
@@ -389,6 +419,8 @@
           "Confirm selected decision and transcribed event state against the current AIG-DEC-04 controlled vocabulary before transfer"],
         ["Event ID", value("e-eventid"), "Existing ID checked by user; blank means none was supplied, not a verified ID"],
         ["AIR-ID", value("c-air"), "Permanent ID; recheck against current AIG-INV-04"],
+        ["Decision scope", value("e-use-scope") || "Unknown", "Unknown is not shared or approved; system baseline approval does not approve a UC-ID"],
+        ["Exact UC-ID", value("e-uc-id"), value("e-use-scope") === "UC-ID specific" ? "Use-specific decision scope; verify against source" : "Blank unless scope is UC-ID specific"],
         ["Gate / forum", value("e-forum"), "Verify authority and forum remit"],
         ["Lifecycle stage", value("e-lifecycle"), "Enter actual lifecycle stage"],
         ["Decision date", value("e-date"), "Actual decision date; confirm"],
@@ -398,6 +430,14 @@
         ["Next gate", value("e-next-gate"), "Leave blank if not recorded"],
         ["Event notes", value("e-notes"), "Do not copy sensitive case details"],
         ["Decision record / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
+        ["Use-specific decision reference", value("e-use-decision-ref"), "Required only for UC-ID-specific decision; verify actual per-UC source record"],
+        ["Permitted purpose", value("e-permitted-purpose"), "Exact use-specific boundary; verify against decision source"],
+        ["Permitted users / roles", value("e-permitted-users"), "Exact use-specific boundary; verify against decision source"],
+        ["Permitted data", value("e-permitted-data"), "Exact use-specific boundary; verify against decision source"],
+        ["Permitted actions / decisions", value("e-permitted-actions"), "Exact use-specific boundary; verify against decision source"],
+        ["Exclusions / prohibited scope", value("e-exclusions"), "Exact use-specific boundary; verify against decision source"],
+        ["Use-specific operating conditions", value("e-permitted-conditions"), "Exact conditions; no use claim beyond these verified limits"],
+        ["Operational-use claim boundary", "No approval inferred by this handover", "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim"],
         ["Technical snapshot / as-at ref", value("e-snapshot"), "Existing technical snapshot reference only"],
         ["Event record state", value("e-record-state"), "Required transcribed state; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
         ["Recorded by / role", value("e-recorded-by"), "Leave blank if not recorded"],
@@ -411,6 +451,13 @@
       addDownload(downloads, "AIG-DEC-03 decision record pointer", "Decision record pointer draft (.csv)", [
         ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
         ["Decision date", value("e-date"), "Pointer only; date remains in the authoritative record"],
+        ["Decision scope", value("e-use-scope") || "Unknown", "Unknown is not shared or approved"],
+        ["Exact UC-ID", value("e-uc-id"), "Blank unless explicitly UC-ID specific"],
+        ["Per-UC decision reference", value("e-use-decision-ref"), "Verify actual per-UC decision before any use-specific claim"],
+        ["Permitted purpose / users / data / actions / exclusions / conditions",
+          [value("e-permitted-purpose"), value("e-permitted-users"), value("e-permitted-data"), value("e-permitted-actions"),
+            value("e-exclusions"), value("e-permitted-conditions")].join(" | "),
+          "Source-verified limits only; this pointer is not permission or approval"],
         ["Gate / forum", value("e-forum"), "Pointer only; forum remains in the authoritative record"],
         ["Decision-maker", value("e-maker"), "Pointer only; maker remains in the authoritative record"],
         ["Decision record / minutes ref", value("e-record"), "AIG-DEC-03 / native minutes remain the authoritative record"],
@@ -424,6 +471,9 @@
         ["Condition ID", "", "Council assigns; do not invent"],
         ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
         ["AIR-ID derived", value("c-air"), "Derived from the verified parent system record"],
+        ["Condition scope", value("e-condition-scope") || "Unknown", "Unknown is not shared scope or approved use"],
+        ["Exact UC-ID", value("e-condition-uc-id"), "Required only for UC-ID-specific condition"],
+        ["Parent per-UC decision reference", value("e-use-decision-ref"), "Verify against the existing parent Event and source decision"],
         ["action", value("e-condition"), "Copy only if present in the authorised decision"],
         ["owner", value("e-condition-owner"), "Confirm assignment"],
         ["due", value("e-condition-due"), "Confirm against the authorised decision"],
@@ -458,6 +508,7 @@
     const validationError = G.validateMonitoring({
       airId: value("m-air"), airIdVerified: isChecked("m-air-verified"),
       system: value("m-system"),
+      useScope: value("m-use-scope"), ucId: value("m-uc-id"),
       category: value("m-category"), metric: value("m-metric"),
       period: value("m-period"), date: value("m-date"), owner: value("m-owner"),
       threshold: value("m-threshold"), actual: value("m-actual"), evidence: value("m-evidence"),
@@ -494,6 +545,9 @@
     const resultEntries = [
       ["AIR-ID", value("m-air"), "User-confirmed against current AIG-INV-04; owner rechecks"],
       ["AI System / Service", value("m-system"), "Required system identity; reconcile to current AIG-INV-04"],
+      ["Measure scope", value("m-use-scope"), "Unknown remains unknown; a shared system measure is not evidence of UC approval"],
+      ["Exact UC-ID", value("m-uc-id"), value("m-use-scope") === "UC-ID specific" ?
+        "Exact use identifier for this measure; verify against controlled use-case index" : "Blank unless measure scope is UC-ID specific"],
       ["Monitoring Period", value("m-period"), "Confirm"],
       ["Review Date", value("m-date"), "Enter actual review date"],
       ["Monitoring Owner", value("m-owner"), "Confirm responsibility"],
@@ -562,6 +616,10 @@
           byId("c-air").value = value("m-air");
           byId("c-air-verified").checked = true;
           byId("c-system").value = value("m-system");
+          byId("c-use-scope").value = value("m-use-scope") === "UC-ID specific" ?
+            "UC-ID specific" : value("m-use-scope") === "Explicit shared system measure" ?
+              "Shared system baseline" : "Unknown";
+          byId("c-uc-id").value = value("m-uc-id");
           byId("c-description").value = "Monitoring signal: " + value("m-metric") + "; actual " +
             value("m-actual") + " vs approved threshold " + value("m-threshold") + "; " +
             [value("m-breach") === "Yes" ? "threshold breach" : "", value("m-material") === "Yes" ? "material change" : "",
