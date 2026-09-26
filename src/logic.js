@@ -56,7 +56,7 @@
       !Number.isInteger(c) || c < 1 || c > 5) return null;
     const impact = Math.max.apply(null, values);
     const inherent = l * impact;
-    // WCC-AIG-07 defines inherent as L × I, control factor as C ÷ 5, and
+    // AIG-ASS-02 defines inherent as L × I, control factor as C ÷ 5, and
     // residual as inherent × control factor. Its residual tier bands are not
     // specified here, so do not infer a tier.
     const residual = Math.round(inherent * c / 5 * 10) / 10;
@@ -83,21 +83,21 @@
     const reassessmentRef = text(data.reassessmentRef);
     return [
       ["Change ID", "", "Map owner assigns under the approved map rules; this tool never issues IDs"],
-      ["AIR-ID", text(data.airId), "Existing permanent ID; user-confirmed against current 05, map owner rechecks"],
+      ["AIR-ID", text(data.airId), "Existing permanent ID; user-confirmed against current AIG-INV-04, map owner rechecks"],
       ["Edge ID", "", "Map owner matches the exact edge in the current map; do not invent an ID"],
       ["Change date", text(data.changeDate), "Actual change/review date; confirm source evidence"],
       ["Change type", text(data.changeType), "Proposed classification; map owner confirms"],
       ["Previous link / access", text(data.previous), "Describe prior state; do not imply the access was authorised"],
       ["New link / access", text(data.next), "Describe proposed/current state; map entry grants no permission"],
-      ["Access expansion?", text(data.expansion), "Owner confirms actual scope against authorised permissions in 45 and derived paths in 46"],
+      ["Access expansion?", text(data.expansion), "Owner confirms actual scope against authorised permissions in AIG-AGT-04 and derived paths in AIG-AGT-05"],
       ["Change owner", text(data.owner), "Confirm accountable owner"],
       ["Review / reassessment ref", reassessmentRef, reassessmentRef ?
         "User-entered pointer; verify the actual reassessment record and outcome" :
         "Blank; required by the map when access expansion is Yes or Unsure"],
       ["Gate Event ID (if needed)", eventId, eventId ?
-        "User-entered existing Event ID; verify it against the dated event in 36 and its formal decision record" :
-        "Blank; if a Gate Event is appropriate, add its actual ID only after the 36 owner logs it; never invent one"],
-      ["Map change state", "Draft handover only", "Transfer to the standalone Capabilities and System Map draft only after map-owner verification; no live row is created"]
+        "User-entered existing Event ID; verify it against the dated event in AIG-DEC-04 and its formal decision record" :
+        "Blank; if a Gate Event is appropriate, add its actual ID only after the AIG-DEC-04 owner logs it; never invent one"],
+      ["Map change state", "Draft handover only", "Transfer to proposed controlled artefact AIG-INV-05 only after map-owner verification and approval/adoption; no live row is created"]
     ];
   }
 
@@ -120,7 +120,7 @@
 
   function validateMonitoring(data) {
     if (!text(data.airId) || !data.airIdVerified) {
-      return "Enter an existing AIR-ID and confirm it was checked against the current WCC-AIG-05. This tool cannot issue or verify identifiers.";
+      return "Enter an existing AIR-ID and confirm it was checked against the current AIG-INV-04. This tool cannot issue or verify identifiers.";
     }
     if (!text(data.metric)) {
       return "Enter the monitoring indicator; metric category is an optional classification.";
@@ -132,7 +132,7 @@
       "denominatorState", "resultState"
     ];
     if (required.some((key) => !text(data[key]))) {
-      return "For a WCC-AIG-39 handover, system identity, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, result state, evidence location and version, checker, data cut, observed-denominator state/context, control-failure review and access-expansion review are required.";
+      return "For a AIG-OPS-02 handover, system identity, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, result state, evidence location and version, checker, data cut, observed-denominator state/context, control-failure review and access-expansion review are required.";
     }
     if (!text(data.breach) || !text(data.material) || !text(data.escalation) || !text(data.status)) {
       return "Confirm threshold breach, material change, governance escalation and review status.";
@@ -215,7 +215,7 @@
     const samples = ["source", "selection", "population", "sample", "window"].map((key) => text(data[key]));
     const sampleStarted = samples.some(Boolean);
     if (sampleStarted && samples.some((item) => !item)) {
-      return "Complete all five WCC-AIG-39 sampling-frame fields for the monitoring result.";
+      return "Complete all five AIG-OPS-02 sampling-frame fields for the monitoring result.";
     }
     if (sampleStarted && (!/^\d+$/.test(text(data.population)) || !/^\d+$/.test(text(data.sample)) ||
       Number(data.sample) > Number(data.population) ||
@@ -239,10 +239,10 @@
       "dataImpact", "decisionImpact"
     ];
     if (required.some((key) => !text(data[key]))) {
-      return "Complete WCC-AIG-19 Part A reporter/contact, system, identified time, classification, what/when/how discovered, AI activity, affected people/data/decisions and impact fields. State Unknown or not applicable where appropriate.";
+      return "Complete AIG-OPS-03 Part A reporter/contact, system, identified time, classification, what/when/how discovered, AI activity, affected people/data/decisions and impact fields. State Unknown or not applicable where appropriate.";
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(data.email))) {
-      return "Enter a valid reporter contact email for WCC-AIG-19 Part A.";
+      return "Enter a valid reporter contact email for AIG-OPS-03 Part A.";
     }
     if (text(data.uplift) && !text(data.upliftReason)) {
       return "Provide the rationale for a manual severity uplift.";
@@ -262,7 +262,7 @@
 
   function validateChange(data) {
     if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
-      return "Enter a system name and an existing AIR-ID confirmed against current WCC-AIG-05; this tool cannot issue or verify identifiers.";
+      return "Enter a system name and an existing AIR-ID confirmed against current AIG-INV-04; this tool cannot issue or verify identifiers.";
     }
     const mapFields = ["mapChangeDate", "mapChangeType", "mapPrevious", "mapNext",
       "mapExpansion", "mapOwner", "mapReassessment", "mapEventId"].map((key) => text(data[key]));
@@ -291,7 +291,7 @@
       return "Select the actual Gate Plan requirement status; do not infer it.";
     }
     if (text(data.planId) && !data.planIdVerified) {
-      return "Only enter an existing Plan ID checked against current WCC-AIG-36.";
+      return "Only enter an existing Plan ID checked against current AIG-DEC-04.";
     }
     const eventStarted = [
       "decision", "eventId", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
@@ -304,10 +304,10 @@
       return "A Gate Event transfer checklist requires an actual authorised decision, date, forum, lifecycle stage, decision-maker, decision-record/minutes reference, evidence source/URI, recorded state, checked authority reference and confirmation.";
     }
     if (text(data.eventId) && !data.eventIdVerified) {
-      return "Only enter an existing Event ID checked against current WCC-AIG-36; do not invent one.";
+      return "Only enter an existing Event ID checked against current AIG-DEC-04; do not invent one.";
     }
     if (text(data.planEventId) && !data.planEventIdVerified) {
-      return "Only enter an existing Plan ID checked against current WCC-AIG-36.";
+      return "Only enter an existing Plan ID checked against current AIG-DEC-04.";
     }
     const priority = ["priorityBefore", "priorityAfter", "priorityRef"].map((key) => text(data[key]));
     if (priority.some(Boolean) && (priority.some((item) => !item) || priority[0] === priority[1])) {
@@ -323,7 +323,7 @@
       "conditionResolved", "conditionEvidence"].map((key) => text(data[key]));
     if (condition.some(Boolean) && (!condition[0] || !condition[1] || !condition[2] || !condition[3] ||
       !text(data.eventId) || !data.eventIdVerified)) {
-      return "A Gate Condition requires its action, owner, due date and an existing Event ID checked against current WCC-AIG-36.";
+      return "A Gate Condition requires its action, owner, due date and an existing Event ID checked against current AIG-DEC-04.";
     }
     if (text(data.decision) === "Progress with condition" && !condition.some(Boolean)) {
       return "Progress with condition requires a Gate Condition handover linked to the existing Event ID.";

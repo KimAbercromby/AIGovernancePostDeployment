@@ -94,7 +94,7 @@
       return;
     }
     if (value("i-air") && !isChecked("i-air-verified")) {
-      setError("i-error", "If you enter an AIR-ID, confirm it is an existing Council-issued identifier checked against the current 05 register.");
+      setError("i-error", "If you enter an AIR-ID, confirm it is an existing Council-issued identifier checked against the current AIG-INV-04 Register.");
       return;
     }
     const partBKeys = ["i-controller-awareness", "i-rights-risk", "i-rights-assessor", "i-rights-date",
@@ -145,17 +145,17 @@
       assessment.uplifted ? "<p>Manual uplift: " + safe(value("i-uplift")) + " — " +
         safe(value("i-uplift-reason") || "reason not entered") + ".</p>" : "",
       dataBreach ? '<div class="caution"><strong>Suspected personal data breach:</strong> refer promptly to the DPO / Information Governance owner. Record the controller-awareness time separately; only the responsible owner determines any UK GDPR notification duty and clock. This tool does not decide breach status or notify anyone.</div>' : "",
-      '<p class="small"><strong>WCC-AIG-19:</strong> Part A is a draft text handover. Transfer only into the controlled form after review. The source says submit as soon as identified; this tool adds no severity-based deadlines and creates no incident record or external notification.</p>',
-      isChecked("i-capa") ? '<div class="caution"><strong>WCC-AIG-30:</strong> optional CAPA request is a draft field/value handover only. The AIMS owner must determine nonconformity classification, ID, corrective action and controlled workbook mapping.</div>' : "",
+      '<p class="small"><strong>AIG-OPS-03:</strong> Part A is a draft text handover. Transfer only into the controlled form after review. The source says submit as soon as identified; this tool adds no severity-based deadlines and creates no incident record or external notification.</p>',
+      isChecked("i-capa") ? '<div class="caution"><strong>AIG-AIMS-08:</strong> optional CAPA request is a draft field/value handover only. The AIMS owner must determine nonconformity classification, ID, corrective action and controlled workbook mapping.</div>' : "",
       '<p class="small">The decision, assurance state and severity remain for the authorised Council owner. A severe incident can prompt reassessment; it does not itself approve suspension, restart or a risk-tier change.</p>'
     ].join("");
     const partA = [
-      ["Event classification", value("i-kind"), "Confirm in the controlled WCC-AIG-19 form"],
+      ["Event classification", value("i-kind"), "Confirm in the controlled AIG-OPS-03 form"],
       ["Reported by", value("i-reporter"), "Verify"],
       ["Reporter role / service team", value("i-role"), "Verify"],
       ["Contact email", value("i-email"), "Verify contact details before transfer"],
-      ["System / service", value("i-system"), "Confirm identity against current 05"],
-      ["Existing AIR-ID", value("i-air"), "Optional; never invent. Confirm against current 05"],
+      ["System / service", value("i-system"), "Confirm identity against current AIG-INV-04"],
+      ["Existing AIR-ID", value("i-air"), "Optional; never invent. Confirm against current AIG-INV-04"],
       ["Date and time identified", value("i-date"), "Keep distinct from any controller-awareness time"],
       ["What occurred", value("i-description"), "Review for unnecessary personal data before transfer"],
       ["When it occurred", value("i-when"), "Reporter account; distinguish from identification time"],
@@ -179,16 +179,16 @@
       ["Provisional internal route", route.recipient, "Confirm current approved routing; submit Part A as soon as the incident is identified"]
     ];
     const outputs = [{
-      label: "WCC-AIG-19 Part A draft (.csv)",
-      filename: "WCC-AIG-19_PartA_draft_" + G.fileKey(value("i-air")) + ".csv",
-      contents: G.handoverCsv("WCC-AIG-19 Part A text handover", handoverEntries(partA, screening))
+      label: "AIG-OPS-03 Part A draft (.csv)",
+      filename: "AIG-OPS-03_PartA_draft_" + G.fileKey(value("i-air")) + ".csv",
+      contents: G.handoverCsv("AIG-OPS-03 Part A text handover", handoverEntries(partA, screening))
     }];
     const partBValues = partBKeys.map(value);
     if (partBValues.some(Boolean)) {
       outputs.push({
-        label: "WCC-AIG-19 optional Part B pointer draft (.csv)",
-        filename: "WCC-AIG-19_PartB_pointer_draft_" + G.fileKey(value("i-air")) + ".csv",
-        contents: G.handoverCsv("WCC-AIG-19 optional Part B pointer — not a legal finding or incident record", handoverEntries([
+        label: "AIG-OPS-03 optional Part B pointer draft (.csv)",
+        filename: "AIG-OPS-03_PartB_pointer_draft_" + G.fileKey(value("i-air")) + ".csv",
+        contents: G.handoverCsv("AIG-OPS-03 optional Part B pointer — not a legal finding or incident record", handoverEntries([
           ["Existing AIR-ID", value("i-air"), "Optional; owner reconciles with 05"],
           ["Controller-awareness date and time", value("i-controller-awareness"), "Controller owner confirms the awareness record"],
           ["Rights and freedoms risk assessment", value("i-rights-risk"), "Pointer/assessment summary only; no risk or legal finding by this tool"],
@@ -198,16 +198,16 @@
           ["Decision rationale", value("i-ico-rationale"), "Pointer only; verify against competent owner record"],
           ["Decision owner", value("i-ico-owner"), "Verify authority and record"],
           ["DPO advice reference", value("i-dpo-ref"), "Reference only; advice remains in its source record"],
-          ["Handover boundary", "Pointer only — transfer to controlled WCC-AIG-19 Part B", "No breach status, legal conclusion, notification deadline or notification is determined"]
+          ["Handover boundary", "Pointer only — transfer to controlled AIG-OPS-03 Part B", "No breach status, legal conclusion, notification deadline or notification is determined"]
         ], screening))
       });
     }
     if (isChecked("i-capa")) {
       outputs.push({
-        label: "WCC-AIG-30 CAPA draft (.csv)",
-        filename: "WCC-AIG-30_CAPA_draft_" + G.fileKey(value("i-air")) + ".csv",
-        contents: G.handoverCsv("WCC-AIG-30 CAPA field/value draft", handoverEntries([
-          ["Related existing AIR-ID", value("i-air"), "Confirm in current 05; optional, do not invent"],
+        label: "AIG-AIMS-08 CAPA draft (.csv)",
+        filename: "AIG-AIMS-08_CAPA_draft_" + G.fileKey(value("i-air")) + ".csv",
+        contents: G.handoverCsv("AIG-AIMS-08 CAPA field/value draft", handoverEntries([
+          ["Related existing AIR-ID", value("i-air"), "Confirm in current AIG-INV-04; optional, do not invent"],
           ["Incident summary", value("i-description"), "AIMS owner determines whether a nonconformity exists"],
           ["Immediate correction", value("i-action"), "Owner validates"],
           ["Status", "Draft / owner review required", "Assign no NC ID and do not add a live row"]
@@ -247,8 +247,8 @@
 
   function formatRiskEntries(risk) {
     return [
-      ["AIR-ID", value("c-air"), "Recheck existing identifier against current WCC-AIG-05"],
-      ["System / model name", value("c-system"), "Reconcile identity with current 05"],
+      ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
+      ["System / model name", value("c-system"), "Reconcile identity with current AIG-INV-04"],
       ["Resident Impact", value("c-impact-res"), "Triage input only; assessor confirms or amends"],
       ["Legal & Regulatory Impact", value("c-impact-legal"), "Triage input only; assessor confirms or amends"],
       ["Reputational Impact", value("c-impact-rep"), "Triage input only; assessor confirms or amends"],
@@ -256,9 +256,9 @@
       ["Financial Impact", value("c-impact-fin"), "Triage input only; assessor confirms or amends"],
       ["Impact score (I) — highest confirmed dimension", risk ? risk.impact : "", "Worksheet formula field; assessor confirms"],
       ["Likelihood (L)", value("c-likelihood"), "Triage input only; assessor confirms or amends"],
-      ["Control Effectiveness (C)", value("c-control"), "WCC-AIG-07 scale: 1 very strong to 5 ineffective"],
+      ["Control Effectiveness (C)", value("c-control"), "AIG-ASS-02 scale: 1 very strong to 5 ineffective"],
       ["Inherent risk score (L × I)", risk ? risk.inherent : "", "Worksheet confirms L × I; assessor confirms inputs and record"],
-      ["Residual risk score", risk ? risk.residual : "", "WCC-AIG-07 formula: inherent score × control factor (C ÷ 5); assessor confirms"],
+      ["Residual risk score", risk ? risk.residual : "", "AIG-ASS-02 formula: inherent score × control factor (C ÷ 5); assessor confirms"],
       ["Residual risk tier", "", "Not calculated: residual-tier band thresholds are not specified in this worksheet"]
     ];
   }
@@ -317,7 +317,7 @@
     const risk = G.calculateRisk(selectedImpacts(), value("c-likelihood"), value("c-control"));
     const planEntries = [
       ["Plan ID", value("p-planid"), "Council-assigned only; blank if no existing Plan ID"],
-      ["AIR-ID", value("c-air"), "Recheck existing identifier against current 05"],
+      ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
       ["Gate / forum", value("p-gate"), "Prospective plan only; not a Gate Event or approval"],
       ["Trigger / lifecycle stage", value("p-trigger"), "Enter the actual lifecycle context"],
       ["Requirement", value("p-requirement"), "Use only after owner review"],
@@ -336,34 +336,34 @@
     const mapChangeStarted = mapFields.some((id) => value(id));
 
     const riskEntries = [
-      ["Existing AIR-ID", value("c-air"), "Recheck current WCC-AIG-05"],
+      ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
       ["System / service", value("c-system"), "Reconcile to existing system record"],
       ["Reason for reassessment", value("c-description"), "Assessor records source evidence"],
       ["Reassessment triggers", triggers.join("; ") || "None selected", "Owner confirms against current procedure"]
     ].concat(formatRiskEntries(risk), screeningRows(screening));
     const currentStateEntries = [
       ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in 05"],
-      ["System / service name", value("c-system"), "System identity supplied for review; reconcile against current 05"],
-      ["Current assurance state", "Not read or changed by this tool", "Verify directly in the current 05 record"],
+      ["System / service name", value("c-system"), "System identity supplied for review; reconcile against current AIG-INV-04"],
+      ["Current assurance state", "Not read or changed by this tool", "Verify directly in the current AIG-INV-04 record"],
       ["Change / reassessment context", value("c-description"), "Owner determines any current-state change"],
       ["Reassessment trigger(s)", triggers.join("; ") || "None selected", "Context only; owner records any reassessment outcome"],
       ["User-entered current tier for comparison", value("c-current-tier"), value("c-current-tier") ?
-        "User-provided comparison only; verify directly in current 05" : "Blank — no current tier supplied"],
-      ["Residual risk score", risk ? risk.residual : "", "WCC-AIG-07 formula mirrored; assessor confirms in the worksheet"],
-      ["Residual risk tier", "", "Not calculated: tier bands are not specified here; verify directly in WCC-AIG-07"],
+        "User-provided comparison only; verify directly in current AIG-INV-04" : "Blank — no current tier supplied"],
+      ["Residual risk score", risk ? risk.residual : "", "AIG-ASS-02 formula mirrored; assessor confirms in the worksheet"],
+      ["Residual risk tier", "", "Not calculated: tier bands are not specified here; verify directly in AIG-ASS-02"],
       ["Approval / operational status", "No value proposed", "Never inferred from a score or draft handover"],
-      ["Current 05 update", "None — no register update performed or proposed by this tool",
+      ["Current AIG-INV-04 update", "None — no register update performed or proposed by this tool",
         "Review handover only; the authorised register owner separately determines any controlled update"],
-      ["Register field mapping", "Not supplied", "Map against exact current 05 headers; this file is not a worksheet row"]
+      ["Register field mapping", "Not supplied", "Map against exact current AIG-INV-04 headers; this file is not a worksheet row"]
     ].concat(screeningRows(screening));
     const downloads = [];
-    addDownload(downloads, "WCC-AIG-07 risk assessment", "WCC-AIG-07 assessment draft (.csv)", riskEntries, value("c-air"));
+    addDownload(downloads, "AIG-ASS-02 risk assessment", "AIG-ASS-02 assessment draft (.csv)", riskEntries, value("c-air"));
     if (triggers.length) {
-      addDownload(downloads, "WCC-AIG-05 current-state review handover (no update)",
-        "WCC-AIG-05 review handover — no update (.csv)", currentStateEntries, value("c-air"));
+      addDownload(downloads, "AIG-INV-04 current-state review handover (no update)",
+        "AIG-INV-04 review handover — no update (.csv)", currentStateEntries, value("c-air"));
     }
     if (planStarted) {
-      addDownload(downloads, "WCC-AIG-36 prospective Gate Plan", "WCC-AIG-36 Gate Plan draft (.csv)",
+      addDownload(downloads, "AIG-DEC-04 prospective Gate Plan", "AIG-DEC-04 Gate Plan draft (.csv)",
         planEntries.concat(screeningRows(screening)), value("c-air"));
     }
     if (mapChangeStarted) {
@@ -384,22 +384,22 @@
     if (decision) {
       const eventEntries = [
         ["Checklist boundary", "Transfer checklist only — not an authoritative event record",
-          "Formal decision remains in WCC-AIG-16 / authorised native minutes; owner maps/transfers values to current 36"],
+          "Formal decision remains in AIG-DEC-03 / authorised native minutes; owner maps/transfers values to current AIG-DEC-04"],
         ["Decision/state controlled-value mapping", "PENDING OWNER VERIFICATION",
-          "Confirm selected decision and transcribed event state against the current WCC-AIG-36 controlled vocabulary before transfer"],
+          "Confirm selected decision and transcribed event state against the current AIG-DEC-04 controlled vocabulary before transfer"],
         ["Event ID", value("e-eventid"), "Existing ID checked by user; blank means none was supplied, not a verified ID"],
-        ["AIR-ID", value("c-air"), "Permanent ID; recheck against current 05"],
+        ["AIR-ID", value("c-air"), "Permanent ID; recheck against current AIG-INV-04"],
         ["Gate / forum", value("e-forum"), "Verify authority and forum remit"],
         ["Lifecycle stage", value("e-lifecycle"), "Enter actual lifecycle stage"],
         ["Decision date", value("e-date"), "Actual decision date; confirm"],
-        ["Decision", decision, "Transcribed from formal record; exact current 36 controlled value mapping remains pending owner confirmation"],
+        ["Decision", decision, "Transcribed from formal record; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
         ["Assurance opinion ref", value("e-opinion"), "Existing reference only; leave blank if none"],
         ["Decision-maker / role", value("e-maker"), "Verify in formal record"],
         ["Next gate", value("e-next-gate"), "Leave blank if not recorded"],
         ["Event notes", value("e-notes"), "Do not copy sensitive case details"],
-        ["Decision record / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in WCC-AIG-16 or native minutes"],
+        ["Decision record / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
         ["Technical snapshot / as-at ref", value("e-snapshot"), "Existing technical snapshot reference only"],
-        ["Event record state", value("e-record-state"), "Required transcribed state; exact current 36 controlled value mapping remains pending owner confirmation"],
+        ["Event record state", value("e-record-state"), "Required transcribed state; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
         ["Recorded by / role", value("e-recorded-by"), "Leave blank if not recorded"],
         ["Evidence source / URI", value("e-evidence"), "Required existing reference; the confirmation barrier rejects blank evidence"],
         ["Plan ID (optional join)", value("e-planid"), "Optional existing ID; do not invent"],
@@ -407,19 +407,19 @@
         ["Priority after override", value("e-priority-after"), "Complete only for an actual priority override"],
         ["Assurance priority update ref", value("e-priority-ref"), "Complete only for an actual priority override"]
       ];
-      addDownload(downloads, "WCC-AIG-36 Gate Event transfer checklist", "WCC-AIG-36 Gate Event transfer checklist (.csv)", eventEntries, value("c-air"));
-      addDownload(downloads, "WCC-AIG-16 decision record pointer", "Decision record pointer draft (.csv)", [
-        ["Existing AIR-ID", value("c-air"), "Recheck current WCC-AIG-05"],
+      addDownload(downloads, "AIG-DEC-04 Gate Event transfer checklist", "AIG-DEC-04 Gate Event transfer checklist (.csv)", eventEntries, value("c-air"));
+      addDownload(downloads, "AIG-DEC-03 decision record pointer", "Decision record pointer draft (.csv)", [
+        ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
         ["Decision date", value("e-date"), "Pointer only; date remains in the authoritative record"],
         ["Gate / forum", value("e-forum"), "Pointer only; forum remains in the authoritative record"],
         ["Decision-maker", value("e-maker"), "Pointer only; maker remains in the authoritative record"],
-        ["Decision record / minutes ref", value("e-record"), "WCC-AIG-16 / native minutes remain the authoritative record"],
+        ["Decision record / minutes ref", value("e-record"), "AIG-DEC-03 / native minutes remain the authoritative record"],
         ["Decision", decision, "Pointer only; verify against the authoritative record"],
-        ["Authority / delegation reference", value("e-authority"), "WCC-AIG-45 reference; verify exact scope"],
+        ["Authority / delegation reference", value("e-authority"), "AIG-AGT-04 reference; verify exact scope"],
         ["Handover boundary", "Pointer only — not the decision record", "Do not replace, copy or treat this handover as the authoritative record"]
       ], value("c-air"));
       if (conditionStarted) {
-        addDownload(downloads, "WCC-AIG-36 event-linked Gate Condition", "WCC-AIG-36 Gate Condition draft (.csv)", [
+        addDownload(downloads, "AIG-DEC-04 event-linked Gate Condition", "AIG-DEC-04 Gate Condition draft (.csv)", [
           ["Condition ID", "", "Council assigns; do not invent"],
           ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
           ["AIR-ID derived", value("c-air"), "Derived from the verified parent system record"],
@@ -438,15 +438,15 @@
       '<div class="' + (mandatory ? "caution" : "positive") + '"><strong>' +
         (mandatory ? "Documented reassessment indicated" : "No selected trigger") + "</strong>" +
         (mandatory ? " · " + safe(triggers.join("; ")) : " · Owner still reviews this change; no trigger selected is not assurance of safety.") + "</div>",
-      risk ? "<p>WCC-AIG-07 confirms inherent risk as L × highest confirmed impact = " +
+      risk ? "<p>AIG-ASS-02 confirms inherent risk as L × highest confirmed impact = " +
         safe(risk.inherent) + " and residual risk as inherent × control factor (C ÷ 5) = " + safe(risk.residual) +
         ". Its control-effectiveness scale is 1 (very strong) to 5 (ineffective). A residual tier is <strong>not calculated</strong> because the worksheet does not specify its tier bands. " +
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
-        "Assessor confirms directly in WCC-AIG-07; no tier, approval, permission, AGPI priority or legal applicability is inferred.</p>" :
-        "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness. The residual score then follows WCC-AIG-07 arithmetic; residual tier bands remain unspecified and no tier will be inferred.</p>",
-      '<p><strong>Workbook boundaries:</strong> 05, 36 and the Capabilities and System Map are separate standalone draft workbooks. 05 keeps the permanent issued AIR-ID and current assurance state; 36 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second register. These downloads are draft field/value handovers, not exact worksheet rows.</p>',
+        "Assessor confirms directly in AIG-ASS-02; no tier, approval, permission, AGPI priority or legal applicability is inferred.</p>" :
+        "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness. The residual score then follows AIG-ASS-02 arithmetic; residual tier bands remain unspecified and no tier will be inferred.</p>",
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. These downloads are draft field/value handovers, not exact worksheet rows.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
-        '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in WCC-AIG-45. This tool does not set or change agent authority.</div>' : "",
+        '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI is prioritisation only. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
     ].join("");
     resultCard("c-results", "Change handovers prepared", body, downloads);
@@ -492,8 +492,8 @@
       value("m-trend") === "Deteriorating" || value("m-reassessment") === "Yes" ||
       value("m-control-failure") === "Yes" || value("m-access-expansion") === "Yes";
     const resultEntries = [
-      ["AIR-ID", value("m-air"), "User-confirmed against current 05; owner rechecks"],
-      ["AI System / Service", value("m-system"), "Required system identity; reconcile to current 05"],
+      ["AIR-ID", value("m-air"), "User-confirmed against current AIG-INV-04; owner rechecks"],
+      ["AI System / Service", value("m-system"), "Required system identity; reconcile to current AIG-INV-04"],
       ["Monitoring Period", value("m-period"), "Confirm"],
       ["Review Date", value("m-date"), "Enter actual review date"],
       ["Monitoring Owner", value("m-owner"), "Confirm responsibility"],
@@ -515,19 +515,19 @@
       ["Risk Reassessment Required?", value("m-reassessment"), "Owner disposition; tool separately raises review signals"],
       ["Residual Risk After Review", value("m-residual-risk"), "Owner-entered result only; no calculation by this tool"],
       ["Governance Escalation?", value("m-escalation"), "Owner confirms"],
-      ["Gate Log Ref", value("m-gate-ref"), "Existing WCC-AIG-36 reference only"],
-      ["Complaints / Challenges", value("m-challenge"), "Use WCC-AIG-41 where applicable; no outcome determined"],
+      ["Gate Log Ref", value("m-gate-ref"), "Existing AIG-DEC-04 reference only"],
+      ["Complaints / Challenges", value("m-challenge"), "Use AIG-OPS-04 where applicable; no outcome determined"],
       ["Human Override Rate / Trend", value("m-human-override"), "Observed value / trend; distinguish blank from zero"],
-      ["Evidence Location", value("m-evidence"), "Native evidence remains at source; 05 Evidence Index holds a versioned pointer"],
+      ["Evidence Location", value("m-evidence"), "Native evidence remains at source; AIG-INV-04 Evidence Index holds a versioned pointer"],
       ["Next Review Date", value("m-next-date"), "Enter only a planned/recorded date"],
       ["Review status", value("m-status"), "Draft status only; no condition / approval is closed"],
-      ["Sample Source / Population of Record", value("m-source"), "Required by WCC-AIG-39 for every result"],
-      ["Selection Basis", value("m-selection"), "Required by WCC-AIG-39 for every result"],
+      ["Sample Source / Population of Record", value("m-source"), "Required by AIG-OPS-02 for every result"],
+      ["Selection Basis", value("m-selection"), "Required by AIG-OPS-02 for every result"],
       ["Population Size", value("m-population"), "Separate denominator; zero only for an empty population"],
       ["Sample Size Reviewed", value("m-sample"), "Separate numerator; blank is not zero"],
-      ["Sampling Window", value("m-window"), "Required by WCC-AIG-39 for every result"],
+      ["Sampling Window", value("m-window"), "Required by AIG-OPS-02 for every result"],
       ["Sample selection reproduction detail", value("m-sample-method"), "Method/seed/draw date for random selection; explicit not-applicable otherwise"],
-      ["Highest-impact decisions reviewed in full?", value("m-high-impact"), "WCC-AIG-39 sampling method requires full review of highest-impact decision types"],
+      ["Highest-impact decisions reviewed in full?", value("m-high-impact"), "AIG-OPS-02 sampling method requires full review of highest-impact decision types"],
       ["Highest-impact decision review note", value("m-high-impact-detail"), "Record reviewed types or explain the gap / unknown"],
       ["Evidence version", value("m-evidence-version"), "Supplemental provenance; verify against native evidence"],
       ["Evidence checked by", value("m-checker"), "Supplemental provenance; reviewer identity"],
@@ -546,13 +546,13 @@
         "</strong> · " + (reassessment ?
           "A breach, material change, deteriorating trend, control failure, access expansion or reassessment signal was selected. Open Assess a change; the change owner decides and documents reassessment." :
           "No automatic trigger was selected. The monitoring owner still reviews the result and controlled record.") + "</div>",
-      '<p class="small">WCC-AIG-39 output follows Monitoring Log fields and requires a sampling frame for every result. Population and sample remain separate. It separately identifies evidence version, checker, data cut, denominator/blank-vs-zero context and review signals. This is a draft handover, not a live row. Evidence remains in its native source; verify the current record and workbook version.</p>',
-      value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider WCC-AIG-41 for contestability and redress. This tool does not decide a challenge.</div>' : ""
+      '<p class="small">AIG-OPS-02 output follows Monitoring Log fields and requires a sampling frame for every result. Population and sample remain separate. It separately identifies evidence version, checker, data cut, denominator/blank-vs-zero context and review signals. This is a draft handover, not a live row. Evidence remains in its native source; verify the current record and workbook version.</p>',
+      value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider AIG-OPS-04 for contestability and redress. This tool does not decide a challenge.</div>' : ""
     ].join("");
     const downloads = [{
-      label: "WCC-AIG-39 monitoring handover (.csv)",
-      filename: "WCC-AIG-39_monitoring_draft_" + G.fileKey(value("m-air")) + ".csv",
-      contents: G.handoverCsv("WCC-AIG-39 monitoring field/value handover", resultEntries)
+      label: "AIG-OPS-02 monitoring handover (.csv)",
+      filename: "AIG-OPS-02_monitoring_draft_" + G.fileKey(value("m-air")) + ".csv",
+      contents: G.handoverCsv("AIG-OPS-02 monitoring field/value handover", resultEntries)
     }];
     const actions = [];
     if (reassessment) {

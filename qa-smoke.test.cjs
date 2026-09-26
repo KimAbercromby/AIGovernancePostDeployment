@@ -26,7 +26,7 @@ test('incident routing has no invented severity-based deadlines', () => {
   assert.equal(governance.deadlineFor, undefined);
 });
 
-test('WCC-AIG-07 arithmetic does not infer undocumented residual-tier bands', () => {
+test('AIG-ASS-02 arithmetic does not infer undocumented residual-tier bands', () => {
   const score = governance.calculateRisk([1, 2, 3, 1, 2], 2, 2);
   assert.deepEqual(score, { impact: 3, likelihood: 2, control: 2, inherent: 6, residual: 2.4, tier: null, authoritative: true });
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).residual, 20);
@@ -35,7 +35,7 @@ test('WCC-AIG-07 arithmetic does not infer undocumented residual-tier bands', ()
   assert.equal(governance.calculateRisk([2, 2, 2, 2, 2], 0, 2), null);
 });
 
-test('WCC-AIG-19 Part A and optional Part B reject missing or misleading inputs', () => {
+test('AIG-OPS-03 Part A and optional Part B reject missing or misleading inputs', () => {
   const partA = {
     system: 'Service', reporter: 'Reporter', role: 'Officer', email: 'reporter@example.org',
     identifiedAt: '2026-09-25T09:00', classification: 'Near miss', happened: 'Unexpected output',
@@ -48,7 +48,7 @@ test('WCC-AIG-19 Part A and optional Part B reject missing or misleading inputs'
   assert.match(governance.validateIncident({ ...partA, upliftReason: 'Additional harm context' }), /Clear the uplift rationale/i);
   assert.equal(governance.validateIncident({ ...partA, uplift: 'High', upliftReason: 'Additional harm context' }), '');
   assert.match(governance.validateIncident({ ...partA, email: 'not-an-email' }), /valid reporter contact email/i);
-  assert.match(governance.validateIncident({ ...partA, discovery: '' }), /Complete WCC-AIG-19 Part A/i);
+  assert.match(governance.validateIncident({ ...partA, discovery: '' }), /Complete AIG-OPS-03 Part A/i);
   assert.match(governance.validateIncident({ ...partA, controllerAwareness: '2026-09-25T09:00' }), /optional Part B pointer/i);
   assert.equal(governance.validateIncident({
     ...partA, controllerAwareness: '2026-09-25T09:00', rightsRisk: 'Owner assessment ref',
@@ -59,11 +59,11 @@ test('WCC-AIG-19 Part A and optional Part B reject missing or misleading inputs'
   for (const id of ['i-email', 'i-kind', 'i-when', 'i-discovery', 'i-ai-activity', 'i-data-impact', 'i-decision-impact']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(app, /WCC-AIG-19 optional Part B pointer/);
+  assert.match(app, /AIG-OPS-03 optional Part B pointer/);
   assert.match(app, /not a legal finding or incident record/);
 });
 
-test('WCC-AIG-36 change handover requires real plan, event and condition references', () => {
+test('AIG-DEC-04 change handover requires real plan, event and condition references', () => {
   const base = { airId: 'AIR-REAL-1', airIdVerified: true, system: 'Service' };
   assert.equal(governance.validateChange(base), '');
   assert.match(governance.validateChange({ ...base, airIdVerified: false }), /existing AIR-ID/i);
@@ -82,7 +82,7 @@ test('WCC-AIG-36 change handover requires real plan, event and condition referen
   const event = {
     ...base, decision: 'Progress', eventDate: '2026-09-25', eventForum: 'Board',
     eventLifecycle: 'Pre-deployment', eventMaker: 'Authorised role', eventRecord: 'Minute ref',
-    eventAuthority: 'WCC-AIG-45 ref', evidenceSource: 'Approved evidence URI',
+    eventAuthority: 'AIG-AGT-04 ref', evidenceSource: 'Approved evidence URI',
     eventState: 'Owner-entered state', eventConfirmed: true
   };
   assert.equal(governance.validateChange(event), '');
@@ -111,7 +111,7 @@ test('all case-specific duty screening prompts are required for ready handover',
   assert.match(csv, /'=1\+1/);
 });
 
-test('WCC-AIG-39 handover requires identity, provenance, denominators and review signals', () => {
+test('AIG-OPS-02 handover requires identity, provenance, denominators and review signals', () => {
   const complete = {
     airId: 'AIR-TEST-VALID', airIdVerified: true, system: 'Service', category: 'Performance', metric: 'Accuracy',
     period: '2026-Q3', date: '2026-09-25', owner: 'Service Owner', threshold: 'Approved threshold ref',
@@ -134,7 +134,7 @@ test('WCC-AIG-39 handover requires identity, provenance, denominators and review
     assert.notEqual(governance.validateMonitoring(incomplete), '', `${field} must block a handover`);
   }
   assert.match(governance.validateMonitoring({ ...complete, breach: 'Yes' }), /provisional severity/i);
-  assert.match(governance.validateMonitoring({ ...complete, source: '' }), /For a WCC-AIG-39 handover/i);
+  assert.match(governance.validateMonitoring({ ...complete, source: '' }), /For a AIG-OPS-02 handover/i);
   assert.match(governance.validateMonitoring({ ...complete, controlFailure: 'Yes' }), /control failure signal/i);
   assert.match(governance.validateMonitoring({ ...complete, accessExpansion: 'Yes' }), /access-expansion signal/i);
   assert.match(governance.validateMonitoring({ ...complete, resultState: 'Observed zero', actual: '' }), /enter an actual numeric zero/i);
@@ -201,11 +201,13 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html, /AGPI is prioritisation, not a waiver/);
   assert.match(html + app, /permanent .*AIR-ID and current assurance state/i);
   assert.match(html + app, /prospective plan, dated event and event-linked conditions/);
-  assert.match(html, /WCC-AIG-45/);
-  assert.match(app, /current WCC-AIG-05/);
-  assert.match(app, /WCC-AIG-16.*native minutes/);
+  assert.match(html, /AIG-AGT-04/);
+  assert.match(html, /AIG-INV-04 is the Register and owns each system.s permanent AIR-ID/i);
+  assert.match(html, /Proposed controlled AIG-INV-05 is a relationship map only.*decision, permission or approval source/i);
+  assert.match(app, /current AIG-INV-04/);
+  assert.match(app, /AIG-DEC-03.*native minutes/);
   assert.match(app, /PENDING OWNER VERIFICATION/);
-  assert.match(app, /current WCC-AIG-36 controlled vocabulary/);
+  assert.match(app, /current AIG-DEC-04 controlled vocabulary/);
   assert.match(html + app, /separate standalone draft workbooks/);
   assert.doesNotMatch(html + app, /Westminster/i);
 });
@@ -214,7 +216,7 @@ test('three distinct post-deployment workflows and exports are present', () => {
   const html = read('index.html');
   const app = read('src/app.js');
   for (const id of ['panel-incident', 'panel-change', 'panel-monitor']) assert.match(html, new RegExp(id));
-  for (const artifact of ['WCC-AIG-19', 'WCC-AIG-30', 'WCC-AIG-39', 'WCC-AIG-07', 'WCC-AIG-05', 'WCC-AIG-36', 'WCC-AIG-16']) {
+  for (const artifact of ['AIG-OPS-03', 'AIG-AIMS-08', 'AIG-OPS-02', 'AIG-ASS-02', 'AIG-INV-04', 'AIG-DEC-04', 'AIG-DEC-03']) {
     assert.ok(app.includes(artifact), `expected handover route for ${artifact}`);
   }
   assert.match(app, /Existing verified Event ID/);
@@ -253,5 +255,5 @@ test('map change handoff carries reassessment and only an existing Gate Event li
     reassessmentRef: 'RA-14', eventId: 'GE-2026-004'
   });
   assert.equal(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[1], 'GE-2026-004');
-  assert.match(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[2], /verify it against the dated event in 36/);
+  assert.match(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[2], /verify it against the dated event in AIG-DEC-04/);
 });
