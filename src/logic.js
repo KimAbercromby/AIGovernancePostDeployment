@@ -84,6 +84,10 @@
     return [
       ["Change ID", "", "Map owner assigns under the approved map rules; this tool never issues IDs"],
       ["AIR-ID", text(data.airId), "Existing permanent ID; user-confirmed against current AIG-INV-04, map owner rechecks"],
+      ["Use scope", text(data.useScope) || "Unknown", "Exact UC-ID scope or explicit system baseline; Unknown is not shared or approved"],
+      ["UC-ID", text(data.ucId), text(data.useScope) === "UC-ID specific" ?
+        "Exact use identifier supplied for this scoped change; verify against the controlled use-case index" :
+        "Blank unless the change is explicitly UC-ID specific"],
       ["Edge ID", "", "Map owner matches the exact edge in the current map; do not invent an ID"],
       ["Change date", text(data.changeDate), "Actual change/review date; confirm source evidence"],
       ["Change type", text(data.changeType), "Proposed classification; map owner confirms"],
@@ -126,13 +130,22 @@
       return "Enter the monitoring indicator; metric category is an optional classification.";
     }
     const required = [
-      "system", "period", "date", "owner", "threshold", "trend", "evidence",
+      "system", "useScope", "period", "date", "owner", "threshold", "trend", "evidence",
       "evidenceVersion", "checker", "dataCut", "controlFailure", "accessExpansion", "reassessment",
       "source", "selection", "population", "sample", "window", "sampleMethod", "highImpact", "highImpactDetail",
       "denominatorState", "resultState"
     ];
     if (required.some((key) => !text(data[key]))) {
-      return "For a AIG-OPS-02 handover, system identity, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, result state, evidence location and version, checker, data cut, observed-denominator state/context, control-failure review and access-expansion review are required.";
+      return "For an AIG-OPS-02 handover, system identity, explicit UC-ID / shared-measure / unknown scope, period, actual review date, monitoring owner, indicator, approved threshold/tolerance, result state, evidence location and version, checker, data cut, observed-denominator state/context, control-failure review and access-expansion review are required.";
+    }
+    if (!["UC-ID specific", "Explicit shared system measure", "Unknown"].includes(text(data.useScope))) {
+      return "Select UC-ID-specific, explicitly shared system measure, or Unknown. Blank scope is not shared.";
+    }
+    if (data.useScope === "UC-ID specific" && !text(data.ucId)) {
+      return "Enter the exact UC-ID for a use-specific monitoring measure.";
+    }
+    if (data.useScope !== "UC-ID specific" && text(data.ucId)) {
+      return "Clear the UC-ID unless the monitoring measure is explicitly UC-ID specific.";
     }
     if (!text(data.breach) || !text(data.material) || !text(data.escalation) || !text(data.status)) {
       return "Confirm threshold breach, material change, governance escalation and review status.";
@@ -236,10 +249,19 @@
     const required = [
       "system", "reporter", "role", "email", "identifiedAt", "classification",
       "happened", "when", "discovery", "aiActivity", "affected", "impact",
-      "dataImpact", "decisionImpact"
+      "dataImpact", "decisionImpact", "useScope"
     ];
     if (required.some((key) => !text(data[key]))) {
-      return "Complete AIG-OPS-03 Part A reporter/contact, system, identified time, classification, what/when/how discovered, AI activity, affected people/data/decisions and impact fields. State Unknown or not applicable where appropriate.";
+      return "Complete AIG-OPS-03 Part A reporter/contact, system, explicit use scope (or Unknown), identified time, classification, what/when/how discovered, AI activity, affected people/data/decisions and impact fields. State Unknown or not applicable where appropriate.";
+    }
+    if (!["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.useScope))) {
+      return "Select UC-ID-specific, Shared system baseline, or Unknown; unknown scope is not shared.";
+    }
+    if (data.useScope === "UC-ID specific" && !text(data.ucId)) {
+      return "Enter the exact UC-ID for a UC-ID-specific incident.";
+    }
+    if (data.useScope !== "UC-ID specific" && text(data.ucId)) {
+      return "Clear the UC-ID unless incident scope is explicitly UC-ID specific.";
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(data.email))) {
       return "Enter a valid reporter contact email for AIG-OPS-03 Part A.";
@@ -264,6 +286,15 @@
     if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
       return "Enter a system name and an existing AIR-ID confirmed against current AIG-INV-04; this tool cannot issue or verify identifiers.";
     }
+    if (!["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.useScope))) {
+      return "Select UC-ID-specific, Shared system baseline, or Unknown for the change scope; blank is not shared.";
+    }
+    if (data.useScope === "UC-ID specific" && !text(data.ucId)) {
+      return "Enter the exact UC-ID for a UC-ID-specific change assessment.";
+    }
+    if (data.useScope !== "UC-ID specific" && text(data.ucId)) {
+      return "Clear the UC-ID unless the change assessment is explicitly UC-ID specific.";
+    }
     const mapFields = ["mapChangeDate", "mapChangeType", "mapPrevious", "mapNext",
       "mapExpansion", "mapOwner", "mapReassessment", "mapEventId"].map((key) => text(data[key]));
     const mapStarted = mapFields.some(Boolean);
@@ -277,7 +308,16 @@
     const planKeys = ["planGate", "planTrigger", "planRequirement", "planDate", "planRole", "planState", "planSourceVersion"];
     const plan = planKeys.map((key) => text(data[key]));
     const planStarted = plan.some(Boolean) || text(data.planBasis) || text(data.planWaiver) ||
-      text(data.planId) || text(data.planCriteria);
+      text(data.planId) || text(data.planCriteria) || text(data.planUseScope) || text(data.planUcId);
+    if (planStarted && !["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.planUseScope))) {
+      return "Select the Gate Plan's exact UC-ID-specific, shared system baseline, or Unknown scope.";
+    }
+    if (planStarted && data.planUseScope === "UC-ID specific" && !text(data.planUcId)) {
+      return "Enter the exact UC-ID covered by a UC-ID-specific Gate Plan.";
+    }
+    if (planStarted && data.planUseScope !== "UC-ID specific" && text(data.planUcId)) {
+      return "Clear the Gate Plan UC-ID unless its scope is explicitly UC-ID specific.";
+    }
     if (planStarted && plan.some((item) => !item)) {
       return "Complete every Gate Plan prompt, including source version and any N-A/waiver rationale and authority, or leave the plan blank.";
     }
@@ -300,12 +340,28 @@
     const eventStarted = [
       "decision", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
       "eventAuthority", "eventState", "assuranceOpinion", "nextGate", "eventNotes", "technicalSnapshot",
-      "recordedBy", "evidenceSource", "planEventId", "priorityBefore", "priorityAfter", "priorityRef"
+      "recordedBy", "evidenceSource", "planEventId", "priorityBefore", "priorityAfter", "priorityRef",
+      "eventUseScope", "eventUcId", "permittedPurpose", "permittedUsers",
+      "permittedData", "permittedActions", "exclusions", "permittedConditions"
     ].some((key) => text(data[key])) || (text(data.eventId) && !conditionDraftStarted);
     if (eventStarted && (!text(data.decision) || !text(data.eventDate) || !text(data.eventForum) ||
       !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventRecord) ||
       !text(data.eventAuthority) || !text(data.evidenceSource) || !text(data.eventState) || !data.eventConfirmed)) {
       return "A Gate Event transfer checklist requires an actual authorised decision, date, forum, lifecycle stage, decision-maker, decision-record/minutes reference, evidence source/URI, recorded state, checked authority reference and confirmation.";
+    }
+    if (eventStarted && !["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.eventUseScope))) {
+      return "Select the Gate Event decision scope as UC-ID specific, Shared system baseline, or Unknown; scope cannot be inferred.";
+    }
+    if (eventStarted && data.eventUseScope === "UC-ID specific" &&
+      (!text(data.eventUcId) || !text(data.useDecisionRef) || !text(data.permittedPurpose) ||
+       !text(data.permittedUsers) || !text(data.permittedData) || !text(data.permittedActions) ||
+       !text(data.exclusions) || !text(data.permittedConditions))) {
+      return "A UC-ID-specific Gate Event needs its exact UC-ID, verified per-UC decision reference, permitted purpose/users/data/actions, exclusions, and operating conditions; a system baseline cannot supply these.";
+    }
+    if (eventStarted && data.eventUseScope !== "UC-ID specific" &&
+      [data.eventUcId, data.useDecisionRef, data.permittedPurpose, data.permittedUsers, data.permittedData,
+        data.permittedActions, data.exclusions, data.permittedConditions].some((item) => text(item))) {
+      return "Clear UC-specific decision details unless the Gate Event scope is explicitly UC-ID specific; Unknown or shared scope is not use approval.";
     }
     if (text(data.eventId) && !data.eventIdVerified) {
       return "Only enter an existing Event ID checked against current AIG-DEC-04; do not invent one.";
@@ -328,6 +384,22 @@
     if (condition.some(Boolean) && (!condition[0] || !condition[1] || !condition[2] || !condition[3] ||
       !text(data.eventId) || !data.eventIdVerified)) {
       return "A Gate Condition requires its action, owner, due date and an existing Event ID checked against current AIG-DEC-04.";
+    }
+    if (condition.some(Boolean) && !["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.conditionUseScope))) {
+      return "Select the Gate Condition scope as UC-ID specific, Shared system baseline, or Unknown.";
+    }
+    if (condition.some(Boolean) && data.conditionUseScope === "UC-ID specific" &&
+      (!text(data.conditionUcId) || !text(data.useDecisionRef))) {
+      return "Enter the exact UC-ID and per-UC decision reference covered by a UC-ID-specific Gate Condition.";
+    }
+    if (condition.some(Boolean) && data.conditionUseScope !== "UC-ID specific" && text(data.conditionUcId)) {
+      return "Clear the Gate Condition UC-ID unless its scope is explicitly UC-ID specific.";
+    }
+    if (condition.some(Boolean) && eventStarted && (
+      text(data.conditionUseScope) !== text(data.eventUseScope) ||
+      (data.conditionUseScope === "UC-ID specific" && text(data.conditionUcId) !== text(data.eventUcId))
+    )) {
+      return "A Gate Condition prepared with a Gate Event must match the event's exact use scope and UC-ID.";
     }
     if (text(data.decision) === "Progress with condition" && !condition.some(Boolean)) {
       return "Progress with condition requires a Gate Condition handover linked to the existing Event ID.";
