@@ -83,7 +83,7 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
   assert.match(governance.validateChange({ ...plan, planUcId: '' }), /exact UC-ID covered/i);
   assert.match(governance.validateChange({ ...plan, planBasis: '' }), /basis reference/i);
   assert.match(governance.validateChange({
-    ...base, planGate: 'Review', planTrigger: 'Before release', planRequirement: 'Not required',
+    ...base, planGate: 'Review', planTrigger: 'Before release', planRequirement: 'Not applicable',
     planUseScope: 'Unknown',
     planDate: '2026-11-01', planRole: 'Owner', planState: 'Planned', planSourceVersion: '1.5'
   }), /rationale and authority/i);
@@ -214,7 +214,7 @@ test('AIG-OPS-02 handover requires identity, provenance, denominators and review
     resultState: 'Blank / unknown', actual: '', resultReason: 'No records existed in the window'
   }), '');
   assert.match(governance.validateMonitoring({
-    ...complete, selection: 'Simple random', sampleMethod: 'Not applicable'
+    ...complete, selection: 'Random', sampleMethod: 'Not applicable'
   }), /random-selection method/i);
   assert.match(governance.validateMonitoring({
     ...complete, action: 'Containment in progress'

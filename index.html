@@ -250,7 +250,7 @@
             <label class="field">Exact UC-ID for this plan<input id="p-uc-id" type="text"></label>
             <label class="field">Gate / forum<input id="p-gate" type="text"></label>
             <label class="field">Trigger / lifecycle stage<input id="p-trigger" type="text"></label>
-            <label class="field">Requirement<select id="p-requirement"><option value="">Select</option><option>Required</option><option>Not required</option></select></label>
+            <label class="field">Requirement<select id="p-requirement"><option value="">Select</option><option>Required</option><option>Conditional</option><option>Not applicable</option></select></label>
             <label class="field">Basis / triage reference<input id="p-basis" type="text"></label>
             <label class="field">Target date<input id="p-date" type="date"></label>
             <label class="field">Responsible role<input id="p-owner" type="text"></label>
@@ -267,7 +267,7 @@
           <div class="grid">
             <label class="field">Decision scope<select id="e-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
             <label class="field">Exact UC-ID covered by this decision<input id="e-uc-id" type="text"></label>
-            <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Escalation raised</option><option>Priority override</option></select></label>
+            <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Opinion only</option><option>No decision</option><option>Escalation raised</option><option>Priority override</option></select></label>
             <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
             <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against AIG-DEC-04. Do not invent one.</span></label>
             <label class="field">Decision date<input id="e-date" type="date"></label>
@@ -305,8 +305,8 @@
             <label class="field">Condition / required action<input id="e-condition" type="text"></label>
             <label class="field">Condition owner / role<input id="e-condition-owner" type="text"></label>
             <label class="field">Condition due date<input id="e-condition-due" type="date"></label>
-            <label class="field">Condition state<select id="e-condition-state"><option value="">Select</option><option>Open</option><option>Resolved</option><option>Waived</option></select></label>
-            <label class="field">Resolved / waived on<input id="e-condition-resolved" type="date"></label>
+            <label class="field">Condition state<select id="e-condition-state"><option value="">Select</option><option>Open</option><option>Met</option><option>Overdue</option><option>Waived</option><option>Superseded</option></select></label>
+            <label class="field">Closed / waived on<input id="e-condition-resolved" type="date"></label>
             <label class="field">Resolution evidence / waiver authority<input id="e-condition-evidence" type="text"></label>
           </div>
         </fieldset>
@@ -341,7 +341,7 @@
             <label class="field">Review date<input id="m-date" type="date"></label>
             <label class="field">Monitoring owner<input id="m-owner" type="text"></label>
             <label class="field">Metric / indicator<input id="m-metric" type="text"></label>
-            <label class="field">Metric category<select id="m-category"><option value="">Select</option><option>Performance</option><option>Fairness / bias</option><option>Drift</option><option>Error / failure</option><option>Human oversight</option><option>Complaints / challenges</option><option>Privacy</option><option>Security</option><option>Benefits / outcomes</option><option>Agentic security</option><option>Agentic operations</option><option>Other</option></select></label>
+            <label class="field">Metric category<select id="m-category"><option value="">Select</option><option>Performance</option><option>Fairness / Bias</option><option>Drift</option><option>Error / Failure</option><option>Human Oversight</option><option>Complaints / Challenges</option><option>Privacy</option><option>Security</option><option>Benefits / Outcomes</option><option value="Security">Agentic security (recorded as Security)</option><option value="Other">Agentic operations (recorded as Other)</option><option>Other</option></select></label>
             <label class="field">Approved threshold / tolerance reference<input id="m-threshold" type="text"></label>
             <label class="field">Observed result<input id="m-actual" type="text" placeholder="Enter the value only when state is Observed non-zero or Observed zero"></label>
             <label class="field">Observed-result state<select id="m-result-state"><option value="">Select</option><option>Observed non-zero</option><option>Observed zero</option><option>Blank / unknown</option><option>Not applicable</option></select></label>
@@ -353,12 +353,12 @@
             <label class="field">Observed metric denominator<input id="m-observed-denominator" type="text" inputmode="numeric" placeholder="Enter an observed whole-number denominator, including 0"></label>
             <label class="field">Observed-denominator state<select id="m-denominator-state"><option value="">Select</option><option>Observed positive</option><option>Observed zero</option><option>Blank / unknown</option><option>Not applicable</option></select></label>
             <label class="field">Denominator context / source<textarea id="m-denominator" placeholder="Explain the denominator source; for Blank / unknown or Not applicable, explain why. This is separate from the sampling population and sample."></textarea></label>
-            <label class="field">Trend<select id="m-trend"><option value="">Select</option><option>Improving</option><option>Stable</option><option>Deteriorating</option><option>New / baseline</option><option>Unknown</option></select></label>
+            <label class="field">Trend<select id="m-trend"><option value="">Select</option><option>Improving</option><option>Stable</option><option>Deteriorating</option><option>New / Baseline</option><option>Unknown</option></select></label>
             <label class="field">Threshold breached?<select id="m-breach"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
             <label class="field">Provisional severity, if breached<select id="m-severity"><option value="">Select</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></label>
             <label class="field">Material change since last review?<select id="m-material"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
             <label class="field">Governance escalation required?<select id="m-escalation"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></label>
-            <label class="field">Review status<select id="m-status"><option value="">Select</option><option>Reviewed</option><option>Open</option><option>Action open</option><option>Escalated</option></select></label>
+            <label class="field">Review status<select id="m-status"><option value="">Select</option><option>Reviewed</option><option>Open</option><option>Action Open</option><option>Escalated</option></select></label>
           </div>
           <div class="grid">
             <label class="field">Action / decision<input id="m-action" type="text"></label>
@@ -383,7 +383,7 @@
           <p class="section-note">AIG-OPS-02 requires sample source, selection basis, population size, sample size and window for each result. Record the source population and sample separately; an empty population and a zero observed result are distinct from missing data. Review the highest-impact decision types in full. Do not enter case-level personal data.</p>
           <div class="grid">
             <label class="field">Sample source / population<input id="m-source" type="text"></label>
-            <label class="field">Selection basis<select id="m-selection"><option value="">Select</option><option>Full population (census)</option><option>Simple random</option><option>Stratified random</option><option>Risk-weighted / targeted</option><option>Exception-based</option></select></label>
+            <label class="field">Selection basis<select id="m-selection"><option value="">Select</option><option>Full population (census)</option><option>Random</option><option>Stratified random</option><option>Risk-weighted / targeted</option><option>Exception-based</option></select></label>
             <label class="field">Population size<input id="m-population" type="text" inputmode="numeric"></label>
             <label class="field">Sample size reviewed<input id="m-sample" type="text" inputmode="numeric"></label>
             <label class="field">Sampling window<input id="m-window" type="text"></label>
