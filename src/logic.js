@@ -221,7 +221,7 @@
     if (!["Yes", "No", "Unknown"].includes(text(data.highImpact))) {
       return "Select Yes, No or Unknown for review of highest-impact decisions.";
     }
-    if (["Simple random", "Stratified random"].includes(text(data.selection)) &&
+    if (["Random", "Stratified random"].includes(text(data.selection)) &&
       /^(n\/?a|not applicable)$/i.test(text(data.sampleMethod))) {
       return "Record the random-selection method, seed or draw date so the sample can be reproduced.";
     }
@@ -324,10 +324,10 @@
     if (planStarted && text(data.planRequirement) === "Required" && !text(data.planBasis)) {
       return "A Required Gate Plan needs a basis reference.";
     }
-    if (planStarted && text(data.planRequirement) === "Not required" && !text(data.planWaiver)) {
-      return "A Not required Gate Plan needs its rationale and authority reference.";
+    if (planStarted && text(data.planRequirement) === "Not applicable" && !text(data.planWaiver)) {
+      return "A Not applicable Gate Plan needs its rationale and authority reference.";
     }
-    if (planStarted && !["Required", "Not required"].includes(text(data.planRequirement))) {
+    if (planStarted && !["Required", "Conditional", "Not applicable"].includes(text(data.planRequirement))) {
       return "Select the actual Gate Plan requirement status; do not infer it.";
     }
     if (text(data.planId) && !data.planIdVerified) {
@@ -404,7 +404,7 @@
     if (text(data.decision) === "Progress with condition" && !condition.some(Boolean)) {
       return "Progress with condition requires a Gate Condition handover linked to the existing Event ID.";
     }
-    if (condition[3] === "Resolved" && (!condition[4] || !condition[5])) {
+    if (condition[3] === "Met" && (!condition[4] || !condition[5])) {
       return "A resolved Gate Condition needs its recorded resolution date and evidence reference.";
     }
     if (condition[3] === "Waived" && (!condition[4] || !condition[5])) {
