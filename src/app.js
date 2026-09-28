@@ -337,17 +337,17 @@
     const planEntries = [
       ["Plan ID", value("p-planid"), "Council-assigned only; blank if no existing Plan ID"],
       ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
-      ["Gate Plan scope", value("p-use-scope") || "Unknown", "Prospective scope only; Unknown is not shared or approved"],
-      ["UC-ID covered by Gate Plan", value("p-uc-id"), value("p-use-scope") === "UC-ID specific" ?
+      ["Decision scope (UC-ID specific / Shared system baseline)", value("p-use-scope") || "Unknown", "Prospective scope only; Unknown is not shared or approved"],
+      ["UC-ID scope(s) (blank only for explicit system baseline)", value("p-uc-id"), value("p-use-scope") === "UC-ID specific" ?
         "Exact UC-ID; verify against controlled use-case index" : "Blank unless plan scope is UC-ID specific"],
       ["Gate / forum", value("p-gate"), "Prospective plan only; not a Gate Event or approval"],
-      ["Trigger / lifecycle stage", value("p-trigger"), "Enter the actual lifecycle context"],
+      ["Trigger / stage", value("p-trigger"), "Enter the actual lifecycle context"],
       ["Requirement", value("p-requirement"), "Use only after owner review"],
       ["Basis / triage ref", value("p-basis"), "Reference existing evidence; do not invent a reference"],
       ["Target date", value("p-date"), "Planned date only"],
       ["Responsible role", value("p-owner"), "Confirm assignment"],
-      ["Plan state", value("p-state"), "Use the current controlled value"],
-      ["N-A / waiver rationale and authority ref", value("p-waiver"), "Required where Requirement is Not required"],
+      ["Plan state", value("p-state"), "AIG-DEC-04 controlled values: Planned, Complete, Superseded or Cancelled"],
+      ["N-A / waiver rationale and authority ref", value("p-waiver"), "Required where Requirement is Not applicable"],
       ["Source version", value("p-source-version"), "Enter actual source workbook version"],
       ["Planned criteria / evidence to bring", value("p-criteria"), "Planning note only; confirm against approved plan"]
     ];
@@ -367,7 +367,7 @@
       ["Reassessment triggers", triggers.join("; ") || "None selected", "Owner confirms against current procedure"]
     ].concat(formatRiskEntries(risk), screeningRows(screening));
     const currentStateEntries = [
-      ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in 05"],
+      ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in AIG-INV-04"],
       ["Change / assessment scope", value("c-use-scope"), "Unknown is not shared or approved"],
       ["Exact UC-ID", value("c-uc-id"), value("c-use-scope") === "UC-ID specific" ?
         "Verify against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
@@ -419,17 +419,17 @@
           "Confirm selected decision and transcribed event state against the current AIG-DEC-04 controlled vocabulary before transfer"],
         ["Event ID", value("e-eventid"), "Existing ID checked by user; blank means none was supplied, not a verified ID"],
         ["AIR-ID", value("c-air"), "Permanent ID; recheck against current AIG-INV-04"],
-        ["Decision scope", value("e-use-scope") || "Unknown", "Unknown is not shared or approved; system baseline approval does not approve a UC-ID"],
-        ["Exact UC-ID", value("e-uc-id"), value("e-use-scope") === "UC-ID specific" ? "Use-specific decision scope; verify against source" : "Blank unless scope is UC-ID specific"],
+        ["Decision scope (UC-ID specific / Shared system baseline)", value("e-use-scope") || "Unknown", "Unknown is not shared or approved; system baseline approval does not approve a UC-ID"],
+        ["UC-ID(s) covered by this dated event", value("e-uc-id"), value("e-use-scope") === "UC-ID specific" ? "Use-specific decision scope; verify against source" : "Blank unless scope is UC-ID specific"],
         ["Gate / forum", value("e-forum"), "Verify authority and forum remit"],
         ["Lifecycle stage", value("e-lifecycle"), "Enter actual lifecycle stage"],
-        ["Decision date", value("e-date"), "Actual decision date; confirm"],
-        ["Decision", decision, "Transcribed from formal record; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
+        ["Date", value("e-date"), "Actual decision date; confirm"],
+        ["Outcome", decision, ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop", "Opinion only", "No decision"].includes(decision) ? "AIG-DEC-04 Outcome value; transcribed from the formal record" : "Not an AIG-DEC-04 Outcome value: record this under the closest controlled Outcome (Progress, Progress with condition, Return for evidence, Pause, Stop, Opinion only, No decision) after owner review"],
         ["Assurance opinion ref", value("e-opinion"), "Existing reference only; leave blank if none"],
         ["Decision-maker / role", value("e-maker"), "Verify in formal record"],
-        ["Next gate", value("e-next-gate"), "Leave blank if not recorded"],
+        ["Next gate / action", value("e-next-gate"), "Leave blank if not recorded"],
         ["Event notes", value("e-notes"), "Do not copy sensitive case details"],
-        ["Decision record / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
+        ["AIG-DEC-03 / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
         ["Use-specific decision reference", value("e-use-decision-ref"), "Required only for UC-ID-specific decision; verify actual per-UC source record"],
         ["Permitted purpose", value("e-permitted-purpose"), "Exact use-specific boundary; verify against decision source"],
         ["Permitted users / roles", value("e-permitted-users"), "Exact use-specific boundary; verify against decision source"],
@@ -440,9 +440,9 @@
         ["Operational-use claim boundary", "No approval inferred by this handover", "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim"],
         ["Technical snapshot / as-at ref", value("e-snapshot"), "Existing technical snapshot reference only"],
         ["Event record state", value("e-record-state"), "Required transcribed state; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
-        ["Recorded by / role", value("e-recorded-by"), "Leave blank if not recorded"],
+        ["Recorded by", value("e-recorded-by"), "Leave blank if not recorded"],
         ["Evidence source / URI", value("e-evidence"), "Required existing reference; the confirmation barrier rejects blank evidence"],
-        ["Plan ID (optional join)", value("e-planid"), "Optional existing ID; do not invent"],
+        ["Plan ID (if any)", value("e-planid"), "Optional existing ID; do not invent"],
         ["Priority before override", value("e-priority-before"), "Complete only for an actual priority override"],
         ["Priority after override", value("e-priority-after"), "Complete only for an actual priority override"],
         ["Assurance priority update ref", value("e-priority-ref"), "Complete only for an actual priority override"]
@@ -470,16 +470,16 @@
       addDownload(downloads, "AIG-DEC-04 event-linked Gate Condition", "AIG-DEC-04 Gate Condition draft (.csv)", [
         ["Condition ID", "", "Council assigns; do not invent"],
         ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
-        ["AIR-ID derived", value("c-air"), "Derived from the verified parent system record"],
-        ["Condition scope", value("e-condition-scope") || "Unknown", "Unknown is not shared scope or approved use"],
-        ["Exact UC-ID", value("e-condition-uc-id"), "Required only for UC-ID-specific condition"],
+        ["AIR-ID", value("c-air"), "Derived from the verified parent system record"],
+        ["Condition scope (UC-ID specific / shared system baseline)", value("e-condition-scope") || "Unknown", "Unknown is not shared scope or approved use"],
+        ["UC-ID scope (blank only if shared system condition)", value("e-condition-uc-id"), "Required only for UC-ID-specific condition"],
         ["Parent per-UC decision reference", value("e-use-decision-ref"), "Verify against the existing parent Event and source decision"],
-        ["action", value("e-condition"), "Copy only if present in the authorised decision"],
-        ["owner", value("e-condition-owner"), "Confirm assignment"],
-        ["due", value("e-condition-due"), "Confirm against the authorised decision"],
-        ["state", value("e-condition-state"), "Use current controlled state; tool does not close a condition"],
-        ["resolved/waived on", value("e-condition-resolved"), "Leave blank unless resolution/waiver is recorded"],
-        ["resolution evidence/waiver authority", value("e-condition-evidence"), "Reference actual evidence or authority only"]
+        ["Required action / condition", value("e-condition"), "Copy only if present in the authorised decision"],
+        ["Action owner", value("e-condition-owner"), "Confirm assignment"],
+        ["Due date", value("e-condition-due"), "Confirm against the authorised decision"],
+        ["State", value("e-condition-state"), "AIG-DEC-04 controlled values: Open, Met, Overdue, Waived or Superseded; the tool does not close a condition"],
+        ["Closed / waived on", value("e-condition-resolved"), "Leave blank unless resolution/waiver is recorded"],
+        ["Evidence / waiver authority ref", value("e-condition-evidence"), "Reference actual evidence or authority only"]
       ], value("c-air"));
     }
 
@@ -545,8 +545,12 @@
     const resultEntries = [
       ["AIR-ID", value("m-air"), "User-confirmed against current AIG-INV-04; owner rechecks"],
       ["AI System / Service", value("m-system"), "Required system identity; reconcile to current AIG-INV-04"],
-      ["Measure scope", value("m-use-scope"), "Unknown remains unknown; a shared system measure is not evidence of UC approval"],
-      ["Exact UC-ID", value("m-uc-id"), value("m-use-scope") === "UC-ID specific" ?
+      ["Measure scope (UC-specific / Shared system)",
+        ({ "UC-ID specific": "UC-specific", "Explicit shared system measure": "Shared system" })[value("m-use-scope")] || "",
+        value("m-use-scope") === "Unknown" ?
+          "Scope is Unknown, which is not an AIG-OPS-02 value: resolve to UC-specific or Shared system before transfer" :
+          "AIG-OPS-02 controlled value; a shared system measure is not evidence of UC approval"],
+      ["UC-ID (blank only for an explicitly shared system measure)", value("m-uc-id"), value("m-use-scope") === "UC-ID specific" ?
         "Exact use identifier for this measure; verify against controlled use-case index" : "Blank unless measure scope is UC-ID specific"],
       ["Monitoring Period", value("m-period"), "Confirm"],
       ["Review Date", value("m-date"), "Enter actual review date"],
@@ -574,7 +578,7 @@
       ["Human Override Rate / Trend", value("m-human-override"), "Observed value / trend; distinguish blank from zero"],
       ["Evidence Location", value("m-evidence"), "Native evidence remains at source; AIG-INV-04 Evidence Index holds a versioned pointer"],
       ["Next Review Date", value("m-next-date"), "Enter only a planned/recorded date"],
-      ["Review status", value("m-status"), "Draft status only; no condition / approval is closed"],
+      ["Review Status", value("m-status"), "Draft status only; no condition / approval is closed"],
       ["Sample Source / Population of Record", value("m-source"), "Required by AIG-OPS-02 for every result"],
       ["Selection Basis", value("m-selection"), "Required by AIG-OPS-02 for every result"],
       ["Population Size", value("m-population"), "Separate denominator; zero only for an empty population"],
