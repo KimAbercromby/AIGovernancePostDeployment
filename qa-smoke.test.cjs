@@ -279,7 +279,7 @@ test('three distinct post-deployment workflows and exports are present', () => {
 
 test('condition-only handoff is independent from decision export', () => {
   const app = read('src/app.js');
-  assert.match(app, /if \(decision\) \{[\s\S]*?\n    \}\n    if \(conditionStarted\) \{/);
+  assert.match(app, /if \(value\(\"e-type\"\)\) \{[\s\S]*?\n    \}\n    if \(conditionStarted\) \{/);
   assert.match(app, /AIG-DEC-04 event-linked Gate Condition/);
 });
 
