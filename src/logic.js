@@ -413,6 +413,22 @@
     return "";
   }
 
+  // AIG-OPS-02 v1.4 accepts Unknown (Not yet known for Trend) in these columns. An
+  // unknown is never recorded as No; the log shows UNKNOWN TO RESOLVE and blocks closure.
+  const MONITORING_UNKNOWN_FIELDS = [
+    ["trend", "Trend", "Not yet known"],
+    ["breach", "Threshold Breach?", "Unknown"],
+    ["material", "Material Change?", "Unknown"],
+    ["reassessment", "Risk Reassessment Required?", "Unknown"],
+    ["escalation", "Governance Escalation?", "Unknown"]
+  ];
+
+  function monitoringUnknowns(data) {
+    return MONITORING_UNKNOWN_FIELDS
+      .filter(function (field) { return text(data[field[0]]) === field[2]; })
+      .map(function (field) { return field[1]; });
+  }
+
   function fileKey(value) {
     return text(value).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 48) || "unassigned";
   }
@@ -431,6 +447,8 @@
     fileKey,
     handoverCsv,
     mapChangeHandoverEntries,
+    MONITORING_UNKNOWN_FIELDS,
+    monitoringUnknowns,
     screenMissing,
     screeningEntries,
     severity,
