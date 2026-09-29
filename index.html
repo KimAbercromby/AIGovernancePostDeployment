@@ -267,7 +267,7 @@
           <div class="grid">
             <label class="field">Decision scope<select id="e-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
             <label class="field">Exact UC-ID covered by this decision<input id="e-uc-id" type="text"></label>
-            <label class="field">Actual decision<select id="e-decision"><option value="">Pending — no event handover</option><option>Noted</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Opinion only</option><option>No decision</option><option>Escalation raised</option><option>Priority override</option></select></label>
+            <label class="field">Event type<select id="e-type"><option value="">Pending — no event handover</option><option>Decision</option><option>Assurance opinion</option><option>Review only</option><option>Priority override</option></select><small>AIG-DEC-04 Event type. A forum simply noting an item is Review only.</small></label><label class="field">Outcome<select id="e-decision"><option value="">Select (blank only for a Priority override)</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Opinion only</option><option>No decision</option></select><small>AIG-DEC-04 Outcome. Progress, Progress with condition and Stop need Event type Decision.</small></label>
             <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
             <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against AIG-DEC-04. Do not invent one.</span></label>
             <label class="field">Decision date<input id="e-date" type="date"></label>
@@ -275,7 +275,7 @@
             <label class="field">Lifecycle stage<input id="e-lifecycle" type="text"></label>
             <label class="field">Assurance opinion reference<input id="e-opinion" type="text"></label>
             <label class="field">Decision-maker / role<input id="e-maker" type="text"></label>
-            <label class="field">Next gate<input id="e-next-gate" type="text"></label>
+            <label class="field">Next gate<input id="e-next-gate" type="text"></label><label class="field">Escalated to a higher forum?<select id="e-escalated"><option value="">No</option><option>Yes</option></select></label><label class="field">Forum escalated to<input id="e-escalated-to" type="text"><small>Recorded in Next gate / action; the escalation is not itself an outcome.</small></label>
             <label class="field">Event notes<textarea id="e-notes"></textarea></label>
             <label class="field">AIG-DEC-03 or native minutes reference<input id="e-record" type="text"></label>
             <label class="field">Use-specific decision reference<input id="e-use-decision-ref" type="text"><small>Required for UC-ID-specific decision scope; verify the actual per-UC decision record.</small></label>
@@ -292,8 +292,8 @@
             <label class="field">Evidence source / URI<input id="e-evidence" type="text"></label>
             <label class="field">Existing Plan ID, optional<input id="e-planid" type="text"></label>
             <label class="check"><input id="e-planid-verified" type="checkbox"><span>If entered, existing Plan ID checked against AIG-DEC-04.</span></label>
-            <label class="field">Priority before override<input id="e-priority-before" type="text"></label>
-            <label class="field">Priority after override<input id="e-priority-after" type="text"></label>
+            <label class="field">Priority before override (for the AIG-DEC-03 record)<input id="e-priority-before" type="text"></label>
+            <label class="field">Priority after override (for the AIG-DEC-03 record)<input id="e-priority-after" type="text"></label>
             <label class="field">Assurance priority update reference<input id="e-priority-ref" type="text"></label>
             <label class="check"><input id="e-confirmed" type="checkbox"><span>I confirm this transcribes a decision already made by an authorised decision-maker and that the decision record, authority/delegation and evidence source references above are present, real and checked. This does not confirm local controlled-value mapping.</span></label>
           </div>
