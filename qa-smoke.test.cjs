@@ -88,7 +88,7 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     planDate: '2026-11-01', planRole: 'Owner', planState: 'Planned', planSourceVersion: '1.5'
   }), /rationale and authority/i);
   const event = {
-    ...base, decision: 'Progress', eventDate: '2026-09-25', eventForum: 'Board',
+    ...base, eventType: 'Decision', decision: 'Progress', eventDate: '2026-09-25', eventForum: 'Board',
     eventUseScope: 'Unknown',
     eventLifecycle: 'Pre-deployment', eventMaker: 'Authorised role', eventRecord: 'Minute ref',
     eventAuthority: 'AIG-AGT-04 ref', evidenceSource: 'Approved evidence URI',
@@ -116,7 +116,20 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
   assert.match(governance.validateChange({ ...event, eventId: 'invented' }), /existing Event ID/i);
   assert.match(governance.validateChange({ ...event, condition: 'Provide evidence' }), /existing Event ID/i);
   assert.match(governance.validateChange({ ...event, decision: 'Progress with condition' }), /requires a Gate Condition/i);
-  assert.match(governance.validateChange({ ...event, decision: 'Priority override' }), /requires before\/after priority values/i);
+  assert.match(governance.validateChange({ ...event, eventType: 'Priority override', decision: '' }), /requires before\/after priority values/i);
+  const override = { ...event, eventType: 'Priority override', decision: '', priorityBefore: 'Priority 3', priorityAfter: 'Priority 2', priorityRef: 'ASR-7' };
+  assert.equal(governance.validateChange(override), '');
+  assert.equal(governance.validateChange({ ...override, decision: 'No decision' }), '');
+  assert.match(governance.validateChange({ ...override, decision: 'Progress' }), /leave Outcome blank or choose No decision/i);
+  assert.match(governance.validateChange({ ...event, priorityBefore: 'P3', priorityAfter: 'P2', priorityRef: 'X' }), /Event type Priority override/i);
+  assert.match(governance.validateChange({ ...event, eventType: '' }), /Select the AIG-DEC-04 Event type/i);
+  assert.match(governance.validateChange({ ...event, decision: 'Noted' }), /Select an AIG-DEC-04 Outcome/i);
+  assert.match(governance.validateChange({ ...event, decision: 'Escalation raised' }), /Select an AIG-DEC-04 Outcome/i);
+  assert.equal(governance.validateChange({ ...event, eventType: 'Review only', decision: 'No decision' }), '');
+  assert.match(governance.validateChange({ ...event, eventType: 'Review only', decision: 'Progress' }), /set Event type to Decision/i);
+  assert.equal(governance.validateChange({ ...event, eventType: 'Review only', decision: 'No decision', escalated: 'Yes', escalatedTo: 'Cabinet' }), '');
+  assert.match(governance.validateChange({ ...event, escalated: 'Yes' }), /Name the forum/i);
+  assert.match(governance.validateChange({ ...event, escalatedTo: 'Cabinet' }), /Clear the escalation forum/i);
   assert.equal(governance.validateChange({
     ...event, eventId: 'EVT-REAL-1', eventIdVerified: true, condition: 'Provide evidence',
     conditionOwner: 'Service Owner', conditionDue: '2026-10-10', conditionState: 'Open',
@@ -266,7 +279,7 @@ test('three distinct post-deployment workflows and exports are present', () => {
 
 test('condition-only handoff is independent from decision export', () => {
   const app = read('src/app.js');
-  assert.match(app, /if \(decision\) \{[\s\S]*?\n    \}\n    if \(conditionStarted\) \{/);
+  assert.match(app, /if \(value\(\"e-type\"\)\) \{[\s\S]*?\n    \}\n    if \(conditionStarted\) \{/);
   assert.match(app, /AIG-DEC-04 event-linked Gate Condition/);
 });
 
@@ -323,4 +336,15 @@ test('monitoring unknowns match AIG-OPS-02 v1.4 values and are never recorded as
     ['Trend', 'Threshold Breach?', 'Governance Escalation?']);
   assert.match(app, /UNKNOWN TO RESOLVE/);
   assert.match(app, /Unknown — resolve /);
+});
+
+test('Gate Event options match AIG-DEC-04 controlled values', () => {
+  const html = read('index.html');
+  assert.deepEqual(governance.EVENT_TYPES, ['Decision', 'Assurance opinion', 'Review only', 'Priority override']);
+  assert.deepEqual(governance.EVENT_OUTCOMES, ['Progress', 'Progress with condition', 'Return for evidence', 'Pause', 'Stop', 'Opinion only', 'No decision']);
+  const outcomes = [...html.match(/id="e-decision">(.*?)<\/select>/)[1].matchAll(/<option>([^<]+)<\/option>/g)].map((m) => m[1]);
+  assert.deepEqual(outcomes, governance.EVENT_OUTCOMES);
+  const types = [...html.match(/id="e-type">(.*?)<\/select>/)[1].matchAll(/<option>([^<]+)<\/option>/g)].map((m) => m[1]);
+  assert.deepEqual(types, governance.EVENT_TYPES);
+  assert.doesNotMatch(html, /<option>Noted<\/option>|<option>Escalation raised<\/option>/);
 });

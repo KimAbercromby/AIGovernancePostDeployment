@@ -297,6 +297,7 @@
       planCriteria: value("p-criteria"),
       planUseScope: value("p-use-scope"), planUcId: value("p-uc-id"),
       planId: value("p-planid"), planIdVerified: isChecked("p-planid-verified"),
+      eventType: value("e-type"), escalated: value("e-escalated"), escalatedTo: value("e-escalated-to"),
       decision: value("e-decision"), eventId: value("e-eventid"), eventIdVerified: isChecked("e-eventid-verified"),
       eventDate: value("e-date"), eventForum: value("e-forum"), eventLifecycle: value("e-lifecycle"),
       eventMaker: value("e-maker"), eventRecord: value("e-record"), eventAuthority: value("e-authority"),
@@ -411,7 +412,7 @@
       addDownload(downloads, "Capabilities and System Map change log", "Capabilities and System Map change handoff (.csv)",
         mapChangeEntries, value("c-air"));
     }
-    if (decision) {
+    if (value("e-type")) {
       const eventEntries = [
         ["Checklist boundary", "Transfer checklist only — not an authoritative event record",
           "Formal decision remains in AIG-DEC-03 / authorised native minutes; owner maps/transfers values to current AIG-DEC-04"],
@@ -424,10 +425,14 @@
         ["Gate / forum", value("e-forum"), "Verify authority and forum remit"],
         ["Lifecycle stage", value("e-lifecycle"), "Enter actual lifecycle stage"],
         ["Date", value("e-date"), "Actual decision date; confirm"],
-        ["Outcome", decision, ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop", "Opinion only", "No decision"].includes(decision) ? "AIG-DEC-04 Outcome value; transcribed from the formal record" : "Not an AIG-DEC-04 Outcome value: record this under the closest controlled Outcome (Progress, Progress with condition, Return for evidence, Pause, Stop, Opinion only, No decision) after owner review"],
+        ["Event type", value("e-type"), value("e-type") === "Priority override" ?
+          "AIG-DEC-04 Event type; the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited below" :
+          "AIG-DEC-04 Event type; transcribed from the formal record"],
+        ["Outcome", decision, decision ? "AIG-DEC-04 Outcome value; transcribed from the formal record" : "Left blank: a Priority override changes governance attention, not progress through a gate"],
         ["Assurance opinion ref", value("e-opinion"), "Existing reference only; leave blank if none"],
         ["Decision-maker / role", value("e-maker"), "Verify in formal record"],
-        ["Next gate / action", value("e-next-gate"), "Leave blank if not recorded"],
+        ["Next gate / action", [value("e-escalated") === "Yes" ? "Escalated to " + value("e-escalated-to") : "", value("e-next-gate")].filter(Boolean).join("; "),
+          value("e-escalated") === "Yes" ? "Escalation recorded here, not as an Outcome" : "Leave blank if not recorded"],
         ["Event notes", value("e-notes"), "Do not copy sensitive case details"],
         ["AIG-DEC-03 / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
         ["Use-specific decision reference", value("e-use-decision-ref"), "Required only for UC-ID-specific decision; verify actual per-UC source record"],
@@ -443,9 +448,9 @@
         ["Recorded by", value("e-recorded-by"), "Leave blank if not recorded"],
         ["Evidence source / URI", value("e-evidence"), "Required existing reference; the confirmation barrier rejects blank evidence"],
         ["Plan ID (if any)", value("e-planid"), "Optional existing ID; do not invent"],
-        ["Priority before override", value("e-priority-before"), "Complete only for an actual priority override"],
-        ["Priority after override", value("e-priority-after"), "Complete only for an actual priority override"],
-        ["Assurance priority update ref", value("e-priority-ref"), "Complete only for an actual priority override"]
+        ["Priority before override", value("e-priority-before"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"],
+        ["Priority after override", value("e-priority-after"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"],
+        ["Assurance priority update ref", value("e-priority-ref"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"]
       ];
       addDownload(downloads, "AIG-DEC-04 Gate Event transfer checklist", "AIG-DEC-04 Gate Event transfer checklist (.csv)", eventEntries, value("c-air"));
       addDownload(downloads, "AIG-DEC-03 decision record pointer", "Decision record pointer draft (.csv)", [
