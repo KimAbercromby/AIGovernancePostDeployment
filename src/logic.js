@@ -282,6 +282,10 @@
     return "";
   }
 
+  // AIG-DEC-04 Gate events controlled values.
+  const EVENT_TYPES = ["Decision", "Assurance opinion", "Review only", "Priority override"];
+  const EVENT_OUTCOMES = ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop", "Opinion only", "No decision"];
+
   function validateChange(data) {
     if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
       return "Enter a system name and an existing AIR-ID confirmed against current AIG-INV-04; this tool cannot issue or verify identifiers.";
@@ -338,13 +342,31 @@
       "conditionResolved", "conditionEvidence"
     ].some((key) => text(data[key]));
     const eventStarted = [
-      "decision", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
+      "eventType", "decision", "escalatedTo", "eventDate", "eventForum", "eventLifecycle", "eventMaker", "eventRecord",
       "eventAuthority", "eventState", "assuranceOpinion", "nextGate", "eventNotes", "technicalSnapshot",
       "recordedBy", "evidenceSource", "planEventId", "priorityBefore", "priorityAfter", "priorityRef",
       "eventUseScope", "eventUcId", "permittedPurpose", "permittedUsers",
       "permittedData", "permittedActions", "exclusions", "permittedConditions"
     ].some((key) => text(data[key])) || (text(data.eventId) && !conditionDraftStarted);
-    if (eventStarted && (!text(data.decision) || !text(data.eventDate) || !text(data.eventForum) ||
+    if (eventStarted && !EVENT_TYPES.includes(text(data.eventType))) {
+      return "Select the AIG-DEC-04 Event type: Decision, Assurance opinion, Review only or Priority override.";
+    }
+    if (eventStarted && text(data.decision) && !EVENT_OUTCOMES.includes(text(data.decision))) {
+      return "Select an AIG-DEC-04 Outcome: Progress, Progress with condition, Return for evidence, Pause, Stop, Opinion only or No decision.";
+    }
+    if (eventStarted && data.eventType === "Priority override" && text(data.decision) && data.decision !== "No decision") {
+      return "A Priority override changes governance attention, not progress: leave Outcome blank or choose No decision.";
+    }
+    if (eventStarted && data.eventType !== "Decision" && ["Progress", "Progress with condition", "Stop"].includes(text(data.decision))) {
+      return "Progress, Progress with condition and Stop are decisions: set Event type to Decision, or choose another Outcome.";
+    }
+    if (eventStarted && data.escalated === "Yes" && !text(data.escalatedTo)) {
+      return "Name the forum the case was escalated to; it is recorded in Next gate / action.";
+    }
+    if (eventStarted && data.escalated !== "Yes" && text(data.escalatedTo)) {
+      return "Clear the escalation forum unless the case was escalated.";
+    }
+    if (eventStarted && ((!text(data.decision) && data.eventType !== "Priority override") || !text(data.eventDate) || !text(data.eventForum) ||
       !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventRecord) ||
       !text(data.eventAuthority) || !text(data.evidenceSource) || !text(data.eventState) || !data.eventConfirmed)) {
       return "A Gate Event transfer checklist requires an actual authorised decision, date, forum, lifecycle stage, decision-maker, decision-record/minutes reference, evidence source/URI, recorded state, checked authority reference and confirmation.";
@@ -373,11 +395,11 @@
     if (priority.some(Boolean) && (priority.some((item) => !item) || priority[0] === priority[1])) {
       return "Priority override fields must include before, after and the actual assurance priority update reference; the before and after values must differ.";
     }
-    if (priority.some(Boolean) && text(data.decision) !== "Priority override") {
-      return "Only complete priority override fields for an actual Priority override decision.";
+    if (priority.some(Boolean) && text(data.eventType) !== "Priority override") {
+      return "Only complete priority override fields for a Gate Event with Event type Priority override.";
     }
-    if (text(data.decision) === "Priority override" && !priority.every(Boolean)) {
-      return "A Priority override decision requires before/after priority values and the actual assurance priority update reference.";
+    if (text(data.eventType) === "Priority override" && !priority.every(Boolean)) {
+      return "A Priority override event requires before/after priority values and the actual assurance priority update reference, for the AIG-DEC-03 record.";
     }
     const condition = ["condition", "conditionOwner", "conditionDue", "conditionState",
       "conditionResolved", "conditionEvidence"].map((key) => text(data[key]));
@@ -440,6 +462,8 @@
   }
 
   const api = {
+    EVENT_OUTCOMES,
+    EVENT_TYPES,
     ROUTES,
     SEVERITY_ORDER,
     calculateRisk,
