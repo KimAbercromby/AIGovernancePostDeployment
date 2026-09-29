@@ -307,3 +307,20 @@ test('map change handoff carries reassessment and only an existing Gate Event li
   assert.equal(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[1], 'GE-2026-004');
   assert.match(linked.find((row) => row[0] === 'Gate Event ID (if needed)')[2], /verify it against the dated event in AIG-DEC-04/);
 });
+test('monitoring unknowns match AIG-OPS-02 v1.4 values and are never recorded as No', () => {
+  const html = read('index.html');
+  const app = read('src/app.js');
+  // Form options match the AIG-OPS-02 dropdowns exactly.
+  assert.match(html, /id="m-trend">.*<option>New \/ Baseline<\/option><option>Not yet known<\/option><\/select>/);
+  assert.doesNotMatch(html, /id="m-trend">[^\n]*<option>Unknown<\/option>/);
+  for (const id of ['m-breach', 'm-material', 'm-escalation', 'm-reassessment']) {
+    assert.match(html, new RegExp(`id="${id}">[^\\n]*<option>Unknown</option></select>`));
+  }
+  assert.deepEqual(governance.MONITORING_UNKNOWN_FIELDS.map((f) => f[1]),
+    ['Trend', 'Threshold Breach?', 'Material Change?', 'Risk Reassessment Required?', 'Governance Escalation?']);
+  assert.deepEqual(governance.monitoringUnknowns({ trend: 'Stable', breach: 'No', material: 'No', reassessment: 'No', escalation: 'No' }), []);
+  assert.deepEqual(governance.monitoringUnknowns({ trend: 'Not yet known', breach: 'Unknown', material: 'No', reassessment: 'Yes', escalation: 'Unknown' }),
+    ['Trend', 'Threshold Breach?', 'Governance Escalation?']);
+  assert.match(app, /UNKNOWN TO RESOLVE/);
+  assert.match(app, /Unknown — resolve /);
+});
