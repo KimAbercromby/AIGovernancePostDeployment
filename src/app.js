@@ -542,6 +542,11 @@
     const reassessment = value("m-breach") === "Yes" || value("m-material") === "Yes" ||
       value("m-trend") === "Deteriorating" || value("m-reassessment") === "Yes" ||
       value("m-control-failure") === "Yes" || value("m-access-expansion") === "Yes";
+    const unknowns = G.monitoringUnknowns({
+      trend: value("m-trend"), breach: value("m-breach"), material: value("m-material"),
+      reassessment: value("m-reassessment"), escalation: value("m-escalation")
+    });
+    const unknownNote = "AIG-OPS-02 value; the log shows UNKNOWN TO RESOLVE and the row cannot close until it is answered";
     const resultEntries = [
       ["AIR-ID", value("m-air"), "User-confirmed against current AIG-INV-04; owner rechecks"],
       ["AI System / Service", value("m-system"), "Required system identity; reconcile to current AIG-INV-04"],
@@ -562,17 +567,17 @@
       ["Observed-result state", value("m-result-state"), "Explicitly distinguishes observed zero, non-zero, blank/unknown and not applicable"],
       ["Observed-result state note", value("m-result-reason"),
         value("m-result-reason") ? "Reason supplied for blank/unknown or not-applicable result" : "Blank — result is observed"],
-      ["Trend", value("m-trend"), "Owner interprets; Unknown is distinct from Stable"],
-      ["Threshold Breach?", value("m-breach"), "Owner confirms"],
+      ["Trend", value("m-trend"), value("m-trend") === "Not yet known" ? unknownNote : "Owner interprets; Not yet known is distinct from Stable"],
+      ["Threshold Breach?", value("m-breach"), value("m-breach") === "Unknown" ? unknownNote : "Owner confirms"],
       ["Severity", value("m-severity"), "Triage only; owner confirms"],
       ["Action / Decision", value("m-action"), "Confirm against controlled record"],
       ["Action Owner", value("m-action-owner"), "Confirm responsibility"],
       ["Due Date", value("m-due-date"), "Actual recorded due date; blank if none"],
       ["Incident / CAPA Ref", value("m-incident-ref"), "Existing reference only; do not invent"],
-      ["Material Change?", value("m-material"), "Owner confirms"],
-      ["Risk Reassessment Required?", value("m-reassessment"), "Owner disposition; tool separately raises review signals"],
+      ["Material Change?", value("m-material"), value("m-material") === "Unknown" ? unknownNote : "Owner confirms"],
+      ["Risk Reassessment Required?", value("m-reassessment"), value("m-reassessment") === "Unknown" ? unknownNote : "Owner disposition; tool separately raises review signals"],
       ["Residual Risk After Review", value("m-residual-risk"), "Owner-entered result only; no calculation by this tool"],
-      ["Governance Escalation?", value("m-escalation"), "Owner confirms"],
+      ["Governance Escalation?", value("m-escalation"), value("m-escalation") === "Unknown" ? unknownNote : "Owner confirms"],
       ["Gate Log Ref", value("m-gate-ref"), "Existing AIG-DEC-04 reference only"],
       ["Complaints / Challenges", value("m-challenge"), "Use AIG-OPS-04 where applicable; no outcome determined"],
       ["Human Override Rate / Trend", value("m-human-override"), "Observed value / trend; distinguish blank from zero"],
@@ -595,7 +600,8 @@
       ["Denominator context / source", value("m-denominator"), "Explain source; blank/unknown or not applicable requires a reason"],
       ["Control-failure review signal", value("m-control-failure") + (value("m-control-failure-detail") ? " — " + value("m-control-failure-detail") : ""), "Control failure triggers documented consideration of reassessment"],
       ["Access-expansion review signal", value("m-access-expansion") + (value("m-access-expansion-detail") ? " — " + value("m-access-expansion-detail") : ""), "Expanded access triggers documented consideration of reassessment"],
-      ["Reassessment handoff signal", reassessment ? "Yes — owner assessment needed" : "No affirmative trigger selected",
+      ["Reassessment handoff signal", reassessment ? "Yes — owner assessment needed" :
+        unknowns.length ? "Unknown — resolve " + unknowns.join(", ") + " before closure" : "No affirmative trigger selected",
         "Signals are not a decision; owner records rationale and disposition"]
     ].concat(screeningRows(screening));
     const body = [
