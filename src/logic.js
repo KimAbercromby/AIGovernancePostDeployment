@@ -3,14 +3,14 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9",
+    release: "v3.9.1",
     date: "30 September 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.10 draft"
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.11 draft"
   };
 
-  // Generated from the v3.9 source workbooks and forms (see fixtures/suite-v3.9-targets.json).
+  // Generated from the v3.9.1 source workbooks and forms (see fixtures/suite-v3.9.1-targets.json).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = { "AIG-OPS-02": "1.5 draft", "AIG-DEC-04": "1.0 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.8 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.4 draft", "AIG-DEC-03": "1.5 draft" };
+  const ARTEFACT_VERSIONS = { "AIG-OPS-02": "1.5 draft", "AIG-DEC-04": "1.0 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.9 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.5 draft", "AIG-DEC-03": "1.6 draft" };
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -369,7 +369,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.1 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -434,7 +434,7 @@
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
-  // Recipients and escalation wording from the AIG-OPS-03 v1.4 Part A §4 severity table.
+  // Recipients and escalation wording from the AIG-OPS-03 v1.5 Part A §4 severity table.
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
