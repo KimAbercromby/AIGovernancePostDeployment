@@ -1,6 +1,6 @@
 {
- "suiteRelease": "v3.9.1",
- "generatedFrom": "AI_Governance_Sources_v3.9.1 (30 September 2026) — read with openpyxl/python-docx; do not edit by hand",
+ "suiteRelease": "v3.9.2",
+ "generatedFrom": "AI_Governance_Sources_v3.9.2 (30 September 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
  "sheets": {
   "ops02Monitoring": {
    "file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx",
@@ -46,7 +46,9 @@
     "Minimum sample (derived)",
     "Reassessment trigger (Appendix E.4)",
     "Reassessment / consideration ref (AIG-ASS-02)",
-    "AIG-DEC-04 Condition ID (if monitoring a condition)"
+    "AIG-DEC-04 Condition ID (if monitoring a condition)",
+    "Review type (§6.4.4: operational / performance / formal)",
+    "Agentic cadence raise applied? (action-capable uses)"
    ],
    "formulaColumns": [
     "Closure and evidence check",
@@ -132,7 +134,22 @@
      "Adverse human-override trend",
      "Control failure",
      "Legal / regulatory change"
+    ],
+    "Review type (§6.4.4: operational / performance / formal)": [
+     "Operational monitoring",
+     "Performance review",
+     "Formal review"
+    ],
+    "Agentic cadence raise applied? (action-capable uses)": [
+     "Raised per Monitoring and Review Plan",
+     "Not action-capable",
+     "Action-capable: raise not yet set"
     ]
+   },
+   "formulas": {
+    "AH": "=IF(COUNTA(A5:AG5,AI5,AL5:AP5)=0,\"\",IF(TRIM(A5)=\"\",\"AIR-ID REQUIRED\",IF(OR(AND(K5<>\"\",ISNA(MATCH(K5,{\"Yes\",\"No\",\"Unknown\"},0))),AND(Q5<>\"\",ISNA(MATCH(Q5,{\"Yes\",\"No\",\"Unknown\"},0))),AND(R5<>\"\",ISNA(MATCH(R5,{\"Yes\",\"No\",\"Unknown\"},0))),AND(T5<>\"\",ISNA(MATCH(T5,{\"Yes\",\"No\",\"Unknown\"},0))),AND(J5<>\"\",ISNA(MATCH(J5,{\"Improving\",\"Stable\",\"Deteriorating\",\"New / Baseline\",\"Not yet known\"},0))),AND(Z5<>\"\",ISNA(MATCH(Z5,{\"Open\",\"Reviewed\",\"Action Open\",\"Escalated\",\"Closed\"},0))),AND(AG5<>\"\",ISNA(MATCH(AG5,{\"UC-ID specific\",\"Shared system baseline\"},0))),AND(AI5<>\"\",ISNA(MATCH(AI5,{\"Low\",\"Medium\",\"High\",\"Critical\"},0))),AND(AL5<>\"\",COUNTIF(Lists!$A$3:$A$10,AL5)=0),AND(AO5<>\"\",ISNA(MATCH(AO5,{\"Operational monitoring\",\"Performance review\",\"Formal review\"},0))),AND(AP5<>\"\",ISNA(MATCH(AP5,{\"Raised per Monitoring and Review Plan\",\"Not action-capable\",\"Action-capable: raise not yet set\"},0)))),\"INVALID VALUE — use the dropdown list\",IF(AND(AG5=\"UC-ID specific\",OR(AF5=\"\",AF5=\"None\")),\"UC-ID REQUIRED\",IF(OR(J5=\"\",K5=\"\",Q5=\"\",R5=\"\",T5=\"\",AL5=\"\",J5=\"Not yet known\",K5=\"Unknown\",Q5=\"Unknown\",R5=\"Unknown\",T5=\"Unknown\"),\"UNKNOWN TO RESOLVE\",IF(AND(K5=\"Yes\",OR(H5=\"\",I5=\"\",M5=\"\",N5=\"\",O5=\"\",P5=\"\",P5=\"None\",X5=\"\")),\"BREACH ACTION INCOMPLETE\",IF(AND(OR(K5=\"Yes\",Q5=\"Yes\"),AL5=\"None\"),\"TRIGGER NOT RECORDED — select the E.4 trigger\",IF(AND(OR(AND(AL5<>\"\",AL5<>\"None\"),R5=\"Yes\"),AM5=\"\"),\"REASSESSMENT / CONSIDERATION REF REQUIRED\",IF(AND(OR(R5=\"Yes\",T5=\"Yes\"),U5=\"\"),\"GATE LOG EVENT ID REQUIRED\",IF(OR(AND(D5<>\"\",NOT(ISNUMBER(D5))),AND(Y5<>\"\",NOT(ISNUMBER(Y5))),AND(ISNUMBER(D5),ISNUMBER(Y5),Y5<=D5)),\"DATE CHECK — Review and Next Review must be dates, Next after Review\",IF(AND(ISNUMBER(AC5),ISNUMBER(AD5),AD5>AC5),\"SAMPLE EXCEEDS POPULATION\",IF(AND(ISNUMBER(AD5),ISNUMBER(AK5),AD5<AK5),\"SAMPLE BELOW TIER MINIMUM\",IF(AND(AI5<>\"\",ISNUMBER(Y5),AO5=\"\"),\"REVIEW TYPE REQUIRED: operational, performance or formal (§6.4.4)\",IF(AND(ISNUMBER(D5),ISNUMBER(Y5),AI5<>\"\",Y5-D5>IF(AI5=\"Critical\",31,IF(AI5=\"High\",IF(OR(AO5=\"Operational monitoring\",AO5=\"Performance review\"),31,92),IF(AI5=\"Medium\",IF(AO5=\"Operational monitoring\",31,IF(AO5=\"Performance review\",92,366)),366)))),\"NEXT REVIEW EXCEEDS TIER CADENCE\",IF(OR(AP5=\"\",AP5=\"Action-capable: raise not yet set\"),\"AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)\",IF(AND(Z5=\"Closed\",OR(D5=\"\",E5=\"\",G5=\"\",H5=\"\",I5=\"\",X5=\"\",Y5=\"\",AA5=\"\",AB5=\"\",NOT(ISNUMBER(AC5)),NOT(ISNUMBER(AD5)),AC5<1,AD5<1,AE5=\"\",AG5=\"\",AI5=\"\")),\"CLOSURE EVIDENCE MISSING\",IF(Z5=\"Closed\",\"Closure ready for independent review\",\"Open / review\")))))))))))))))))",
+    "AJ": "=IF(AI5=\"\",\"\",IF(AO5=\"Operational monitoring\",IF(AI5=\"Low\",\"Routine operational monitoring by the Service Owner\",IF(AI5=\"Medium\",\"Monthly\",\"Continuous (logged at least monthly)\")),IF(AO5=\"Performance review\",IF(AI5=\"Critical\",\"At least monthly\",IF(AI5=\"High\",\"Monthly\",IF(AI5=\"Medium\",\"Quarterly\",\"Annual\"))),IF(AI5=\"Critical\",\"Continuous monitoring; formal review at least monthly\",IF(AI5=\"High\",\"Quarterly\",\"Annual\")))))",
+    "AK": "=IF(OR(AI5=\"\",NOT(ISNUMBER(AC5))),\"\",IF(OR(AI5=\"Critical\",AI5=\"High\"),MIN(AC5,MAX(30,ROUNDUP(0.05*AC5,0))),IF(AI5=\"Medium\",MIN(AC5,20),MIN(AC5,10))))"
    }
   },
   "dec04GatePlan": {
@@ -212,7 +229,9 @@
     "Time (hh:mm)",
     "Source (minutes / decision record / system)",
     "Evidence ID(s) (AIG-INV-04 Evidence index)",
-    "Event-time lifecycle stage"
+    "Event-time lifecycle stage",
+    "Incident ref (AIG-OPS-03), precautionary pause",
+    "Follow-up decision due date (precautionary pause)"
    ],
    "formulaColumns": [
     "Row check",
@@ -224,7 +243,8 @@
      "Assurance opinion",
      "Review only",
      "Priority override",
-     "Intake / registration"
+     "Intake / registration",
+     "Precautionary pause (containment)"
     ],
     "Outcome": [
      "Progress",
@@ -236,7 +256,8 @@
      "Decommission",
      "Re-authorise",
      "Opinion only",
-     "No decision"
+     "No decision",
+     "Paused — pending decision"
     ],
     "Decision scope (UC-ID specific / Shared system baseline)": [
      "UC-ID specific",
@@ -263,6 +284,9 @@
      "Monitoring and Review",
      "Retirement and Decommissioning"
     ]
+   },
+   "formulas": {
+    "N": "=IF(COUNTA(A4:M4,O4:P4,R4:W4)=0,\"\",IF(OR(A4=\"\",B4=\"\",F4=\"\"),\"Event ID, AIR-ID or date missing\",IF(COUNTIF($A$4:$A$553,A4)>1,\"Duplicate Event ID\",IF(E4=\"\",\"Event type missing\",IF(OR(NOT(ISNUMBER(F4)),F4>TODAY()),\"Date is not a real date or is in the future\",IF(AND(C4<>\"\",COUNTIF('Gate plan'!$A$4:$A$353,C4)=0),\"Plan ID not found in Gate plan\",IF(AND(C4<>\"\",COUNTIFS('Gate plan'!$A$4:$A$353,C4,'Gate plan'!$B$4:$B$353,B4)=0),\"Plan AIR-ID differs from event\",IF(D4=\"\",\"Gate / forum missing\",IF(AND(E4=\"Precautionary pause (containment)\",G4<>\"Paused — pending decision\"),\"Precautionary pause: Outcome must be Paused, pending decision\",IF(AND(E4=\"Precautionary pause (containment)\",V4=\"\"),\"Precautionary pause: AIG-OPS-03 incident ref missing\",IF(AND(E4=\"Precautionary pause (containment)\",NOT(ISNUMBER(W4))),\"Precautionary pause: follow-up decision due date missing\",IF(AND(G4=\"Paused — pending decision\",E4<>\"Precautionary pause (containment)\"),\"Paused, pending decision is only for a Precautionary pause event\",IF(AND(E4=\"Decision\",OR(G4=\"\",H4=\"\",I4=\"\")),\"Outcome / delegation / decision ref missing\",IF(AND(E4=\"Decision\",NOT(OR(G4=\"Progress\",G4=\"Progress with condition\",G4=\"Return for evidence\",G4=\"Pause\",G4=\"Stop\",G4=\"Suspend\",G4=\"Decommission\",G4=\"Re-authorise\"))),\"Decision event needs a decision outcome\",IF(AND(E4=\"Priority override\",OR(H4=\"\",I4=\"\")),\"Decision-maker / AIG-DEC-03 ref missing\",IF(AND(E4=\"Priority override\",G4<>\"\",G4<>\"No decision\"),\"Priority override: Outcome blank or No decision\",IF(AND(E4<>\"Decision\",OR(G4=\"Progress\",G4=\"Progress with condition\",G4=\"Return for evidence\",G4=\"Pause\",G4=\"Stop\",G4=\"Suspend\",G4=\"Decommission\",G4=\"Re-authorise\")),\"Outcome implies decision\",IF(OR(ISNUMBER(SEARCH(\",\",O4)),ISNUMBER(SEARCH(\";\",O4))),\"One UC-ID per event row — split this event\",IF(AND(E4=\"Decision\",OR(Q4=\"UC-ID REQUIRED\",Q4=\"Decision scope missing\",Q4=\"REMOVE UC-ID OR CORRECT SCOPE\")),\"Decision scope missing\",IF(AND(G4=\"Progress with condition\",COUNTIF(Conditions!$B$4:$B$553,A4)=0),\"Progress with condition needs at least one Conditions row\",\"Check against source\"))))))))))))))))))))"
    }
   },
   "dec04Conditions": {
@@ -579,14 +603,14 @@
      "",
      "MANUAL / GOVERNANCE — optional",
      "Triage context",
-     "Optional formally authorised uplift to a stricter AGPI governance priority. Do not populate this from mandatory risk triggers or the risk-tier floor."
+     "Optional formally authorised uplift to a stricter AGPI governance priority. Do not populate this from mandatory risk triggers or the risk-tier floor. The §3.9.6 trigger floor (a use meeting a §4.4.6 trigger is at least Priority 4 – Routine) is a rule already applied in the AIG-ASS-01 priority (B17, row 24), not an uplift, and needs no override record."
     ],
     [
      "Effective Governance Priority",
      "",
      "DERIVED — raw AGPI + authorised uplift",
      "Triage context",
-     "Stricter of Raw AGPI Priority and any authorised governance-priority uplift only. Risk classification remains separate in Mandatory Risk Floor / Effective Governance Tier."
+     "Stricter of Raw AGPI Priority (which already includes the AIG-ASS-01 priority and trigger floors) and any authorised governance-priority uplift only. Risk classification remains separate in Mandatory Risk Floor / Effective Governance Tier."
     ],
     [
      "Resident Impact",
@@ -882,7 +906,26 @@
      "Scope key",
      "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."
     ]
-   ]
+   ],
+   "step4Lists": {
+    "C50:C55": [
+     "Yes",
+     "No"
+    ],
+    "C66": [
+     "Yes",
+     "No"
+    ],
+    "C56": [
+     "Yes",
+     "No",
+     "Unsure"
+    ]
+   },
+   "step4Formulas": {
+    "C42": "=IF(COUNTIF(C50:C56,\"Yes\")+COUNTIF(C50:C56,\"No\")+COUNTIF(C56,\"Unsure\")<7,\"Incomplete\",IF(OR(C54=\"Yes\",C56=\"Yes\",C56=\"Unsure\"),\"Critical\",IF(COUNTIF(C50:C56,\"Yes\")>0,\"High\",\"Low\")))",
+    "C58": "=IF(COUNTIF(C50:C56,\"Yes\")+COUNTIF(C50:C56,\"No\")+COUNTIF(C56,\"Unsure\")<7,\"Incomplete — answer all triggers\",IF(COUNTIF(C50:C56,\"Yes\")+COUNTIF(C56,\"Unsure\")=0,\"No\",\"Yes — governance uplift required\"))"
+   }
   },
   "dec04Lists": {
    "file": "AIG-DEC-04_Gate_Log_Proposed.xlsx",
@@ -958,6 +1001,11 @@
      "No decision (or blank)",
      "None (Pending)",
      "Review only / Priority override / Intake / registration"
+    ],
+    [
+     "Paused — pending decision",
+     "None: containment, not a decision (the UC-ID keeps its recorded AIG-DEC-03 outcome until the follow-up decision; Playbook §4.7.17)",
+     "Precautionary pause (containment)"
     ]
    ]
   },
@@ -1003,6 +1051,7 @@
     "Describe the actual or potential impact and the approximate number of people affected",
     "Provisional severity",
     "Immediate action taken",
+    "Precautionary pause applied? Gate Log event ID",
     "Suspected personal data breach?",
     "Security or safeguarding concern?",
     "External notification may be required?",
@@ -1031,6 +1080,7 @@
     "Event classification": "Incident / Near miss / Concern — near misses follow the same early-reporting and triage route",
     "Provisional severity": "Low / Medium / High / Critical",
     "Immediate action taken": "e.g. system paused, output withheld, users notified",
+    "Precautionary pause applied? Gate Log event ID": "Yes / No. If Yes: who applied it, date and time, and the AIG-DEC-04 Gate events ID (Event type “Precautionary pause (containment)”, outcome “Paused — pending decision”). The pause is containment, not a decision; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17) (Proposed — for Council confirmation)",
     "Suspected personal data breach?": "Yes / No / Uncertain — if Yes or Uncertain, refer to the DPO / Information Governance route now, before AI triage. Where notifiable, the ICO must be told without undue delay and, where feasible, not later than 72 hours after the Council becomes aware (UK GDPR Art 33). Date and time referred: ____",
     "Security or safeguarding concern?": "Yes / No — if Yes, refer now to the Information and Cyber Security lead or under the Council’s safeguarding procedures; those routes lead on their own duties (Playbook §6.8.6.5)",
     "External notification may be required?": "Yes / No / Unsure — e.g. ICO, other regulator, data subjects, partners; decided by the DPO or specialist route and recorded in §8",
@@ -1041,7 +1091,14 @@
     "Medium": "AI Governance Lead notified the same working day (Part A); documented remediation plan agreed within five working days",
     "High": "AI Governance Working Group within 2 working days; formal governance review",
     "Critical": "Immediate escalation, and within 24 hours at most, to AI Assurance Board, Executive Sponsor and Executive Leadership"
-   }
+   },
+   "whenItApplies": {
+    "Low": "Limited operational impact; no significant legal, ethical or service consequences. Indicators: an isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm), an isolated user complaint, a documentation error or a non-material process failure.",
+    "Medium": "Moderate impact requiring management attention and corrective action. Indicators: repeated inaccurate outputs, policy non-compliance, control failures, minor service disruption or recurring user complaints.",
+    "High": "Significant operational, legal, ethical or reputational impact. Indicators: material bias findings, significant model drift, operational disruption, security weaknesses, repeated control failures or significant service impacts.",
+    "Critical": "Actual or potential harm to individuals, major legal/reputational exposure or statutory breach. Indicators: data breaches, unlawful automated decision-making, significant impacts on vulnerable individuals, major regulatory concerns, widespread service failure or substantial media scrutiny."
+   },
+   "mandatoryTriggers": "Mandatory triggers (Playbook §4.7.17; Proposed — for Council confirmation): significant bias resulting in adverse outcomes, a data protection breach involving AI-processed data, a security incident affecting AI system integrity, or a governance failure indicating an inadequate control environment. Escalate to the AI Governance Lead immediately (the same working day), whatever the provisional severity, consider a precautionary pause, and classify the incident at least High."
   },
   "ops03PartB8": {
    "file": "AIG-OPS-03_AI_Incident_Report_Form.docx",
@@ -1114,14 +1171,18 @@
    }
   }
  },
+ "airIdRules": {
+  "AIG-INV-04 AI Register A4": "AND(LEFT(A4,4)=\"AIR-\",LEN(TRIM(A4))=8)",
+  "AIG-AGT-04 Agent Record A5": "OR(A5=\"AIR-EXAMPLE\",AND(LEFT(A5,4)=\"AIR-\",LEN(TRIM(A5))=8))"
+ },
  "versions": {
-  "AIG-OPS-02": "1.5 draft",
-  "AIG-DEC-04": "1.0 draft",
+  "AIG-OPS-02": "1.6 draft",
+  "AIG-DEC-04": "1.1 draft",
   "AIG-AIMS-08": "1.2 draft",
-  "AIG-ASS-02": "1.9 draft",
+  "AIG-ASS-02": "1.10 draft",
   "AIG-INV-05": "0.3 proposed design draft",
   "AIG-INV-04": "1.0 draft",
-  "AIG-OPS-03": "1.5 draft",
+  "AIG-OPS-03": "1.6 draft",
   "AIG-DEC-03": "1.6 draft"
  }
 }
