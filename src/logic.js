@@ -3,14 +3,15 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.1",
+    release: "v3.9.2",
     date: "30 September 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.11 draft"
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.12 draft"
   };
 
-  // Generated from the v3.9.1 source workbooks and forms (see fixtures/suite-v3.9.1-targets.json).
+  // Generated from the v3.9.2 source workbooks and forms (see fixtures/suite-v3.9.2-targets.json,
+  // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = { "AIG-OPS-02": "1.5 draft", "AIG-DEC-04": "1.0 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.9 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.5 draft", "AIG-DEC-03": "1.6 draft" };
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.6 draft", "AIG-DEC-03": "1.6 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -57,7 +58,9 @@
         "Minimum sample (derived)",
         "Reassessment trigger (Appendix E.4)",
         "Reassessment / consideration ref (AIG-ASS-02)",
-        "AIG-DEC-04 Condition ID (if monitoring a condition)"
+        "AIG-DEC-04 Condition ID (if monitoring a condition)",
+        "Review type (§6.4.4: operational / performance / formal)",
+        "Agentic cadence raise applied? (action-capable uses)"
       ],
       formulaColumns: ["Closure and evidence check", "Required minimum cadence (derived)", "Minimum sample (derived)"]
     },
@@ -109,7 +112,9 @@
         "Time (hh:mm)",
         "Source (minutes / decision record / system)",
         "Evidence ID(s) (AIG-INV-04 Evidence index)",
-        "Event-time lifecycle stage"
+        "Event-time lifecycle stage",
+        "Incident ref (AIG-OPS-03), precautionary pause",
+        "Follow-up decision due date (precautionary pause)"
       ],
       formulaColumns: ["Row check", "Decision-scope completeness prompt"]
     },
@@ -257,6 +262,7 @@
         "Describe the actual or potential impact and the approximate number of people affected",
         "Provisional severity",
         "Immediate action taken",
+        "Precautionary pause applied? Gate Log event ID",
         "Suspected personal data breach?",
         "Security or safeguarding concern?",
         "External notification may be required?",
@@ -323,8 +329,8 @@
     ["Triage Date", "", "DERIVED — current web triage", "Identity", "Generated at export."],
     ["AGPI Score (0-100)", "", "DERIVED — current web triage", "Triage context", "Calculated from the six AGPI dimensions."],
     ["Raw AGPI Priority", "", "DERIVED — current web triage", "Triage context", "Current results.priority.label."],
-    ["Authorised Governance Priority Uplift", "", "MANUAL / GOVERNANCE — optional", "Triage context", "Optional formally authorised uplift to a stricter AGPI governance priority. Do not populate this from mandatory risk triggers or the risk-tier floor."],
-    ["Effective Governance Priority", "", "DERIVED — raw AGPI + authorised uplift", "Triage context", "Stricter of Raw AGPI Priority and any authorised governance-priority uplift only. Risk classification remains separate in Mandatory Risk Floor / Effective Governance Tier."],
+    ["Authorised Governance Priority Uplift", "", "MANUAL / GOVERNANCE — optional", "Triage context", "Optional formally authorised uplift to a stricter AGPI governance priority. Do not populate this from mandatory risk triggers or the risk-tier floor. The §3.9.6 trigger floor (a use meeting a §4.4.6 trigger is at least Priority 4 – Routine) is a rule already applied in the AIG-ASS-01 priority (B17, row 24), not an uplift, and needs no override record."],
+    ["Effective Governance Priority", "", "DERIVED — raw AGPI + authorised uplift", "Triage context", "Stricter of Raw AGPI Priority (which already includes the AIG-ASS-01 priority and trigger floors) and any authorised governance-priority uplift only. Risk classification remains separate in Mandatory Risk Floor / Effective Governance Tier."],
     ["Resident Impact", "", "AUTO — current web triage", "Step 1", "Impact score 1–5."],
     ["Legal and Regulatory Impact", "", "AUTO — current web triage", "Step 1", "Impact score 1–5."],
     ["Reputational Impact", "", "AUTO — current web triage", "Step 1", "Impact score 1–5."],
@@ -369,7 +375,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.1 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.2 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -380,6 +386,8 @@
     ops02SelectionBasis: ["Full population (census)", "Simple random", "Stratified random",
       "Risk-weighted / targeted", "Exception-based"],
     scope: ["UC-ID specific", "Shared system baseline"],
+    ops02ReviewType: ["Operational monitoring", "Performance review", "Formal review"],
+    ops02AgenticRaise: ["Raised per Monitoring and Review Plan", "Not action-capable", "Action-capable: raise not yet set"],
     ops02Triggers: ["None", "Threshold breach",
       "Material change (model, data, supplier, purpose, user population or autonomous authority)",
       "Significant complaint / challenge pattern", "Material incident or near miss",
@@ -390,9 +398,13 @@
       "Gate 3 Case for change / strategic alignment", "Gate 4 Procurement", "Gate 5 Ethics assessment",
       "Gate 6 Deployment / go-live", "Gate 7 Operate, monitor, review & change", "Gate 8 Retirement / closure",
       "Other forum (name it in Decision-maker / role)"],
-    dec04EventTypes: ["Decision", "Assurance opinion", "Review only", "Priority override", "Intake / registration"],
+    dec04EventTypes: ["Decision", "Assurance opinion", "Review only", "Priority override", "Intake / registration",
+      "Precautionary pause (containment)"],
     dec04Outcomes: ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop", "Suspend",
-      "Decommission", "Re-authorise", "Opinion only", "No decision"],
+      "Decommission", "Re-authorise", "Opinion only", "No decision", "Paused — pending decision"],
+    // AIG-ASS-02 Risk Assessment Step 4 (C50:C55 Yes/No; C56 also Unsure).
+    ass02Trigger: ["Yes", "No"],
+    ass02AgenticTrigger: ["Yes", "No", "Unsure"],
     dec04Lifecycle: ["Idea and Innovation", "Registration and Intake", "Risk Assessment and Review",
       "Approval and Assurance", "Deployment and Operation", "Monitoring and Review", "Retirement and Decommissioning"],
     dec04ConditionStates: ["Open", "Closed-verified", "Accepted-open", "Waived", "Unknown"],
@@ -427,14 +439,18 @@
     "Decommission": { dec03: "Retired", eventTypes: ["Decision"] },
     "Re-authorise": { dec03: "", note: "Approved or Approved with conditions (after reassessment)", eventTypes: ["Decision"] },
     "Opinion only": { dec03: "", note: "None — assurance input, not a decision (Pending)", eventTypes: ["Assurance opinion", "Review only"] },
-    "No decision": { dec03: "", note: "None (Pending)", eventTypes: ["Review only", "Priority override", "Intake / registration"] }
+    "No decision": { dec03: "", note: "None (Pending)", eventTypes: ["Review only", "Priority override", "Intake / registration"] },
+    // v3.9.2 (W-06): containment, not a decision; the UC-ID keeps its AIG-DEC-03 outcome.
+    "Paused — pending decision": { dec03: "", note: "None: containment, not a decision (the UC-ID keeps its recorded AIG-DEC-03 outcome until the follow-up decision; Playbook §4.7.17)", eventTypes: ["Precautionary pause (containment)"] }
   };
+  const PAUSE_EVENT = "Precautionary pause (containment)";
+  const PAUSE_OUTCOME = "Paused — pending decision";
   const DECISION_OUTCOMES = ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop",
     "Suspend", "Decommission", "Re-authorise"];
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
-  // Recipients and escalation wording from the AIG-OPS-03 v1.5 Part A §4 severity table.
+  // Recipients and escalation wording from the AIG-OPS-03 v1.6 Part A §4 severity table.
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
@@ -454,11 +470,30 @@
     }
   };
 
+  // AIG-OPS-03 v1.6 Part A §4 "When it applies" wording, including the indicators for
+  // each severity (v3.9.2, T-06: Low has its own indicators, so Low can be selected).
+  const SEVERITY_WHEN = {
+    "Low": "Limited operational impact; no significant legal, ethical or service consequences. Indicators: an isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm), an isolated user complaint, a documentation error or a non-material process failure.",
+    "Medium": "Moderate impact requiring management attention and corrective action. Indicators: repeated inaccurate outputs, policy non-compliance, control failures, minor service disruption or recurring user complaints.",
+    "High": "Significant operational, legal, ethical or reputational impact. Indicators: material bias findings, significant model drift, operational disruption, security weaknesses, repeated control failures or significant service impacts.",
+    "Critical": "Actual or potential harm to individuals, major legal/reputational exposure or statutory breach. Indicators: data breaches, unlawful automated decision-making, significant impacts on vulnerable individuals, major regulatory concerns, widespread service failure or substantial media scrutiny."
+  };
+  // AIG-OPS-03 v1.6 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
+  // the AI Governance Lead immediately, consider a precautionary pause, at least High.
+  const MANDATORY_INCIDENT_TRIGGERS = [
+    "Significant bias resulting in adverse outcomes",
+    "Data protection breach involving AI-processed data",
+    "Security incident affecting AI system integrity",
+    "Governance failure indicating an inadequate control environment"
+  ];
+
   function text(value) {
     return value == null ? "" : String(value).trim();
   }
 
   // AIG-INV-04 AI Register validation on AIR-ID: LEFT(A,4)="AIR-" and LEN(TRIM(A))=8.
+  // AIG-AGT-04 v0.4 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
+  // an AIR-ID accepted here is accepted by both workbooks (v3.9.2, T-10).
   function isAirId(value) {
     const id = text(value);
     return id.length === 8 && id.slice(0, 4).toUpperCase() === "AIR-";
@@ -625,8 +660,58 @@
     return "";
   }
 
+  // Change triggers ticked in "Assess a change" (v3.9.2, T-05) and how they carry into
+  // the AIG-ASS-02 Step 4 §4.4.6 triggers: a model, data, supplier, system, purpose,
+  // population or deployment-scope change is a material change (row 39 Yes); a change to
+  // autonomous action authority makes the use action-capable (Is Agent Yes) and, until
+  // per-action human review is confirmed, the agentic trigger is Unsure (row 40; Unsure
+  // counts as Yes, Critical floor). The other five triggers are answered by the user.
+  const CHANGE_TRIGGERS = {
+    modelDataSupplier: "Model, data, supplier or system change",
+    purposeScope: "Purpose, population or deployment-scope change",
+    authority: "Autonomous action authority changed",
+    threshold: "Approved threshold breach",
+    drift: "Material drift, performance or control failure",
+    incident: "Incident, near miss or challenge pattern",
+    legal: "Legal/regulatory change or assurance finding"
+  };
+  const STEP4_TRIGGERS = [
+    ["specialData", "Trigger — Special Category Data", "Processing of special category personal data (UK GDPR)"],
+    ["vulnerable", "Trigger — Vulnerable Residents", "Use in relation to vulnerable residents (children, adults with care/support needs, people experiencing homelessness)"],
+    ["housingCare", "Trigger — Housing/Care/Homelessness", "Directly influences housing allocation, social care assessments or homelessness prevention decisions"],
+    ["novel", "Trigger — Novel Deployment", "Novel or first-of-type AI deployment with no prior Council operational experience"],
+    ["statutory", "Trigger — Statutory Decisions", "Produces or directly informs statutory decisions"],
+    ["materialChange", "Trigger — Material Change", "Significant AI supplier or model changes that materially alter the risk profile of an existing deployment"],
+    ["agentic", "Trigger — Agentic Autonomous Action", "Executes actions autonomously without human review of each individual action"]
+  ];
+
+  // The seven Step 4 answers for the Triage Import rows 34–40, plus Is Agent (row 46) and
+  // Mandatory Risk Floor (row 41), exactly as AIG-ASS-02 C42 reads them.
+  function step4Answers(changeTriggers, answers) {
+    const ticked = new Set(changeTriggers || []);
+    const a = answers || {};
+    const out = {};
+    STEP4_TRIGGERS.slice(0, 5).forEach(function (t) {
+      out[t[0]] = inList(a[t[0]], LISTS.ass02Trigger) ? text(a[t[0]]) : "";
+    });
+    const material = ticked.has("modelDataSupplier") || ticked.has("purposeScope");
+    out.materialChange = material ? "Yes" : (inList(a.materialChange, LISTS.ass02Trigger) ? text(a.materialChange) : "");
+    const authority = ticked.has("authority");
+    out.agentic = inList(a.agentic, LISTS.ass02AgenticTrigger) ? text(a.agentic) : (authority ? "Unsure" : "");
+    const complete = STEP4_TRIGGERS.every(function (t) { return out[t[0]] !== ""; });
+    let floor = "";
+    if (complete) {
+      if (out.statutory === "Yes" || out.agentic === "Yes" || out.agentic === "Unsure") floor = "Critical";
+      else if (STEP4_TRIGGERS.some(function (t) { return out[t[0]] === "Yes"; })) floor = "High";
+      else floor = "Low";
+    }
+    const isAgent = authority || out.agentic === "Yes" || out.agentic === "Unsure" ? "Yes" : "";
+    return { values: out, complete: complete, mandatoryFloor: floor, isAgent: isAgent, material: material, authority: authority };
+  }
+
   // AIG-ASS-02 Triage Import rows (canonical field / value) for a post-deployment reassessment.
   function triageImportRows(data, risk) {
+    const step4 = step4Answers(data.changeTriggers, data.triggerAnswers);
     const values = {
       "AIR-ID": text(data.airId),
       "System / Model Name": text(data.system),
@@ -643,8 +728,11 @@
       "Residual Risk Score": risk ? risk.residual : "",
       "Residual Risk Tier": risk ? risk.residualTier : "",
       "UC-ID (blank only for explicit system baseline)": text(data.useScope) === "UC-ID specific" ? text(data.ucId) : "",
-      "Triage / assessment scope": scopeValue(data.useScope)
+      "Triage / assessment scope": scopeValue(data.useScope),
+      "Mandatory Risk Floor": step4.mandatoryFloor,
+      "Is Agent": step4.isAgent
     };
+    STEP4_TRIGGERS.forEach(function (t) { values[t[1]] = step4.values[t[0]]; });
     const notes = {
       "AIR-ID": "Existing AIR-ID confirmed by the user against current AIG-INV-04; the assessor rechecks",
       "Impact Score": "Mirrors AIG-ASS-02: highest of the five impact dimensions",
@@ -652,7 +740,13 @@
       "Inherent Risk Tier": "Mirrors AIG-ASS-02 C38 bands: Low 1–5, Medium 6–10, High 11–15, Critical 16–25",
       "Residual Risk Score": "Mirrors AIG-ASS-02 C40: inherent × (C ÷ 5), unrounded",
       "Residual Risk Tier": "Mirrors AIG-ASS-02 C41 bands. The governing tier (C43) also applies evidenced-control rules, trigger floors, the impact floor and the agentic floor; it is not calculated here",
-      "Triage / assessment scope": scopeNote(data.useScope, "Assessment")
+      "Triage / assessment scope": scopeNote(data.useScope, "Assessment"),
+      "Trigger — Material Change": step4.material ? "Yes: a model, data, supplier, system, purpose, population or deployment-scope change was ticked in this reassessment (§4.4.6)" : "",
+      "Trigger — Agentic Autonomous Action": step4.authority && step4.values.agentic === "Unsure" ?
+        "Unsure: autonomous action authority changed and per-action human review is not yet confirmed; Unsure counts as Yes (Critical floor) until confirmed" : "",
+      "Mandatory Risk Floor": step4.complete ? "Mirrors AIG-ASS-02 C42: Critical for a statutory or agentic trigger (Unsure = Yes), High for any other trigger, otherwise Low" :
+        "Left blank: answer all seven §4.4.6 triggers; AIG-ASS-02 C42 shows Incomplete until each is answered",
+      "Is Agent": step4.isAgent ? "Yes: the use can act (authority changed or the agentic trigger is Yes / Unsure); complete Step 5 agentic scores in AIG-ASS-02" : ""
     };
     if (risk && risk.impactFloor) notes["Impact Score"] += ". Impact floor (Proposed — for Council confirmation): a confirmed Impact 5 sets the governing tier to at least Medium";
     return TRIAGE_IMPORT_ROWS.map(function (row) {
@@ -760,6 +854,9 @@
     if (text(data.severity) && !inList(data.severity, LISTS.riskTier)) return "Select an AIG-OPS-02 Severity value.";
     if (text(data.riskTier) && !inList(data.riskTier, LISTS.riskTier)) return "Select an AIG-OPS-02 Risk tier value.";
     if (text(data.trigger) && !inList(data.trigger, LISTS.ops02Triggers)) return "Select an Appendix E.4 reassessment trigger from the AIG-OPS-02 list.";
+    if (text(data.reviewType) && !inList(data.reviewType, LISTS.ops02ReviewType)) return "Select the review type: Operational monitoring, Performance review or Formal review (§6.4.4).";
+    if (text(data.agenticRaise) && !inList(data.agenticRaise, LISTS.ops02AgenticRaise)) return "Select an AIG-OPS-02 Agentic cadence raise value.";
+    if (text(data.riskTier) && !text(data.reviewType)) return "Select the review type (operational monitoring, performance review or formal review): the AIG-OPS-02 v1.6 cadence check depends on it (§6.4.4).";
     if (!inList(data.selection, LISTS.ops02SelectionBasis)) return "Select an AIG-OPS-02 Selection Basis value.";
     if (data.breach === "Yes" && !text(data.severity)) {
       return "Choose a provisional severity for the reported breach; an authorised owner confirms it.";
@@ -849,7 +946,7 @@
     return "";
   }
 
-  // ---- AIG-OPS-02 Monitoring Log derived columns (AH, AJ, AK), mirrored from the v1.5 formulas ----
+  // ---- AIG-OPS-02 Monitoring Log derived columns (AH, AJ, AK), mirrored from the v1.6 formulas ----
   function excelDate(value) {
     const t = text(value);
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
@@ -865,12 +962,30 @@
     return /^\d+$/.test(t) ? Number(t) : null;
   }
 
-  function ops02Cadence(tier) {
+  // AIG-OPS-02 v1.6 AJ: minimum cadence by tier and review type (§6.4.4).
+  function ops02Cadence(tier, reviewType) {
     const t = text(tier);
+    const r = text(reviewType);
     if (!t) return "";
+    if (r === "Operational monitoring") {
+      return t === "Low" ? "Routine operational monitoring by the Service Owner" : t === "Medium" ? "Monthly" : "Continuous (logged at least monthly)";
+    }
+    if (r === "Performance review") {
+      return t === "Critical" ? "At least monthly" : t === "High" ? "Monthly" : t === "Medium" ? "Quarterly" : "Annual";
+    }
     if (t === "Critical") return "Continuous monitoring; formal review at least monthly";
     if (t === "High") return "Quarterly";
     return "Annual";
+  }
+
+  // AIG-OPS-02 v1.6 AH: the longest allowed gap (days) to the next review.
+  function ops02MaxGap(tier, reviewType) {
+    const t = text(tier);
+    const r = text(reviewType);
+    if (t === "Critical") return 31;
+    if (t === "High") return r === "Operational monitoring" || r === "Performance review" ? 31 : 92;
+    if (t === "Medium") return r === "Operational monitoring" ? 31 : r === "Performance review" ? 92 : 366;
+    return 366;
   }
 
   function ops02MinimumSample(tier, population) {
@@ -894,7 +1009,9 @@
       bad("Risk Reassessment Required?", LISTS.yesNoUnknown) || bad("Governance Escalation?", LISTS.yesNoUnknown) ||
       bad("Trend", LISTS.ops02Trend) || bad("Review Status", LISTS.ops02ReviewStatus) ||
       bad("Measure scope (UC-ID specific / Shared system baseline)", LISTS.scope) ||
-      bad("Risk tier (UC-ID, AIG-ASS-02)", LISTS.riskTier) || bad("Reassessment trigger (Appendix E.4)", LISTS.ops02Triggers)) {
+      bad("Risk tier (UC-ID, AIG-ASS-02)", LISTS.riskTier) || bad("Reassessment trigger (Appendix E.4)", LISTS.ops02Triggers) ||
+      bad("Review type (§6.4.4: operational / performance / formal)", LISTS.ops02ReviewType) ||
+      bad("Agentic cadence raise applied? (action-capable uses)", LISTS.ops02AgenticRaise)) {
       return "INVALID VALUE — use the dropdown list";
     }
     const uc = v("UC-ID (blank only for an explicitly shared system measure)");
@@ -917,7 +1034,10 @@
     const AK = ops02MinimumSample(tier, row["Population Size"]);
     if (AC !== null && AD !== null && AD > AC) return "SAMPLE EXCEEDS POPULATION";
     if (AD !== null && typeof AK === "number" && AD < AK) return "SAMPLE BELOW TIER MINIMUM";
-    if (isNum(D) && isNum(Y) && tier !== "" && Y - D > (tier === "Critical" ? 31 : tier === "High" ? 92 : 366)) return "NEXT REVIEW EXCEEDS TIER CADENCE";
+    const AO = v("Review type (§6.4.4: operational / performance / formal)");
+    if (tier !== "" && isNum(Y) && AO === "") return "REVIEW TYPE REQUIRED: operational, performance or formal (§6.4.4)";
+    if (isNum(D) && isNum(Y) && tier !== "" && Y - D > ops02MaxGap(tier, AO)) return "NEXT REVIEW EXCEEDS TIER CADENCE";
+    if (v("Agentic cadence raise applied? (action-capable uses)") === "Action-capable: raise not yet set") return "AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)";
     const Z = v("Review Status");
     if (Z === "Closed" && (["Review Date", "Monitoring Owner", "Metric / Indicator", "Approved Threshold / Tolerance", "Actual Result",
       "Evidence Location", "Next Review Date", "Sample Source / Population of Record", "Selection Basis", "Sampling Window",
@@ -973,6 +1093,18 @@
       return "For the optional Part B pointer, complete controller-awareness time, rights-risk assessment and its assessor/date, and the DPO-informed notifiability decision, rationale and owner; otherwise leave every Part B field blank.";
     }
     if (partB[4] && !inList(partB[4], LISTS.ops03IcoDecision)) return "Select the ICO notifiability decision: Notifiable, Not notifiable or Further assessment.";
+    // v3.9.2 (W-06): AIG-OPS-03 v1.6 Part A "Precautionary pause applied? Gate Log event ID".
+    const pauseKeys = ["pauseBy", "pauseAt", "pauseIncidentRef", "pauseFollowUpDue", "pauseEventId"];
+    if (text(data.pauseApplied) && !inList(data.pauseApplied, LISTS.yesNo)) return "Answer “Precautionary pause applied?” with Yes or No.";
+    if (data.pauseApplied === "Yes" && (!text(data.pauseBy) || !text(data.pauseAt))) {
+      return "Precautionary pause applied: record who applied it and the date and time (AIG-OPS-03 Part A).";
+    }
+    if (data.pauseApplied === "Yes" && text(data.pauseEventId) && !data.pauseEventIdVerified) {
+      return "Only enter an existing AIG-DEC-04 Gate events ID checked against the Gate Log; do not invent one.";
+    }
+    if (data.pauseApplied !== "Yes" && pauseKeys.some((key) => text(data[key]))) {
+      return "Clear the precautionary pause details unless a pause was applied.";
+    }
     return "";
   }
 
@@ -981,6 +1113,7 @@
   const EVENT_OUTCOMES = LISTS.dec04Outcomes;
 
   function validateChange(data) {
+    const changeTriggers = Array.isArray(data.changeTriggers) ? data.changeTriggers : [];
     if (!text(data.airId) || !data.airIdVerified || !text(data.system)) {
       return "Enter a system name and an existing AIR-ID confirmed against current AIG-INV-04; this tool cannot issue or verify identifiers.";
     }
@@ -993,6 +1126,15 @@
     }
     if (data.useScope !== "UC-ID specific" && text(data.ucId)) {
       return "Clear the UC-ID unless the change assessment is explicitly UC-ID specific.";
+    }
+    // v3.9.2 (T-05): a ticked change trigger means a documented reassessment, so every
+    // §4.4.6 trigger must be answered for the AIG-ASS-02 import (C42 needs all seven).
+    if (changeTriggers.length) {
+      const step4 = step4Answers(changeTriggers, data.triggerAnswers);
+      const missing = STEP4_TRIGGERS.filter((t) => step4.values[t[0]] === "").map((t) => t[2]);
+      if (missing.length) {
+        return "A change trigger is ticked, so answer every §4.4.6 mandatory escalation trigger for the changed use (AIG-ASS-02 Step 4): " + missing.join("; ") + ".";
+      }
     }
     const mapFields = ["mapChangeDate", "mapChangeType", "mapPrevious", "mapNext",
       "mapExpansion", "mapOwner", "mapReassessment", "mapEventId", "mapState"].map((key) => text(data[key]));
@@ -1051,8 +1193,25 @@
     ].some((key) => text(data[key])) || (text(data.eventId) && !conditionDraftStarted);
     const type = text(data.eventType);
     const outcome = text(data.decision);
+    const pause = type === PAUSE_EVENT;
     if (eventStarted && !EVENT_TYPES.includes(type)) {
-      return "Select the AIG-DEC-04 Event type: Decision, Assurance opinion, Review only, Priority override or Intake / registration.";
+      return "Select the AIG-DEC-04 Event type: Decision, Assurance opinion, Review only, Priority override, Intake / registration or Precautionary pause (containment).";
+    }
+    // v3.9.2 (W-06): AIG-DEC-04 v1.1 row check for a precautionary pause (containment).
+    if (eventStarted && pause && outcome !== PAUSE_OUTCOME) {
+      return "Precautionary pause: Outcome must be Paused — pending decision.";
+    }
+    if (eventStarted && !pause && outcome === PAUSE_OUTCOME) {
+      return "Paused — pending decision is only for a Precautionary pause (containment) event.";
+    }
+    if (eventStarted && pause && !text(data.pauseIncidentRef)) {
+      return "Precautionary pause: enter the AIG-OPS-03 incident reference.";
+    }
+    if (eventStarted && pause && !/^\d{4}-\d{2}-\d{2}$/.test(text(data.pauseFollowUpDue))) {
+      return "Precautionary pause: enter the follow-up decision due date.";
+    }
+    if (eventStarted && !pause && (text(data.pauseIncidentRef) || text(data.pauseFollowUpDue))) {
+      return "Clear the incident reference and follow-up decision due date unless the Event type is Precautionary pause (containment).";
     }
     if (eventStarted && outcome && !EVENT_OUTCOMES.includes(outcome)) {
       return "Select an AIG-DEC-04 Outcome: " + EVENT_OUTCOMES.join(", ") + ".";
@@ -1075,7 +1234,13 @@
     if (eventStarted && data.escalated !== "Yes" && text(data.escalatedTo)) {
       return "Clear the escalation forum unless the case was escalated.";
     }
-    if (eventStarted && (!text(data.eventDate) || !text(data.eventForum) ||
+    // A precautionary pause is containment, not a decision: no AIG-DEC-03 reference or
+    // delegation reference is needed (Playbook §4.7.17), only who applied it and when.
+    if (eventStarted && pause && (!text(data.eventDate) || !text(data.eventForum) ||
+      !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventSource) || !data.eventConfirmed)) {
+      return "A Precautionary pause event needs the actual date, gate / forum, event-time lifecycle stage, who applied the pause (Decision-maker / role), source and confirmation; no AIG-DEC-03 decision reference is needed.";
+    }
+    if (eventStarted && !pause && (!text(data.eventDate) || !text(data.eventForum) ||
       !text(data.eventLifecycle) || !text(data.eventMaker) || !text(data.eventRecord) ||
       !text(data.eventAuthority) || !text(data.eventSource) || !data.eventConfirmed)) {
       return "A Gate Event transfer checklist requires an actual date, gate / forum, event-time lifecycle stage, decision-maker, decision-record/minutes reference, source (minutes / decision record / system), checked authority reference and confirmation.";
@@ -1092,7 +1257,10 @@
     if (eventStarted && /[,;]/.test(text(data.eventUcId))) {
       return "One UC-ID per Gate Event row: split a multi-use decision into suffixed Event IDs (for example EVT-0012-a, EVT-0012-b).";
     }
-    if (eventStarted && data.eventUseScope === "UC-ID specific" &&
+    if (eventStarted && pause && data.eventUseScope === "UC-ID specific" && !text(data.eventUcId)) {
+      return "Enter the exact UC-ID of the paused use.";
+    }
+    if (eventStarted && !pause && data.eventUseScope === "UC-ID specific" &&
       (!text(data.eventUcId) || !text(data.useDecisionRef) || !text(data.permittedPurpose) ||
        !text(data.permittedUsers) || !text(data.permittedData) || !text(data.permittedActions) ||
        !text(data.exclusions) || !text(data.permittedConditions))) {
@@ -1216,6 +1384,14 @@
     MONITORING_UNKNOWN_FIELDS,
     ROUTES,
     SEVERITY_ORDER,
+    SEVERITY_WHEN,
+    MANDATORY_INCIDENT_TRIGGERS,
+    CHANGE_TRIGGERS,
+    STEP4_TRIGGERS,
+    PAUSE_EVENT,
+    PAUSE_OUTCOME,
+    step4Answers,
+    ops02MaxGap,
     SUITE,
     TARGETS,
     TRIAGE_IMPORT_ROWS,
