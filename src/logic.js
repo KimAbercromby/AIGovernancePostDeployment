@@ -1037,7 +1037,9 @@
     const AO = v("Review type (§6.4.4: operational / performance / formal)");
     if (tier !== "" && isNum(Y) && AO === "") return "REVIEW TYPE REQUIRED: operational, performance or formal (§6.4.4)";
     if (isNum(D) && isNum(Y) && tier !== "" && Y - D > ops02MaxGap(tier, AO)) return "NEXT REVIEW EXCEEDS TIER CADENCE";
-    if (v("Agentic cadence raise applied? (action-capable uses)") === "Action-capable: raise not yet set") return "AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)";
+    // v3.9.2 follow-up (NEW-02): AP is required on every row; the log identifies an action-capable use only from AP, so blank = raise not yet set.
+    const AP = v("Agentic cadence raise applied? (action-capable uses)");
+    if (AP === "" || AP === "Action-capable: raise not yet set") return "AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)";
     const Z = v("Review Status");
     if (Z === "Closed" && (["Review Date", "Monitoring Owner", "Metric / Indicator", "Approved Threshold / Tolerance", "Actual Result",
       "Evidence Location", "Next Review Date", "Sample Source / Population of Record", "Selection Basis", "Sampling Window",
