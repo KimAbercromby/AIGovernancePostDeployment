@@ -167,3 +167,18 @@ test('T-10: the AIR-ID check equals the AIG-INV-04 rule, which AIG-AGT-04 v0.4 n
   }
   assert.equal(G.isAirId('AIR-T004'), true, 'scenario IDs such as AIR-T004 pass both workbooks');
 });
+
+test('NEW-02 (v3.9.2 re-test follow-up): a blank AP is flagged like "raise not yet set"; Not action-capable is not', () => {
+  const ops = targets.sheets.ops02Monitoring;
+  assert.match(ops.formulas.AH, /IF\(OR\(AP5="",AP5="Action-capable: raise not yet set"\),"AGENTIC CADENCE RAISE NOT SET/);
+  const fixture = JSON.parse(read('fixtures/ops02-closure-check-cases.json'));
+  const AP = 'Agentic cadence raise applied? (action-capable uses)';
+  const ready = fixture.cases.find((c) => c.AH === 'Closure ready for independent review' && c.row[AP] === 'Not action-capable');
+  assert.ok(ready, 'fixture has a closed non-agentic row');
+  const FLAG = 'AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)';
+  assert.equal(G.ops02ClosureCheck(ready.row), 'Closure ready for independent review');
+  assert.equal(G.ops02ClosureCheck({ ...ready.row, [AP]: 'Raised per Monitoring and Review Plan' }), 'Closure ready for independent review');
+  assert.equal(G.ops02ClosureCheck({ ...ready.row, [AP]: 'Action-capable: raise not yet set' }), FLAG);
+  assert.equal(G.ops02ClosureCheck({ ...ready.row, [AP]: '' }), FLAG);
+  assert.ok(fixture.cases.some((c) => c.row[AP] === '' && c.AH === FLAG), 'recalculated workbook flags a blank AP');
+});
