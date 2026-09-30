@@ -5,8 +5,8 @@ const { test } = require('node:test');
 const governance = require('./src/logic.js');
 
 const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
-// Generated from the v3.9.1 source workbooks/forms (file, sheet and header row are recorded in the fixture).
-const targets = JSON.parse(read('fixtures/suite-v3.9.1-targets.json'));
+// Generated from the v3.9.2 source workbooks/forms (file, sheet and header row are recorded in the fixture).
+const targets = JSON.parse(read('fixtures/suite-v3.9.2-targets.json'));
 const decode = (value) => value.replace(/&amp;/g, '&');
 // Options of a <select>, ignoring the blank "Select" prompt.
 const optionsOf = (html, id) => [...html.match(new RegExp(`id="${id}">(.*?)</select>`))[1]
@@ -44,7 +44,7 @@ test('AIG-ASS-02 v1.8 arithmetic and tier bands match the workbook', () => {
   });
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).residual, 20);
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).impactFloor, 'Medium');
-  // Values recalculated from the v3.9.1 workbook (fixtures/ass02-risk-cases.json).
+  // Values recalculated from the v3.9.2 workbook (fixtures/ass02-risk-cases.json).
   for (const c of JSON.parse(read('fixtures/ass02-risk-cases.json')).cases) {
     const r = governance.calculateRisk(c.impacts, c.likelihood, c.control);
     assert.equal(r.impact, c.impact); assert.equal(r.inherent, c.inherent); assert.equal(r.inherentTier, c.inherentTier);
@@ -174,7 +174,7 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
   assert.match(governance.validateChange({ ...event, today: '2026-09-24' }), /cannot be in the future/);
   assert.match(governance.validateChange({ ...event, eventUseScope: 'UC-ID specific', eventUcId: 'UC-1, UC-2' }), /One UC-ID per Gate Event row/);
   for (const outcome of ['Suspend', 'Decommission', 'Re-authorise']) {
-    assert.equal(governance.validateChange({ ...event, decision: outcome }), '', `${outcome} is a v3.9.1 decision outcome`);
+    assert.equal(governance.validateChange({ ...event, decision: outcome }), '', `${outcome} is a v3.9.2 decision outcome`);
     assert.match(governance.validateChange({ ...event, eventType: 'Review only', decision: outcome }), /set Event type to Decision/);
   }
   assert.match(governance.validateChange({ ...event, decision: '' }), /Decision event needs a decision Outcome/);
@@ -369,8 +369,8 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /Permitted purpose/);
   assert.match(html + app, /Use-specific operating conditions/);
   assert.match(html + app, /separate standalone draft workbooks/);
-  assert.match(html, /suite v3\.9\.1 /);
-  assert.match(html, /v19\.9\.11/);
+  assert.match(html, /suite v3\.9\.2 /);
+  assert.match(html, /v19\.9\.12/);
   assert.doesNotMatch(html + app + read('README.md'), /field\/value drafts, not exact worksheet rows/);
   assert.doesNotMatch(html + app, /v1\.4\b.*AIG-OPS-02|AIG-OPS-02 v1\.4/);
   assert.doesNotMatch(html + app, /Westminster/i);
@@ -451,13 +451,13 @@ test('Gate Event options match AIG-DEC-04 controlled values', () => {
   assert.doesNotMatch(html, /<option>Noted<\/option>|<option>Escalation raised<\/option>/);
 });
 
-// ---- Suite v3.9.1 alignment: every download matches its target exactly ----
+// ---- Suite v3.9.2 alignment: every download matches its target exactly ----
 
 const SHEET_KEYS = ['ops02Monitoring', 'dec04GatePlan', 'dec04GateEvents', 'dec04Conditions', 'aims08Capa',
   'inv05MapChanges', 'inv04AssessmentSummary', 'ass02TriageImport'];
 const FORM_KEYS = ['ops03PartA', 'ops03PartB8', 'dec03Reference'];
 
-test('export targets carry the exact v3.9.1 headers, order, formula columns and versions', () => {
+test('export targets carry the exact v3.9.2 headers, order, formula columns and versions', () => {
   for (const key of SHEET_KEYS) {
     const expected = targets.sheets[key];
     const target = governance.TARGETS[key];
@@ -472,7 +472,7 @@ test('export targets carry the exact v3.9.1 headers, order, formula columns and 
   }
   assert.deepEqual(governance.ARTEFACT_VERSIONS, targets.versions);
   assert.deepEqual(governance.TRIAGE_IMPORT_ROWS, targets.sheets.ass02TriageImport.rows);
-  assert.equal(governance.SUITE.release, 'v3.9.1');
+  assert.equal(governance.SUITE.release, 'v3.9.2');
 });
 
 test('every CSV starts with the exact headers, then a blank spacer and guidance columns only', () => {
@@ -536,7 +536,7 @@ test('app values land only in real target columns', () => {
   for (const key of [...SHEET_KEYS, ...FORM_KEYS]) assert.ok(app.includes(`csvDownload("${key}"`), `${key} has a download`);
 });
 
-test('controlled lists and form options match the v3.9.1 data validations', () => {
+test('controlled lists and form options match the v3.9.2 data validations', () => {
   const html = read('index.html');
   const L = governance.LISTS;
   const ops = targets.sheets.ops02Monitoring.lists;
@@ -550,6 +550,8 @@ test('controlled lists and form options match the v3.9.1 data validations', () =
   assert.deepEqual(L.scope, ops['Measure scope (UC-ID specific / Shared system baseline)']);
   assert.deepEqual(L.ops02Triggers, ops['Reassessment trigger (Appendix E.4)']);
   assert.deepEqual(L.ops02Triggers, targets.sheets.ops02Lists.reassessmentTriggers);
+  assert.deepEqual(L.ops02ReviewType, ops['Review type (§6.4.4: operational / performance / formal)']);
+  assert.deepEqual(L.ops02AgenticRaise, ops['Agentic cadence raise applied? (action-capable uses)']);
   const plan = targets.sheets.dec04GatePlan.lists;
   assert.deepEqual(L.dec04Requirement, plan.Requirement);
   assert.deepEqual(L.dec04PlanState, plan['Plan state']);
@@ -576,6 +578,11 @@ test('controlled lists and form options match the v3.9.1 data validations', () =
     'm-category': null, 'm-trend': L.ops02Trend, 'm-breach': null, 'm-severity': L.riskTier,
     'm-material': null, 'm-escalation': null, 'm-reassessment': L.yesNoUnknown, 'm-status': L.ops02ReviewStatus,
     'm-selection': L.ops02SelectionBasis, 'm-risk-tier': L.riskTier, 'm-trigger': L.ops02Triggers,
+    'm-review-type': L.ops02ReviewType, 'm-agentic-raise': L.ops02AgenticRaise,
+    'i-pause': L.yesNo, 'i-pause-lifecycle': L.dec04Lifecycle,
+    'c-t-specialData': L.ass02Trigger, 'c-t-vulnerable': L.ass02Trigger, 'c-t-housingCare': L.ass02Trigger,
+    'c-t-novel': L.ass02Trigger, 'c-t-statutory': L.ass02Trigger, 'c-t-materialChange': L.ass02Trigger,
+    'c-t-agentic': L.ass02AgenticTrigger,
     'p-requirement': L.dec04Requirement, 'p-state': L.dec04PlanState, 'p-gate': L.dec04Gates,
     'e-type': L.dec04EventTypes, 'e-decision': L.dec04Outcomes, 'e-forum': L.dec04Gates, 'e-lifecycle': L.dec04Lifecycle,
     'e-condition-state': L.dec04ConditionStates, 'e-condition-monitoring': L.yesNo,
@@ -593,21 +600,22 @@ test('controlled lists and form options match the v3.9.1 data validations', () =
   assert.equal(governance.scopeValue('Shared system baseline'), 'Shared system baseline');
 });
 
-test('AIG-OPS-02 closure check, cadence and minimum sample match the recalculated v3.9.1 workbook', () => {
+test('AIG-OPS-02 closure check, cadence and minimum sample match the recalculated v3.9.2 workbook', () => {
   const fixture = JSON.parse(read('fixtures/ops02-closure-check-cases.json'));
   assert.ok(fixture.cases.length >= 40);
   const seen = new Set();
   fixture.cases.forEach((c, i) => {
     const tier = c.row['Risk tier (UC-ID, AIG-ASS-02)'];
     assert.equal(governance.ops02ClosureCheck(c.row), c.AH, `case ${i} AH`);
-    assert.equal(governance.ops02Cadence(tier), c.AJ, `case ${i} AJ`);
+    assert.equal(governance.ops02Cadence(tier, c.row['Review type (§6.4.4: operational / performance / formal)']), c.AJ, `case ${i} AJ`);
     assert.equal(governance.ops02MinimumSample(tier, c.row['Population Size']), c.AK, `case ${i} AK`);
     seen.add(c.AH);
   });
   for (const outcome of ['AIR-ID REQUIRED', 'INVALID VALUE — use the dropdown list', 'UC-ID REQUIRED', 'UNKNOWN TO RESOLVE',
     'BREACH ACTION INCOMPLETE', 'TRIGGER NOT RECORDED — select the E.4 trigger', 'REASSESSMENT / CONSIDERATION REF REQUIRED',
     'GATE LOG EVENT ID REQUIRED', 'SAMPLE EXCEEDS POPULATION', 'SAMPLE BELOW TIER MINIMUM', 'NEXT REVIEW EXCEEDS TIER CADENCE',
-    'CLOSURE EVIDENCE MISSING', 'Closure ready for independent review', 'Open / review']) {
+    'CLOSURE EVIDENCE MISSING', 'Closure ready for independent review', 'Open / review',
+    'REVIEW TYPE REQUIRED: operational, performance or formal (§6.4.4)', 'AGENTIC CADENCE RAISE NOT SET (§6.4.4; size to be set by the Council)']) {
     assert.ok(seen.has(outcome), `fixture covers ${outcome}`);
   }
 });

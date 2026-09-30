@@ -90,7 +90,7 @@
   <main id="main" class="wrap">
     <aside class="notice" role="note">
       <strong>Draft handovers only — never approval or a system of record.</strong>
-      <strong>Record key:</strong> AIG-INV-04 is the Register and owns one permanent AIR-ID and current assurance state per system; use cases require their own exact UC-ID scope and may share that AIR-ID. AIG-DEC-04 is the separate Gate Log for plans, events and conditions. A system-level Approved baseline does not approve any UC-ID, and unknown use scope is not shared scope. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Each download uses the exact column headers, order and controlled lists of its AI governance suite v3.9.1 target (guidance columns sit after a blank spacer and are never pasted); still verify every value against the current controlled record before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
+      <strong>Record key:</strong> AIG-INV-04 is the Register and owns one permanent AIR-ID and current assurance state per system; use cases require their own exact UC-ID scope and may share that AIR-ID. AIG-DEC-04 is the separate Gate Log for plans, events and conditions. A system-level Approved baseline does not approve any UC-ID, and unknown use scope is not shared scope. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Each download uses the exact column headers, order and controlled lists of its AI governance suite v3.9.2 target (guidance columns sit after a blank spacer and are never pasted); still verify every value against the current controlled record before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
       <p class="small">AGPI is prioritisation, not a waiver. Equality Act 2010 section 149, Human Rights Act 1998 section 6, privacy and other case-specific duties require screening for every tier. EU AI Act, ATRS and procurement duties are conditional: ask the legal/procurement owner to confirm applicability for the case.</p>
     </aside>
 
@@ -135,6 +135,19 @@
           </div>
           <label class="field">Potential impact and approximate number affected<textarea id="i-impact" placeholder="Describe in general terms; do not enter names or case-level personal data."></textarea></label>
           <label class="field">Immediate action taken<textarea id="i-action" placeholder="e.g. system paused, output withheld, users notified"></textarea></label>
+          <fieldset class="nested"><legend>Precautionary pause applied? Gate Log event ID</legend>
+            <p class="section-note">Where there is a real risk of harm, the Service Owner or AI System Owner pauses the use immediately, without waiting for a decision (Playbook §4.7.17). The pause is containment, not a decision: continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation. It is logged in AIG-DEC-04 as Event type “Precautionary pause (containment)” with Outcome “Paused — pending decision” (Proposed — for Council confirmation).</p>
+            <div class="grid">
+              <label class="field">Precautionary pause applied?<select id="i-pause"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+              <label class="field">Who applied it (name / role)<input id="i-pause-by" type="text"></label>
+              <label class="field">Date and time applied<input id="i-pause-at" type="datetime-local"></label>
+              <label class="field">Incident reference (AIG-OPS-03), if logged<input id="i-incident-ref" type="text"><small>Goes in AIG-DEC-04 Gate events column V.</small></label>
+              <label class="field">Follow-up decision due date<input id="i-pause-followup" type="date"><small>Goes in AIG-DEC-04 Gate events column W; the officer or forum with confirmed delegation decides.</small></label>
+              <label class="field">Event-time lifecycle stage<select id="i-pause-lifecycle"><option value="">Select</option><option>Idea and Innovation</option><option>Registration and Intake</option><option>Risk Assessment and Review</option><option>Approval and Assurance</option><option>Deployment and Operation</option><option>Monitoring and Review</option><option>Retirement and Decommissioning</option></select></label>
+              <label class="field">Existing AIG-DEC-04 Gate events ID, if logged<input id="i-pause-event" type="text"></label>
+              <label class="check"><input id="i-pause-event-verified" type="checkbox"><span>If entered, this existing Event ID was checked against AIG-DEC-04.</span></label>
+            </div>
+          </fieldset>
           <div class="grid">
             <label class="field">Suspected personal data breach?<select id="i-breach"><option value="">Select</option><option>Yes</option><option>No</option><option>Uncertain</option></select><small>If Yes or Uncertain, refer to the DPO / Information Governance route now, before AI triage.</small></label>
             <label class="field">Date and time referred to the DPO, if referred<input id="i-dpo-referred" type="datetime-local"></label>
@@ -158,7 +171,14 @@
           <p class="small">The competent owner determines any notification duty, recipient, deadline and action. This tool does not decide breach status or notifiability.</p>
         </fieldset>
         <fieldset><legend>Potential severity indicators</legend>
-          <p class="section-note">Provisional triage only. The highest selected band sets the floor; aggregation or manual uplift can raise it, never lower it. An authorised owner reviews severity and routing.</p>
+          <p class="section-note">Provisional triage only. The highest selected band sets the floor; aggregation or manual uplift can raise it, never lower it. An authorised owner reviews severity and routing. Indicators follow the AIG-OPS-03 v1.6 Part A section 4 table.</p>
+          <strong>Mandatory triggers (Playbook §4.7.17): escalate to the AI Governance Lead immediately, consider a precautionary pause, at least High</strong>
+          <div class="check-list">
+            <label class="check"><input type="checkbox" data-severity="High" data-mandatory><span>Significant bias resulting in adverse outcomes</span></label>
+            <label class="check"><input type="checkbox" data-severity="High" data-mandatory><span>Data protection breach involving AI-processed data</span></label>
+            <label class="check"><input type="checkbox" data-severity="High" data-mandatory><span>Security incident affecting AI system integrity</span></label>
+            <label class="check"><input type="checkbox" data-severity="High" data-mandatory><span>Governance failure indicating an inadequate control environment</span></label>
+          </div>
           <strong>Critical</strong>
           <div class="check-list">
             <label class="check"><input type="checkbox" data-severity="Critical"><span>Actual or potential harm to individuals</span></label>
@@ -179,9 +199,16 @@
             <label class="check"><input type="checkbox" data-severity="Medium"><span>Policy non-compliance or control failure</span></label>
             <label class="check"><input type="checkbox" data-severity="Medium"><span>Minor service disruption or recurring complaints</span></label>
           </div>
+          <strong>Low</strong>
+          <div class="check-list">
+            <label class="check"><input type="checkbox" data-severity="Low"><span>Isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm)</span></label>
+            <label class="check"><input type="checkbox" data-severity="Low"><span>Isolated user complaint</span></label>
+            <label class="check"><input type="checkbox" data-severity="Low"><span>Documentation error</span></label>
+            <label class="check"><input type="checkbox" data-severity="Low"><span>Non-material process failure</span></label>
+          </div>
           <div class="grid" style="margin-top:12px">
             <label class="check"><input id="i-aggregate" type="checkbox"><span>Several lower-level events suggest a systemic weakness (raise one band).</span></label>
-            <label class="field">Manual uplift<select id="i-uplift"><option value="">None</option><option>Medium</option><option>High</option><option>Critical</option></select></label>
+            <label class="field">Manual uplift<select id="i-uplift"><option value="">None</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select><small>Low sets a Low classification when no indicator fits; an uplift never lowers a selected band.</small></label>
           </div>
           <label class="field">Reason for uplift, if any<input id="i-uplift-reason" type="text"></label>
           <label class="check"><input id="i-capa" type="checkbox"><span>Owner has confirmed an AIMS nonconformity / corrective action should be considered. Prepare a clearly labelled draft only.</span></label>
@@ -219,13 +246,24 @@
         <fieldset><legend>Reassessment trigger and indicative residual risk</legend>
           <p class="section-note">Any selected trigger indicates documented reassessment for this aid. The risk score is indicative, not an approval or legal screening outcome. The proposed controlled AIG-INV-05 Capabilities and System Map is a relationship catalogue, not a second register; it is not approved or live.</p>
           <div class="check-list">
-            <label class="check"><input type="checkbox" data-trigger><span>Model, data, supplier or system change</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Purpose, population or deployment-scope change</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Autonomous action authority changed</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Approved threshold breach</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Material drift, performance or control failure</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Incident, near miss or challenge pattern</span></label>
-            <label class="check"><input type="checkbox" data-trigger><span>Legal/regulatory change or assurance finding</span></label>
+            <label class="check"><input type="checkbox" data-trigger="modelDataSupplier"><span>Model, data, supplier or system change</span></label>
+            <label class="check"><input type="checkbox" data-trigger="purposeScope"><span>Purpose, population or deployment-scope change</span></label>
+            <label class="check"><input type="checkbox" data-trigger="authority"><span>Autonomous action authority changed</span></label>
+            <label class="check"><input type="checkbox" data-trigger="threshold"><span>Approved threshold breach</span></label>
+            <label class="check"><input type="checkbox" data-trigger="drift"><span>Material drift, performance or control failure</span></label>
+            <label class="check"><input type="checkbox" data-trigger="incident"><span>Incident, near miss or challenge pattern</span></label>
+            <label class="check"><input type="checkbox" data-trigger="legal"><span>Legal/regulatory change or assurance finding</span></label>
+          </div>
+          <h3>§4.4.6 mandatory escalation triggers for the changed use (AIG-ASS-02 Step 4)</h3>
+          <p class="section-note">These carry into the AIG-ASS-02 Triage Import rows 34–40 so the re-triage can run. A ticked model, data, supplier, system, purpose, population or deployment-scope change sets Material change to Yes. A change to autonomous action authority sets Is Agent to Yes and the agentic trigger to Unsure until per-action human review is confirmed (Unsure counts as Yes). Answer the rest; they are required whenever a change trigger is ticked.</p>
+          <div class="grid">
+            <label class="field">Processing of special category personal data (UK GDPR)<select id="c-t-specialData"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Use in relation to vulnerable residents<select id="c-t-vulnerable"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Directly influences housing allocation, social care or homelessness prevention decisions<select id="c-t-housingCare"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Novel or first-of-type AI deployment<select id="c-t-novel"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Produces or directly informs statutory decisions<select id="c-t-statutory"><option value="">Select</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Significant supplier or model change that materially alters the risk profile<select id="c-t-materialChange"><option value="">Select (Yes when a change above is ticked)</option><option>Yes</option><option>No</option></select></label>
+            <label class="field">Executes actions autonomously without human review of each action<select id="c-t-agentic"><option value="">Select (Unsure when authority changed)</option><option>Yes</option><option>No</option><option>Unsure</option></select></label>
           </div>
           <h3>Residual risk inputs</h3>
           <div class="grid three">
@@ -272,11 +310,13 @@
           </div>
         </fieldset>
         <fieldset><legend>Dated Gate Event transfer checklist — only after a real authorised decision</legend>
-          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in AIG-DEC-03 or authorised native forum minutes. AIG-DEC-04 should point to that record; AIG-AGT-04 governs agent authority. Event type, Outcome, Gate / forum and lifecycle stage use the AIG-DEC-04 v1.0 draft controlled lists. A system-baseline Approved state never approves a UC-ID. No operational-use claim is supported without a per-UC decision reference and its exact permitted scope and conditions; this draft creates no decision, permission, event ID or approval.</p>
+          <p class="section-note">This is a transfer checklist for an actual verified authorised event, not an authoritative event record. The formal decision remains in AIG-DEC-03 or authorised native forum minutes. AIG-DEC-04 should point to that record; AIG-AGT-04 governs agent authority. Event type, Outcome, Gate / forum and lifecycle stage use the AIG-DEC-04 v1.1 draft controlled lists. A system-baseline Approved state never approves a UC-ID. No operational-use claim is supported without a per-UC decision reference and its exact permitted scope and conditions; this draft creates no decision, permission, event ID or approval.</p>
           <div class="grid">
             <label class="field">Decision scope<select id="e-use-scope"><option value="">Select or mark unknown</option><option>UC-ID specific</option><option>Shared system baseline</option><option>Unknown</option></select></label>
             <label class="field">Exact UC-ID covered by this decision<input id="e-uc-id" type="text"></label>
-            <label class="field">Event type<select id="e-type"><option value="">Pending — no event handover</option><option>Decision</option><option>Assurance opinion</option><option>Review only</option><option>Priority override</option><option>Intake / registration</option></select><small>AIG-DEC-04 Event type. A forum simply noting an item is Review only.</small></label><label class="field">Outcome<select id="e-decision"><option value="">Select (blank allowed unless Event type is Decision)</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Suspend</option><option>Decommission</option><option>Re-authorise</option><option>Opinion only</option><option>No decision</option></select><small>AIG-DEC-04 Outcome. Decision outcomes (Progress to Re-authorise) need Event type Decision; Opinion only goes with Assurance opinion or Review only.</small></label>
+            <label class="field">Event type<select id="e-type"><option value="">Pending — no event handover</option><option>Decision</option><option>Assurance opinion</option><option>Review only</option><option>Priority override</option><option>Intake / registration</option><option>Precautionary pause (containment)</option></select><small>AIG-DEC-04 Event type. A forum simply noting an item is Review only. A precautionary pause applied without waiting for a decision (Playbook §4.7.17) is Precautionary pause (containment), with Outcome Paused — pending decision and no AIG-DEC-03 reference.</small></label><label class="field">Outcome<select id="e-decision"><option value="">Select (blank allowed unless Event type is Decision)</option><option>Progress</option><option>Progress with condition</option><option>Return for evidence</option><option>Pause</option><option>Stop</option><option>Suspend</option><option>Decommission</option><option>Re-authorise</option><option>Opinion only</option><option>No decision</option><option>Paused — pending decision</option></select><small>AIG-DEC-04 Outcome. Decision outcomes (Progress to Re-authorise) need Event type Decision; Opinion only goes with Assurance opinion or Review only.</small></label>
+            <label class="field">Incident ref (AIG-OPS-03), precautionary pause<input id="e-incident-ref" type="text"><small>Precautionary pause only (column V).</small></label>
+            <label class="field">Follow-up decision due date (precautionary pause)<input id="e-followup-due" type="date"><small>Precautionary pause only (column W).</small></label>
             <label class="field">Existing Event ID, if assigned<input id="e-eventid" type="text"></label>
             <label class="check"><input id="e-eventid-verified" type="checkbox"><span>If entered, existing Event ID checked against AIG-DEC-04. Do not invent one.</span></label>
             <label class="field">Date<input id="e-date" type="date"></label>
@@ -384,6 +424,8 @@
             <label class="field">Human Override Rate / Trend<input id="m-human-override" type="text"></label>
             <label class="field">Next Review Date<input id="m-next-date" type="date"></label>
             <label class="field">Risk tier (UC-ID, AIG-ASS-02)<select id="m-risk-tier"><option value="">Select</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select><small>Sets the workbook’s minimum cadence and sample.</small></label>
+            <label class="field">Review type (§6.4.4: operational / performance / formal)<select id="m-review-type"><option value="">Select</option><option>Operational monitoring</option><option>Performance review</option><option>Formal review</option></select><small>The minimum cadence differs by review type (Playbook §6.4.4); required when a risk tier is entered.</small></label>
+            <label class="field">Agentic cadence raise applied? (action-capable uses)<select id="m-agentic-raise"><option value="">Select</option><option>Raised per Monitoring and Review Plan</option><option>Not action-capable</option><option>Action-capable: raise not yet set</option></select><small>For action-capable uses the Monitoring and Review Plan raises the cadence; the size of the raise is a Council decision.</small></label>
             <label class="field">Reassessment trigger (Appendix E.4)<select id="m-trigger"><option value="">Select</option><option>None</option><option>Threshold breach</option><option>Material change (model, data, supplier, purpose, user population or autonomous authority)</option><option>Significant complaint / challenge pattern</option><option>Material incident or near miss</option><option>Adverse human-override trend</option><option>Control failure</option><option>Legal / regulatory change</option></select></label>
             <label class="field">Reassessment / consideration ref (AIG-ASS-02)<input id="m-reassessment-ref" type="text"></label>
             <label class="field">AIG-DEC-04 Condition ID (if monitoring a condition)<input id="m-condition-id" type="text"></label>
@@ -427,7 +469,7 @@
   </main>
   <footer><div class="wrap">
     <strong>This is a working aid, not an assurance control or record.</strong>
-    Downloads match the column headers and controlled lists of the AI governance suite v3.9.1 drafts (30 September 2026; Playbook AIG-GOV-02 v19.9.11 draft). Verify each value against current approved artefacts and permissions before any controlled transfer. Legal applicability, formal decision, authority, publication and assurance remain with the named Council owners.
+    Downloads match the column headers and controlled lists of the AI governance suite v3.9.2 drafts (30 September 2026; Playbook AIG-GOV-02 v19.9.12 draft). Verify each value against current approved artefacts and permissions before any controlled transfer. Legal applicability, formal decision, authority, publication and assurance remain with the named Council owners.
     <p>Draft public tool · static, client-side only · no telemetry, account, upload, workbook connection or data persistence.</p>
   </div></footer>
 </body>
