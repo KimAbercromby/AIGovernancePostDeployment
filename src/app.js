@@ -5,7 +5,6 @@
   const value = (id) => G.text(byId(id).value);
   const isChecked = (id) => byId(id).checked;
   const safe = G.escapeHtml;
-  const screenLabels = ["equality", "humanRights", "privacy", "other"];
 
   function getScreening(form) {
     const result = {};
@@ -13,10 +12,6 @@
       result[input.dataset.screen] = input.checked;
     });
     return result;
-  }
-
-  function screeningRows(screening) {
-    return G.screeningEntries(screening);
   }
 
   function setError(id, message) {
@@ -82,8 +77,18 @@
       missing.map((key) => labels[key]).join(", ") + ". This is not a legal applicability determination.";
   }
 
-  function handoverEntries(entries, screening) {
-    return entries.concat(screeningRows(screening));
+  function csvDownload(targetKey, label, filenameStem, rows, airId) {
+    return {
+      label: label,
+      filename: filenameStem + "_" + G.fileKey(airId) + ".csv",
+      contents: G.exactCsv(G.TARGETS[targetKey], rows)
+    };
+  }
+
+  function todayIso() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
   }
 
   function incidentSubmit(event) {
@@ -97,15 +102,22 @@
       setError("i-error", "If you enter an AIR-ID, confirm it is an existing Council-issued identifier checked against the current AIG-INV-04 Register.");
       return;
     }
+    const selectedIndicators = Array.from(byId("incident-form").querySelectorAll("[data-severity]:checked"));
+    const breachIndicator = selectedIndicators.some((input) =>
+      input.parentElement.textContent.toLowerCase().includes("data breach"));
     const partBKeys = ["i-controller-awareness", "i-rights-risk", "i-rights-assessor", "i-rights-date",
       "i-ico-decision", "i-ico-rationale", "i-ico-owner", "i-dpo-ref"];
     const incidentValidation = G.validateIncident({
       system: value("i-system"), reporter: value("i-reporter"), role: value("i-role"),
+      airId: value("i-air"),
       useScope: value("i-use-scope"), ucId: value("i-uc-id"),
       email: value("i-email"), identifiedAt: value("i-date"), classification: value("i-kind"),
+      ongoing: value("i-ongoing"),
       happened: value("i-description"), when: value("i-when"), discovery: value("i-discovery"),
       aiActivity: value("i-ai-activity"), affected: value("i-affected-details"), impact: value("i-impact"),
       dataImpact: value("i-data-impact"), decisionImpact: value("i-decision-impact"),
+      suspectedBreach: value("i-breach"), breachIndicator: breachIndicator, dpoReferredAt: value("i-dpo-referred"),
+      securityConcern: value("i-security"), externalNotification: value("i-external"),
       uplift: value("i-uplift"), upliftReason: value("i-uplift-reason"),
       controllerAwareness: value("i-controller-awareness"), rightsRisk: value("i-rights-risk"),
       rightsAssessor: value("i-rights-assessor"), rightsAssessmentDate: value("i-rights-date"),
@@ -123,114 +135,123 @@
       return;
     }
 
-    const selectedIndicators = Array.from(byId("incident-form").querySelectorAll("[data-severity]:checked"));
     const indicatorLevels = selectedIndicators.map((input) => input.dataset.severity);
     const assessment = G.severity(indicatorLevels, isChecked("i-aggregate"), value("i-uplift"));
     const route = G.ROUTES[assessment.level] || {
-      recipient: "Pending authorised owner review",
-      target: "Severity is unclassified; follow current approved procedures."
+      recipient: "Service Owner (pending provisional severity)",
+      target: "Severity is unclassified: the Service Owner assesses provisional severity (where uncertain, apply the higher level until more is known) and sends Part A to the AI Governance Lead the same working day."
     };
-    const dataBreach = selectedIndicators.some((input) =>
-      input.parentElement.textContent.toLowerCase().includes("data breach")
-    );
+    const dataBreach = ["Yes", "Uncertain"].includes(value("i-breach"));
     const indicators = selectedIndicators.map((input) => input.parentElement.textContent.trim());
-    const affected = Array.from(byId("incident-form").querySelectorAll("[data-affected]:checked"))
-      .map((input) => input.parentElement.textContent.trim());
+    const ticked = new Set(Array.from(byId("incident-form").querySelectorAll("[data-affected]:checked"))
+      .map((input) => input.parentElement.textContent.trim()));
     const html = [
       '<div class="positive"><strong>Provisional severity: ' + safe(assessment.level) + '</strong> · ' +
         safe(route.recipient) + '</div>',
-      "<p>" + safe(route.target) + " Submit Part A to the AI Governance Lead as soon as the incident is identified. Follow current approved procedures for any additional routing.</p>",
+      "<p>" + safe(route.target) + ". Report to your Service Owner without delay using Part A; the Service Owner sends Part A to the AI Governance Lead the same working day (immediately for a suspected High or Critical incident or any statutory route).</p>",
       indicators.length ? "<p><strong>Selected indicators:</strong> " + safe(indicators.join("; ")) + "</p>" :
-        "<p>No severity indicator selected; severity and route remain unclassified pending owner review.</p>",
+        "<p>No severity indicator selected; the Provisional severity column is left blank for the Service Owner.</p>",
       assessment.aggregated ? "<p>Aggregation raised the provisional floor by one level.</p>" : "",
       assessment.uplifted ? "<p>Manual uplift: " + safe(value("i-uplift")) + " — " +
         safe(value("i-uplift-reason") || "reason not entered") + ".</p>" : "",
-      dataBreach ? '<div class="caution"><strong>Suspected personal data breach:</strong> refer promptly to the DPO / Information Governance owner. Record the controller-awareness time separately; only the responsible owner determines any UK GDPR notification duty and clock. This tool does not decide breach status or notify anyone.</div>' : "",
-      '<p class="small"><strong>AIG-OPS-03:</strong> Part A is a draft text handover. Transfer only into the controlled form after review. The source says submit as soon as identified; this tool adds no severity-based deadlines and creates no incident record or external notification.</p>',
-      isChecked("i-capa") ? '<div class="caution"><strong>AIG-AIMS-08:</strong> optional CAPA request is a draft field/value handover only. The AIMS owner must determine nonconformity classification, ID, corrective action and controlled workbook mapping.</div>' : "",
+      dataBreach ? '<div class="caution"><strong>Suspected personal data breach:</strong> refer to the DPO / Information Governance route now, before AI triage. Where notifiable, the ICO must be told without undue delay and, where feasible, not later than 72 hours after the Council becomes aware (UK GDPR Art 33). Only the responsible owner determines any notification duty; this tool does not decide breach status or notify anyone.</div>' : "",
+      value("i-security") === "Yes" ? '<div class="caution"><strong>Security or safeguarding concern:</strong> refer now to the Information and Cyber Security lead or under the Council’s safeguarding procedures; those routes lead on their own duties (Playbook §6.8.6.5).</div>' : "",
+      '<p class="small"><strong>AIG-OPS-03 v1.4 draft:</strong> the Part A download has one column per Part A field (sections 1–4), labelled exactly as the form. The timescales above are quoted from the form’s severity table; this tool calculates no deadline and creates no incident record or external notification.</p>',
+      isChecked("i-capa") ? '<div class="caution"><strong>AIG-AIMS-08:</strong> the optional CAPA Log row carries only the source, AIR-ID and immediate correction. The AIMS owner determines the NC ID, nonconformity, severity, status and corrective action.</div>' : "",
       '<p class="small">The decision, assurance state and severity remain for the authorised Council owner. A severe incident can prompt reassessment; it does not itself approve suspension, restart or a risk-tier change.</p>'
     ].join("");
-    const partA = [
-      ["Event classification", value("i-kind"), "Confirm in the controlled AIG-OPS-03 form"],
-      ["Reported by", value("i-reporter"), "Verify"],
-      ["Reporter role / service team", value("i-role"), "Verify"],
-      ["Contact email", value("i-email"), "Verify contact details before transfer"],
-      ["System / service", value("i-system"), "Confirm identity against current AIG-INV-04"],
-      ["Use scope", value("i-use-scope"), "Incident scope only; Unknown is not shared scope or approval"],
-      ["Exact UC-ID", value("i-uc-id"), value("i-use-scope") === "UC-ID specific" ?
-        "Verify this exact use identifier against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
-      ["Existing AIR-ID", value("i-air"), "Optional; never invent. Confirm against current AIG-INV-04"],
-      ["Date and time identified", value("i-date"), "Keep distinct from any controller-awareness time"],
-      ["What occurred", value("i-description"), "Review for unnecessary personal data before transfer"],
-      ["When it occurred", value("i-when"), "Reporter account; distinguish from identification time"],
-      ["How it was identified / source", value("i-discovery"), "Reporter account"],
-      ["What the AI system was doing", value("i-ai-activity"), "Reporter account; do not infer technical cause"],
-      ["Potentially affected", affected.join("; "), "Avoid personal case details"],
-      ["Who / what affected and approximate number", value("i-affected-details"), "Use non-identifying summary; Unknown is valid"],
-      ["Affected data and impact", value("i-data-impact"), "Use non-identifying summary; Unknown / not applicable must be explicit"],
-      ["Decision impact", value("i-decision-impact"), "Use non-identifying summary; Unknown / not applicable must be explicit"],
-      ["Potential impact / approximate number", value("i-impact"), "Use non-identifying summary"],
-      ["Ongoing", value("i-ongoing"), "Confirm in the controlled incident form"],
-      ["Immediate containment / action", value("i-action"),
-        value("i-action") ? "Reporter/owner account; confirm actual containment before transfer" : "Blank — no immediate containment/action recorded"],
-      ["Provisional severity", assessment.level, "Draft triage only; authorised owner confirms; Unclassified is not a Low finding"],
-      ["Selected severity indicators / triage rationale", indicators.join("; ") || "None selected",
-        indicators.length ? "Review against current incident procedure; authorised owner confirms" :
-          "None selected; severity remains unclassified absent a reasoned manual uplift"],
-      ["Manual severity uplift", value("i-uplift") || "None", "Blank/None means no manual uplift selected"],
-      ["Severity uplift rationale", value("i-uplift-reason"),
-        value("i-uplift") ? "Required rationale for the selected manual uplift" : "Blank — no manual uplift selected"],
-      ["Provisional internal route", route.recipient, "Confirm current approved routing; submit Part A as soon as the incident is identified"]
+
+    const ucScope = value("i-use-scope");
+    const affectedUcIds = ucScope === "UC-ID specific" ? value("i-uc-id") :
+      ucScope === "Shared system baseline" ? "Shared system baseline — list each affected UC-ID when known" : "Unknown";
+    const partAValues = {
+      "Reported by": value("i-reporter"),
+      "Role / team": value("i-role"),
+      "Contact email": value("i-email"),
+      "Date & time identified": G.formatDateTime(value("i-date")),
+      "AI system / model name": value("i-system"),
+      "AIR-ID": value("i-air"),
+      "Affected UC-ID(s)": affectedUcIds,
+      "Describe the incident: what occurred, when, how it came to light, and what the AI system was doing":
+        "What occurred: " + value("i-description") + "\nWhen: " + value("i-when") +
+        "\nHow it came to light: " + value("i-discovery") + "\nWhat the AI system was doing: " + value("i-ai-activity"),
+      "How was it identified?": value("i-discovery"),
+      "Is the incident ongoing?": value("i-ongoing"),
+      "Event classification": value("i-kind"),
+      "Describe the actual or potential impact and the approximate number of people affected":
+        "Who / what affected (approximate number): " + value("i-affected-details") +
+        "\nActual or potential impact: " + value("i-impact") +
+        "\nAffected data and impact: " + value("i-data-impact") +
+        "\nDecision impact: " + value("i-decision-impact"),
+      "Provisional severity": G.SEVERITY_ORDER.includes(assessment.level) ? assessment.level : "",
+      "Immediate action taken": value("i-action"),
+      "Suspected personal data breach?": value("i-breach"),
+      "Security or safeguarding concern?": value("i-security"),
+      "External notification may be required?": value("i-external"),
+      "Part A sent to AI Governance Lead (date)": value("i-sent")
+    };
+    G.LISTS.ops03Affected.forEach((label) => { partAValues[label] = ticked.has(label) ? "☒" : "☐"; });
+    const partANotes = [
+      "Section 3 tick boxes: ☒ ticked, ☐ not ticked",
+      "Use scope: " + (ucScope || "Unknown") + ". Unknown is not shared scope or approval; a shared system identifier alone does not establish scope",
+      value("i-air") ? "AIR-ID user-confirmed against current AIG-INV-04; never invent one" : "AIR-ID blank (not known); never invent one",
+      "Provisional severity: " + assessment.level + (indicators.length ? " from indicators: " + indicators.join("; ") : " (no indicator selected)") +
+        (assessment.aggregated ? "; aggregation raised it one level" : "") +
+        (assessment.uplifted ? "; manual uplift to " + value("i-uplift") + " — " + value("i-uplift-reason") : "") +
+        ". Draft triage only; the Service Owner assesses and the AI Governance Lead confirms",
+      "Provisional internal route: " + route.recipient + " — " + route.target,
+      value("i-dpo-referred") ? "DPO referral date and time (form: “Date and time referred”): " + G.formatDateTime(value("i-dpo-referred")) : "",
+      "Review free text for unnecessary personal data before transfer",
+      G.screeningNote(screening)
     ];
-    const outputs = [{
-      label: "AIG-OPS-03 Part A draft (.csv)",
-      filename: "AIG-OPS-03_PartA_draft_" + G.fileKey(value("i-air")) + ".csv",
-      contents: G.handoverCsv("AIG-OPS-03 Part A text handover", handoverEntries(partA, screening))
-    }];
+    const outputs = [csvDownload("ops03PartA", "AIG-OPS-03 Part A (.csv)", "AIG-OPS-03_PartA",
+      [{ values: partAValues, notes: partANotes }], value("i-air"))];
     const partBValues = partBKeys.map(value);
     if (partBValues.some(Boolean)) {
-      outputs.push({
-        label: "AIG-OPS-03 optional Part B pointer draft (.csv)",
-        filename: "AIG-OPS-03_PartB_pointer_draft_" + G.fileKey(value("i-air")) + ".csv",
-        contents: G.handoverCsv("AIG-OPS-03 optional Part B pointer — not a legal finding or incident record", handoverEntries([
-          ["Existing AIR-ID", value("i-air"), "Optional; owner reconciles with 05"],
-          ["Controller-awareness date and time", value("i-controller-awareness"), "Controller owner confirms the awareness record"],
-          ["Rights and freedoms risk assessment", value("i-rights-risk"), "Pointer/assessment summary only; no risk or legal finding by this tool"],
-          ["Rights-risk assessor", value("i-rights-assessor"), "Verify against competent owner record"],
-          ["Rights-risk assessment date", value("i-rights-date"), "Verify against competent owner record"],
-          ["DPO-informed ICO notifiability decision", value("i-ico-decision"), "Owner decision pointer only; not a decision made by this tool"],
-          ["Decision rationale", value("i-ico-rationale"), "Pointer only; verify against competent owner record"],
-          ["Decision owner", value("i-ico-owner"), "Verify authority and record"],
-          ["DPO advice reference", value("i-dpo-ref"), "Reference only; advice remains in its source record"],
-          ["Handover boundary", "Pointer only — transfer to controlled AIG-OPS-03 Part B", "No breach status, legal conclusion, notification deadline or notification is determined"]
-        ], screening))
-      });
+      outputs.push(csvDownload("ops03PartB8", "AIG-OPS-03 Part B §8 pointer (.csv)", "AIG-OPS-03_PartB_section8_pointer", [{
+        values: {
+          "Controller awareness date and time": G.formatDateTime(value("i-controller-awareness")),
+          "Risk to individuals' rights and freedoms": value("i-rights-risk") + "; assessor: " + value("i-rights-assessor") +
+            "; date: " + value("i-rights-date"),
+          "ICO notifiability decision and DPO advice": value("i-ico-decision") + "; rationale: " + value("i-ico-rationale") +
+            "; decision owner: " + value("i-ico-owner") + "; DPO advice reference: " + value("i-dpo-ref")
+        },
+        notes: [
+          "AIG-OPS-03 optional Part B pointer — not a legal finding or incident record. Only the three rows supplied by the controller/DPO route are filled; the AI Governance Lead completes the rest of section 8",
+          value("i-air") ? "AIR-ID (Part A section 1): " + value("i-air") : "",
+          "No breach status, legal conclusion, notification deadline or notification is determined by this tool",
+          G.screeningNote(screening)
+        ]
+      }], value("i-air")));
     }
     if (isChecked("i-capa")) {
-      outputs.push({
-        label: "AIG-AIMS-08 CAPA draft (.csv)",
-        filename: "AIG-AIMS-08_CAPA_draft_" + G.fileKey(value("i-air")) + ".csv",
-        contents: G.handoverCsv("AIG-AIMS-08 CAPA field/value draft", handoverEntries([
-          ["Related existing AIR-ID", value("i-air"), "Confirm in current AIG-INV-04; optional, do not invent"],
-          ["Incident use scope", value("i-use-scope"), "Unknown is not shared scope or approval"],
-          ["Exact UC-ID", value("i-uc-id"), "Blank unless the incident is explicitly UC-ID specific"],
-          ["Incident summary", value("i-description"), "AIMS owner determines whether a nonconformity exists"],
-          ["Immediate correction", value("i-action"), "Owner validates"],
-          ["Status", "Draft / owner review required", "Assign no NC ID and do not add a live row"]
-        ], screening))
-      });
+      outputs.push(csvDownload("aims08Capa", "AIG-AIMS-08 CAPA Log row (.csv)", "AIG-AIMS-08_CAPA_Log", [{
+        values: {
+          "Source": "Incident",
+          "Related AIR-ID (if system-level) / AIMS area": value("i-air"),
+          "Immediate correction": value("i-action")
+        },
+        notes: [
+          "NC ID, Date raised, Nonconformity, Severity (Major / Minor), Status and corrective action are left blank for the AIMS owner; assign no NC ID here",
+          "Source ref: cite the AIG-OPS-03 incident reference once the AI Governance Lead has logged it",
+          "Incident summary (context only; the AIMS owner determines whether a nonconformity exists): " + value("i-description"),
+          "Incident use scope: " + (ucScope || "Unknown") + (value("i-uc-id") ? " (UC-ID " + value("i-uc-id") + ")" : ""),
+          G.screeningNote(screening)
+        ]
+      }], value("i-air")));
     }
     const actions = [{
       label: "Prepare monitoring review",
       run: function () {
         byId("m-air").value = value("i-air");
         byId("m-system").value = value("i-system");
-        byId("m-use-scope").value = value("i-use-scope") === "UC-ID specific" ? "UC-ID specific" :
-          value("i-use-scope") === "Shared system baseline" ? "Explicit shared system measure" : "Unknown";
+        byId("m-use-scope").value = ["UC-ID specific", "Shared system baseline"].includes(value("i-use-scope")) ?
+          value("i-use-scope") : "Unknown";
         byId("m-uc-id").value = value("i-uc-id");
         byId("m-air-verified").checked = isChecked("i-air-verified");
         byId("m-metric").value = "Incident follow-up";
         byId("m-action").value = value("i-action");
+        byId("m-trigger").value = "Material incident or near miss";
         selectTab("tab-monitor");
       }
     }];
@@ -248,38 +269,12 @@
         }
       });
     }
-    resultCard("i-results", "Incident handover prepared", html, outputs, actions);
+    resultCard("i-results", "Incident drafts prepared", html, outputs, actions);
   }
 
   function selectedImpacts() {
     return ["c-impact-res", "c-impact-legal", "c-impact-rep", "c-impact-op", "c-impact-fin"]
       .map(value);
-  }
-
-  function formatRiskEntries(risk) {
-    return [
-      ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
-      ["System / model name", value("c-system"), "Reconcile identity with current AIG-INV-04"],
-      ["Resident Impact", value("c-impact-res"), "Triage input only; assessor confirms or amends"],
-      ["Legal & Regulatory Impact", value("c-impact-legal"), "Triage input only; assessor confirms or amends"],
-      ["Reputational Impact", value("c-impact-rep"), "Triage input only; assessor confirms or amends"],
-      ["Operational Impact", value("c-impact-op"), "Triage input only; assessor confirms or amends"],
-      ["Financial Impact", value("c-impact-fin"), "Triage input only; assessor confirms or amends"],
-      ["Impact score (I) — highest confirmed dimension", risk ? risk.impact : "", "Worksheet formula field; assessor confirms"],
-      ["Likelihood (L)", value("c-likelihood"), "Triage input only; assessor confirms or amends"],
-      ["Control Effectiveness (C)", value("c-control"), "AIG-ASS-02 scale: 1 very strong to 5 ineffective"],
-      ["Inherent risk score (L × I)", risk ? risk.inherent : "", "Worksheet confirms L × I; assessor confirms inputs and record"],
-      ["Residual risk score", risk ? risk.residual : "", "AIG-ASS-02 formula: inherent score × control factor (C ÷ 5); assessor confirms"],
-      ["Residual risk tier", "", "Not calculated: residual-tier band thresholds are not specified in this worksheet"]
-    ];
-  }
-
-  function addDownload(downloads, artefact, label, entries, airId) {
-    downloads.push({
-      label: label,
-      filename: artefact.replace(/[^A-Za-z0-9_-]/g, "_") + "_draft_" + G.fileKey(airId) + ".csv",
-      contents: G.handoverCsv(artefact, entries)
-    });
   }
 
   function changeSubmit(event) {
@@ -291,6 +286,7 @@
       mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
       mapPrevious: value("map-previous"), mapNext: value("map-new"), mapExpansion: value("map-expansion"),
       mapOwner: value("map-owner"), mapReassessment: value("map-reassessment"), mapEventId: value("map-event"),
+      mapState: value("map-state"),
       planGate: value("p-gate"), planTrigger: value("p-trigger"), planRequirement: value("p-requirement"),
       planBasis: value("p-basis"), planDate: value("p-date"), planRole: value("p-owner"),
       planState: value("p-state"), planWaiver: value("p-waiver"), planSourceVersion: value("p-source-version"),
@@ -299,16 +295,18 @@
       planId: value("p-planid"), planIdVerified: isChecked("p-planid-verified"),
       eventType: value("e-type"), escalated: value("e-escalated"), escalatedTo: value("e-escalated-to"),
       decision: value("e-decision"), eventId: value("e-eventid"), eventIdVerified: isChecked("e-eventid-verified"),
-      eventDate: value("e-date"), eventForum: value("e-forum"), eventLifecycle: value("e-lifecycle"),
+      eventDate: value("e-date"), eventTime: value("e-time"), eventForum: value("e-forum"), eventLifecycle: value("e-lifecycle"),
       eventMaker: value("e-maker"), eventRecord: value("e-record"), eventAuthority: value("e-authority"),
-      eventConfirmed: isChecked("e-confirmed"), eventState: value("e-record-state"),
+      eventConfirmed: isChecked("e-confirmed"), today: todayIso(),
       assuranceOpinion: value("e-opinion"), nextGate: value("e-next-gate"),
       eventNotes: value("e-notes"), technicalSnapshot: value("e-snapshot"),
-      recordedBy: value("e-recorded-by"), evidenceSource: value("e-evidence"),
+      recordedBy: value("e-recorded-by"), eventSource: value("e-source"), evidenceIds: value("e-evidence"),
       planEventId: value("e-planid"), planEventIdVerified: isChecked("e-planid-verified"),
       condition: value("e-condition"), conditionOwner: value("e-condition-owner"),
       conditionDue: value("e-condition-due"), conditionState: value("e-condition-state"),
       conditionResolved: value("e-condition-resolved"), conditionEvidence: value("e-condition-evidence"),
+      conditionVerified: value("e-condition-verified"), conditionMonitoring: value("e-condition-monitoring"),
+      conditionOps02Ref: value("e-condition-ops02"),
       conditionUseScope: value("e-condition-scope"), conditionUcId: value("e-condition-uc-id"),
       eventUseScope: value("e-use-scope"), eventUcId: value("e-uc-id"),
       useDecisionRef: value("e-use-decision-ref"), permittedPurpose: value("e-permitted-purpose"),
@@ -328,164 +326,207 @@
       setError("c-error", dutyError);
       return;
     }
+    const screenNote = G.screeningNote(screening);
 
     const decision = value("e-decision");
-    const conditionValues = [value("e-condition"), value("e-condition-owner"), value("e-condition-due"), value("e-condition-state")];
-    const conditionStarted = conditionValues.some(Boolean);
+    const conditionIds = ["e-condition", "e-condition-owner", "e-condition-due", "e-condition-state",
+      "e-condition-resolved", "e-condition-evidence", "e-condition-verified", "e-condition-monitoring", "e-condition-ops02"];
+    const conditionStarted = conditionIds.some((id) => value(id));
     const triggers = Array.from(byId("change-form").querySelectorAll("[data-trigger]:checked"))
       .map((input) => input.parentElement.textContent.trim());
     const risk = G.calculateRisk(selectedImpacts(), value("c-likelihood"), value("c-control"));
-    const planEntries = [
-      ["Plan ID", value("p-planid"), "Council-assigned only; blank if no existing Plan ID"],
-      ["AIR-ID", value("c-air"), "Recheck existing identifier against current AIG-INV-04"],
-      ["Decision scope (UC-ID specific / Shared system baseline)", value("p-use-scope") || "Unknown", "Prospective scope only; Unknown is not shared or approved"],
-      ["UC-ID scope(s) (blank only for explicit system baseline)", value("p-uc-id"), value("p-use-scope") === "UC-ID specific" ?
-        "Exact UC-ID; verify against controlled use-case index" : "Blank unless plan scope is UC-ID specific"],
-      ["Gate / forum", value("p-gate"), "Prospective plan only; not a Gate Event or approval"],
-      ["Trigger / stage", value("p-trigger"), "Enter the actual lifecycle context"],
-      ["Requirement", value("p-requirement"), "Use only after owner review"],
-      ["Basis / triage ref", value("p-basis"), "Reference existing evidence; do not invent a reference"],
-      ["Target date", value("p-date"), "Planned date only"],
-      ["Responsible role", value("p-owner"), "Confirm assignment"],
-      ["Plan state", value("p-state"), "AIG-DEC-04 controlled values: Planned, Complete, Superseded or Cancelled"],
-      ["N-A / waiver rationale and authority ref", value("p-waiver"), "Required where Requirement is Not applicable"],
-      ["Source version", value("p-source-version"), "Enter actual source workbook version"],
-      ["Planned criteria / evidence to bring", value("p-criteria"), "Planning note only; confirm against approved plan"]
-    ];
     const planStarted = ["p-gate", "p-trigger", "p-requirement", "p-basis", "p-date", "p-owner",
-      "p-state", "p-waiver", "p-source-version", "p-planid", "p-criteria"].some((id) => value(id));
-    const mapFields = ["map-change-date", "map-change-type", "map-previous", "map-new",
-      "map-expansion", "map-owner", "map-reassessment", "map-event"];
-    const mapChangeStarted = mapFields.some((id) => value(id));
-
-    const riskEntries = [
-      ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
-      ["Change / assessment scope", value("c-use-scope"), "Unknown is not shared or approved"],
-      ["Exact UC-ID", value("c-uc-id"), value("c-use-scope") === "UC-ID specific" ?
-        "Verify against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
-      ["System / service", value("c-system"), "Reconcile to existing system record"],
-      ["Reason for reassessment", value("c-description"), "Assessor records source evidence"],
-      ["Reassessment triggers", triggers.join("; ") || "None selected", "Owner confirms against current procedure"]
-    ].concat(formatRiskEntries(risk), screeningRows(screening));
-    const currentStateEntries = [
-      ["Existing AIR-ID", value("c-air"), "Permanent Council-issued identifier; retain as recorded in AIG-INV-04"],
-      ["Change / assessment scope", value("c-use-scope"), "Unknown is not shared or approved"],
-      ["Exact UC-ID", value("c-uc-id"), value("c-use-scope") === "UC-ID specific" ?
-        "Verify against the controlled use-case index" : "Blank unless scope is UC-ID specific"],
-      ["System / service name", value("c-system"), "System identity supplied for review; reconcile against current AIG-INV-04"],
-      ["Current assurance state", "Not read or changed by this tool", "Verify directly in the current AIG-INV-04 record"],
-      ["Change / reassessment context", value("c-description"), "Owner determines any current-state change"],
-      ["Reassessment trigger(s)", triggers.join("; ") || "None selected", "Context only; owner records any reassessment outcome"],
-      ["User-entered current tier for comparison", value("c-current-tier"), value("c-current-tier") ?
-        "User-provided comparison only; verify directly in current AIG-INV-04" : "Blank — no current tier supplied"],
-      ["Residual risk score", risk ? risk.residual : "", "AIG-ASS-02 formula mirrored; assessor confirms in the worksheet"],
-      ["Residual risk tier", "", "Not calculated: tier bands are not specified here; verify directly in AIG-ASS-02"],
-      ["Approval / operational status", "No value proposed", "Never inferred from a score or draft handover"],
-      ["Current AIG-INV-04 update", "None — no register update performed or proposed by this tool",
-        "Review handover only; the authorised register owner separately determines any controlled update"],
-      ["Register field mapping", "Not supplied", "Map against exact current AIG-INV-04 headers; this file is not a worksheet row"]
-    ].concat(screeningRows(screening));
+      "p-state", "p-waiver", "p-source-version", "p-planid", "p-criteria", "p-use-scope", "p-uc-id"].some((id) => value(id));
+    const mapChangeStarted = ["map-change-date", "map-change-type", "map-previous", "map-new",
+      "map-expansion", "map-owner", "map-reassessment", "map-event", "map-state"].some((id) => value(id));
+    const air = value("c-air");
     const downloads = [];
-    addDownload(downloads, "AIG-ASS-02 risk assessment", "AIG-ASS-02 assessment draft (.csv)", riskEntries, value("c-air"));
+
+    // AIG-ASS-02 Triage Import (canonical field / value rows).
+    const triageRows = G.triageImportRows({
+      airId: air, system: value("c-system"), impacts: selectedImpacts(),
+      likelihood: value("c-likelihood"), control: value("c-control"),
+      useScope: value("c-use-scope"), ucId: value("c-uc-id")
+    }, risk);
+    triageRows[0].notes.push("Reason for reassessment: " + (value("c-description") || "not entered"),
+      "Reassessment triggers selected in this tool: " + (triggers.join("; ") || "none") +
+        ". Confirm the Step 4 §4.4.6 trigger answers (rows 34–40) in AIG-ASS-02; they are not inferred here", screenNote);
+    downloads.push(csvDownload("ass02TriageImport", "AIG-ASS-02 Triage Import (.csv)", "AIG-ASS-02_Triage_Import", triageRows, air));
+
     if (triggers.length) {
-      addDownload(downloads, "AIG-INV-04 current-state review handover (no update)",
-        "AIG-INV-04 review handover — no update (.csv)", currentStateEntries, value("c-air"));
+      downloads.push(csvDownload("inv04AssessmentSummary", "AIG-INV-04 Assessment summary review row — no update (.csv)",
+        "AIG-INV-04_Assessment_summary_review", [{
+          values: {
+            "AIR-ID": air,
+            "Inherent risk score (L × I)": risk ? risk.inherent : "",
+            "Control effectiveness (1–5)": risk ? risk.control : "",
+            "Residual risk score": risk ? risk.residual : ""
+          },
+          notes: [
+            "Review row only: no register update is performed or proposed by this tool; the authorised register owner decides any controlled update",
+            "Risk values are system-level summaries: use them only if this assessment is the highest applicable UC-ID or baseline for the AIR-ID. Assessment scope: " +
+              (value("c-use-scope") || "Unknown") + (value("c-uc-id") ? " (UC-ID " + value("c-uc-id") + ")" : ""),
+            "Risk tier (AIG-ASS-02; highest applicable UC-ID or baseline) is left blank: it is the governing tier from AIG-ASS-02 (C43), not calculated here" +
+              (risk ? ". Indicative inherent tier " + risk.inherentTier + ", residual tier " + risk.residualTier + (risk.impactFloor ? "; impact floor → at least Medium" : "") : ""),
+            value("c-current-tier") ? "User-entered current tier for comparison only: " + value("c-current-tier") + "; verify in current AIG-INV-04" : "",
+            "Change / reassessment context: " + (value("c-description") || "not entered") + ". Triggers: " + triggers.join("; "),
+            "Current assurance state and approval status are not read, inferred or changed by this tool",
+            screenNote
+          ]
+        }], air));
     }
     if (planStarted) {
-      addDownload(downloads, "AIG-DEC-04 prospective Gate Plan", "AIG-DEC-04 Gate Plan draft (.csv)",
-        planEntries.concat(screeningRows(screening)), value("c-air"));
+      downloads.push(csvDownload("dec04GatePlan", "AIG-DEC-04 Gate plan row (.csv)", "AIG-DEC-04_Gate_plan", [{
+        values: {
+          "Plan ID": value("p-planid"),
+          "AIR-ID": air,
+          "Gate / forum": value("p-gate"),
+          "Trigger / stage": value("p-trigger"),
+          "Requirement": value("p-requirement"),
+          "Basis / triage ref": value("p-basis"),
+          "Target date": value("p-date"),
+          "Responsible role": value("p-owner"),
+          "Plan state": value("p-state"),
+          "N-A / waiver rationale and authority ref": value("p-waiver"),
+          "UC-ID scope(s) (blank only for explicit system baseline)": value("p-use-scope") === "UC-ID specific" ? value("p-uc-id") : "",
+          "Decision scope (UC-ID specific / Shared system baseline)": G.scopeValue(value("p-use-scope"))
+        },
+        notes: [
+          value("p-planid") ? "Existing Plan ID checked by the user against current AIG-DEC-04" : "Plan ID blank: the Council assigns it; never invent one",
+          G.scopeNote(value("p-use-scope"), "Plan"),
+          "Source version: " + value("p-source-version"),
+          value("p-criteria") ? "Planned criteria / evidence to bring: " + value("p-criteria") : "",
+          "A Gate plan row is prospective only: not a Gate Event, decision or approval",
+          screenNote
+        ]
+      }], air));
     }
     if (mapChangeStarted) {
-      const mapChangeEntries = G.mapChangeHandoverEntries({
-        airId: value("c-air"),
-        useScope: value("c-use-scope"),
-        ucId: value("c-uc-id"),
-        changeDate: value("map-change-date"),
-        changeType: value("map-change-type"),
-        previous: value("map-previous"),
-        next: value("map-new"),
-        expansion: value("map-expansion"),
-        owner: value("map-owner"),
-        reassessmentRef: value("map-reassessment"),
-        eventId: value("map-event")
-      }).concat(screeningRows(screening));
-      addDownload(downloads, "Capabilities and System Map change log", "Capabilities and System Map change handoff (.csv)",
-        mapChangeEntries, value("c-air"));
+      const mapRow = G.mapChangeRow({
+        airId: air, useScope: value("c-use-scope"), ucId: value("c-uc-id"),
+        changeDate: value("map-change-date"), changeType: value("map-change-type"),
+        previous: value("map-previous"), next: value("map-new"), expansion: value("map-expansion"),
+        owner: value("map-owner"), reassessmentRef: value("map-reassessment"), eventId: value("map-event"),
+        state: value("map-state")
+      });
+      mapRow.notes.push(screenNote);
+      downloads.push(csvDownload("inv05MapChanges", "AIG-INV-05 Map changes row (.csv)", "AIG-INV-05_Map_changes", [mapRow], air));
     }
     if (value("e-type")) {
-      const eventEntries = [
-        ["Checklist boundary", "Transfer checklist only — not an authoritative event record",
-          "Formal decision remains in AIG-DEC-03 / authorised native minutes; owner maps/transfers values to current AIG-DEC-04"],
-        ["Decision/state controlled-value mapping", "PENDING OWNER VERIFICATION",
-          "Confirm selected decision and transcribed event state against the current AIG-DEC-04 controlled vocabulary before transfer"],
-        ["Event ID", value("e-eventid"), "Existing ID checked by user; blank means none was supplied, not a verified ID"],
-        ["AIR-ID", value("c-air"), "Permanent ID; recheck against current AIG-INV-04"],
-        ["Decision scope (UC-ID specific / Shared system baseline)", value("e-use-scope") || "Unknown", "Unknown is not shared or approved; system baseline approval does not approve a UC-ID"],
-        ["UC-ID(s) covered by this dated event", value("e-uc-id"), value("e-use-scope") === "UC-ID specific" ? "Use-specific decision scope; verify against source" : "Blank unless scope is UC-ID specific"],
-        ["Gate / forum", value("e-forum"), "Verify authority and forum remit"],
-        ["Lifecycle stage", value("e-lifecycle"), "Enter actual lifecycle stage"],
-        ["Date", value("e-date"), "Actual decision date; confirm"],
-        ["Event type", value("e-type"), value("e-type") === "Priority override" ?
-          "AIG-DEC-04 Event type; the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited below" :
-          "AIG-DEC-04 Event type; transcribed from the formal record"],
-        ["Outcome", decision, decision ? "AIG-DEC-04 Outcome value; transcribed from the formal record" : "Left blank: a Priority override changes governance attention, not progress through a gate"],
-        ["Assurance opinion ref", value("e-opinion"), "Existing reference only; leave blank if none"],
-        ["Decision-maker / role", value("e-maker"), "Verify in formal record"],
-        ["Next gate / action", [value("e-escalated") === "Yes" ? "Escalated to " + value("e-escalated-to") : "", value("e-next-gate")].filter(Boolean).join("; "),
-          value("e-escalated") === "Yes" ? "Escalation recorded here, not as an Outcome" : "Leave blank if not recorded"],
-        ["Event notes", value("e-notes"), "Do not copy sensitive case details"],
-        ["AIG-DEC-03 / minutes ref", value("e-record"), "Required, user-confirmed checked reference; authoritative decision remains in AIG-DEC-03 or native minutes"],
-        ["Use-specific decision reference", value("e-use-decision-ref"), "Required only for UC-ID-specific decision; verify actual per-UC source record"],
-        ["Permitted purpose", value("e-permitted-purpose"), "Exact use-specific boundary; verify against decision source"],
-        ["Permitted users / roles", value("e-permitted-users"), "Exact use-specific boundary; verify against decision source"],
-        ["Permitted data", value("e-permitted-data"), "Exact use-specific boundary; verify against decision source"],
-        ["Permitted actions / decisions", value("e-permitted-actions"), "Exact use-specific boundary; verify against decision source"],
-        ["Exclusions / prohibited scope", value("e-exclusions"), "Exact use-specific boundary; verify against decision source"],
-        ["Use-specific operating conditions", value("e-permitted-conditions"), "Exact conditions; no use claim beyond these verified limits"],
-        ["Operational-use claim boundary", "No approval inferred by this handover", "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim"],
-        ["Technical snapshot / as-at ref", value("e-snapshot"), "Existing technical snapshot reference only"],
-        ["Event record state", value("e-record-state"), "Required transcribed state; exact current AIG-DEC-04 controlled value mapping remains pending owner confirmation"],
-        ["Recorded by", value("e-recorded-by"), "Leave blank if not recorded"],
-        ["Evidence source / URI", value("e-evidence"), "Required existing reference; the confirmation barrier rejects blank evidence"],
-        ["Plan ID (if any)", value("e-planid"), "Optional existing ID; do not invent"],
-        ["Priority before override", value("e-priority-before"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"],
-        ["Priority after override", value("e-priority-after"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"],
-        ["Assurance priority update ref", value("e-priority-ref"), "For the AIG-DEC-03 record, not an AIG-DEC-04 column; Priority override events only"]
-      ];
-      addDownload(downloads, "AIG-DEC-04 Gate Event transfer checklist", "AIG-DEC-04 Gate Event transfer checklist (.csv)", eventEntries, value("c-air"));
-      addDownload(downloads, "AIG-DEC-03 decision record pointer", "Decision record pointer draft (.csv)", [
-        ["Existing AIR-ID", value("c-air"), "Recheck current AIG-INV-04"],
-        ["Decision date", value("e-date"), "Pointer only; date remains in the authoritative record"],
-        ["Decision scope", value("e-use-scope") || "Unknown", "Unknown is not shared or approved"],
-        ["Exact UC-ID", value("e-uc-id"), "Blank unless explicitly UC-ID specific"],
-        ["Per-UC decision reference", value("e-use-decision-ref"), "Verify actual per-UC decision before any use-specific claim"],
-        ["Permitted purpose / users / data / actions / exclusions / conditions",
-          [value("e-permitted-purpose"), value("e-permitted-users"), value("e-permitted-data"), value("e-permitted-actions"),
-            value("e-exclusions"), value("e-permitted-conditions")].join(" | "),
-          "Source-verified limits only; this pointer is not permission or approval"],
-        ["Gate / forum", value("e-forum"), "Pointer only; forum remains in the authoritative record"],
-        ["Decision-maker", value("e-maker"), "Pointer only; maker remains in the authoritative record"],
-        ["Decision record / minutes ref", value("e-record"), "AIG-DEC-03 / native minutes remain the authoritative record"],
-        ["Decision", decision, "Pointer only; verify against the authoritative record"],
-        ["Authority / delegation reference", value("e-authority"), "AIG-AGT-04 reference; verify exact scope"],
-        ["Handover boundary", "Pointer only — not the decision record", "Do not replace, copy or treat this handover as the authoritative record"]
-      ], value("c-air"));
+      const escalation = value("e-escalated") === "Yes" ? "Escalated to " + value("e-escalated-to") : "";
+      const eventScope = value("e-use-scope");
+      downloads.push(csvDownload("dec04GateEvents", "AIG-DEC-04 Gate events row (.csv)", "AIG-DEC-04_Gate_events", [{
+        values: {
+          "Event ID": value("e-eventid"),
+          "AIR-ID": air,
+          "Plan ID (if any)": value("e-planid"),
+          "Gate / forum": value("e-forum"),
+          "Event type": value("e-type"),
+          "Date": value("e-date"),
+          "Outcome": decision,
+          "Decision-maker / role": value("e-maker"),
+          "AIG-DEC-03 / minutes ref": value("e-record"),
+          "Assurance opinion ref": value("e-opinion"),
+          "Technical snapshot / as-at ref": value("e-snapshot"),
+          "Next gate / action": [escalation, value("e-next-gate")].filter(Boolean).join("; "),
+          "Recorded by": value("e-recorded-by"),
+          "UC-ID(s) covered by this dated event": eventScope === "UC-ID specific" ? value("e-uc-id") : "",
+          "Decision scope (UC-ID specific / Shared system baseline)": G.scopeValue(eventScope),
+          "Time (hh:mm)": value("e-time"),
+          "Source (minutes / decision record / system)": value("e-source"),
+          "Evidence ID(s) (AIG-INV-04 Evidence index)": value("e-evidence"),
+          "Event-time lifecycle stage": value("e-lifecycle")
+        },
+        notes: [
+          "Transfer checklist only — not an authoritative event record. The formal decision remains in AIG-DEC-03 / authorised native minutes; this row points to it",
+          value("e-eventid") ? "Event ID checked by the user against current AIG-DEC-04" : "Event ID blank: the AIG-DEC-04 owner assigns it (one row per UC-ID; suffix multi-use decisions, e.g. EVT-0012-a); never invent one",
+          G.scopeNote(eventScope, "Decision"),
+          escalation ? "Escalation recorded in Next gate / action, not as an Outcome" : "",
+          value("e-type") === "Priority override" ? "Priority override: the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited in AIG-DEC-03 / minutes ref" : "",
+          value("e-notes") ? "Event notes (no AIG-DEC-04 column): " + value("e-notes") : "",
+          "Decision authority / delegation reference (AIG-DEC-03 field, not an AIG-DEC-04 column): " + value("e-authority"),
+          "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim",
+          screenNote
+        ]
+      }], air));
+      const record = value("e-record");
+      const isGdr = /^GDR-/i.test(record);
+      const outcome = G.dec03Outcome(decision, conditionStarted);
+      const blank = (v) => v || "____";
+      const scheduleScope = G.scopeValue(eventScope) || "____";
+      downloads.push(csvDownload("dec03Reference", "AIG-DEC-03 decision record pointer (.csv)", "AIG-DEC-03_Decision_Reference", [{
+        values: {
+          "Decision record ID": isGdr ? record : "",
+          "System identity": value("c-system"),
+          "UC-ID(s) expressly covered": eventScope === "UC-ID specific" ? value("e-uc-id") : "",
+          "AIR-ID": air,
+          "Decision date": value("e-date"),
+          "Decision-making body": value("e-maker"),
+          "Decision authority / delegation reference": value("e-authority"),
+          "Meeting / written-decision reference": isGdr ? "" : record,
+          "UC-ID decision schedule (repeat for each use)": value("e-type") === "Decision" ?
+            "UC-ID: " + blank(eventScope === "UC-ID specific" ? value("e-uc-id") : "") +
+            " | decision scope: " + scheduleScope +
+            " | decision date: " + blank(value("e-date")) +
+            " | outcome: " + blank(outcome.value) +
+            " | exact scope/exclusions: " + (eventScope === "UC-ID specific" ?
+              "purpose: " + value("e-permitted-purpose") + "; users: " + value("e-permitted-users") + "; data: " +
+              value("e-permitted-data") + "; actions: " + value("e-permitted-actions") + "; exclusions: " + value("e-exclusions") : "____") +
+            " | assessment/risk: ____" +
+            " | conditions: " + blank([value("e-permitted-conditions"), value("e-condition")].filter(Boolean).join("; ")) +
+            " | delegated authority: " + blank(value("e-authority")) +
+            " | effective/expiry/review: ____" +
+            " | Gate Event ID: " + blank(value("e-eventid")) : "",
+          "Priority override (only if this record authorises one)": value("e-type") === "Priority override" ?
+            "AIR-ID / UC-ID: " + air + (value("e-uc-id") ? " / " + value("e-uc-id") : "") +
+            " | AGPI priority before: " + blank(value("e-priority-before")) +
+            " | priority after: " + blank(value("e-priority-after")) +
+            " | reason: ____" +
+            " | delegated authority: " + blank(value("e-authority")) +
+            " | Assurance priority update reference: " + blank(value("e-priority-ref")) +
+            " | Gate Event ID (Event type “Priority override”): " + blank(value("e-eventid")) : ""
+        },
+        notes: [
+          "Pointer only — not the decision record. AIG-DEC-03 (or approved minutes) remains authoritative, one outcome per UC-ID; do not replace or copy it from this file",
+          isGdr ? "" : "Decision record ID left blank: the governance secretariat issues GDR IDs; never invent one",
+          "Decision is left blank: the form records no global/system outcome",
+          "Risk classification is recorded per UC-ID in the schedule (assessment/risk); not inferred here",
+          outcome.note,
+          value("e-type") !== "Decision" && value("e-type") !== "Priority override" ? "Event type " + value("e-type") + " is not a decision: no UC-ID schedule outcome is proposed" : "",
+          "Use-specific decision reference: " + (value("e-use-decision-ref") || "none entered"),
+          "Uses ____ where the form expects a value this tool does not hold",
+          screenNote
+        ]
+      }], air));
     }
     if (conditionStarted) {
-      addDownload(downloads, "AIG-DEC-04 event-linked Gate Condition", "AIG-DEC-04 Gate Condition draft (.csv)", [
-        ["Condition ID", "", "Council assigns; do not invent"],
-        ["Event ID", value("e-eventid"), "Existing verified Event ID; condition cannot be handed over without it"],
-        ["AIR-ID", value("c-air"), "Derived from the verified parent system record"],
-        ["Condition scope (UC-ID specific / shared system baseline)", value("e-condition-scope") || "Unknown", "Unknown is not shared scope or approved use"],
-        ["UC-ID scope (blank only if shared system condition)", value("e-condition-uc-id"), "Required only for UC-ID-specific condition"],
-        ["Parent per-UC decision reference", value("e-use-decision-ref"), "Verify against the existing parent Event and source decision"],
-        ["Required action / condition", value("e-condition"), "Copy only if present in the authorised decision"],
-        ["Action owner", value("e-condition-owner"), "Confirm assignment"],
-        ["Due date", value("e-condition-due"), "Confirm against the authorised decision"],
-        ["State", value("e-condition-state"), "AIG-DEC-04 controlled values: Open, Met, Overdue, Waived or Superseded; the tool does not close a condition"],
-        ["Closed / waived on", value("e-condition-resolved"), "Leave blank unless resolution/waiver is recorded"],
-        ["Evidence / waiver authority ref", value("e-condition-evidence"), "Reference actual evidence or authority only"]
-      ], value("c-air"));
+      const condScope = value("e-condition-scope");
+      downloads.push(csvDownload("dec04Conditions", "AIG-DEC-04 Conditions row (.csv)", "AIG-DEC-04_Conditions", [{
+        values: {
+          "Condition ID": "",
+          "Event ID": value("e-eventid"),
+          "AIR-ID": air,
+          "Required action / condition": value("e-condition"),
+          "Action owner": value("e-condition-owner"),
+          "Due date": value("e-condition-due"),
+          "State": value("e-condition-state"),
+          "Closed / waived on": value("e-condition-resolved"),
+          "Evidence / waiver authority ref": value("e-condition-evidence"),
+          "UC-ID scope (blank only if shared system condition)": condScope === "UC-ID specific" ? value("e-condition-uc-id") : "",
+          "Condition scope (UC-ID specific / shared system baseline)": G.scopeValue(condScope),
+          "Verified by / date": value("e-condition-verified"),
+          "Monitoring condition? (Yes / No)": value("e-condition-monitoring"),
+          "AIG-OPS-02 evidence ref (monitoring conditions)": value("e-condition-ops02")
+        },
+        notes: [
+          "Condition ID blank: the Council assigns it; never invent one",
+          "Existing verified Event ID: the parent must be a dated Decision event with Outcome Progress with condition or Re-authorise",
+          G.scopeNote(condScope, "Condition"),
+          value("e-use-decision-ref") ? "Parent per-UC decision reference: " + value("e-use-decision-ref") : "",
+          "Overdue is derived by the workbook Row check (Open and due date passed), never typed; this tool does not close a condition",
+          screenNote
+        ]
+      }], air));
     }
 
     const mandatory = triggers.length > 0;
@@ -493,18 +534,20 @@
       '<div class="' + (mandatory ? "caution" : "positive") + '"><strong>' +
         (mandatory ? "Documented reassessment indicated" : "No selected trigger") + "</strong>" +
         (mandatory ? " · " + safe(triggers.join("; ")) : " · Owner still reviews this change; no trigger selected is not assurance of safety.") + "</div>",
-      risk ? "<p>AIG-ASS-02 confirms inherent risk as L × highest confirmed impact = " +
-        safe(risk.inherent) + " and residual risk as inherent × control factor (C ÷ 5) = " + safe(risk.residual) +
-        ". Its control-effectiveness scale is 1 (very strong) to 5 (ineffective). A residual tier is <strong>not calculated</strong> because the worksheet does not specify its tier bands. " +
+      risk ? "<p>AIG-ASS-02 v1.8 draft arithmetic: inherent risk = L × highest confirmed impact = " + safe(risk.inherent) +
+        " (<strong>" + safe(risk.inherentTier) + "</strong>); residual risk = inherent × (C ÷ 5) = " + safe(risk.residual) +
+        " (<strong>" + safe(risk.residualTier) + "</strong>). Bands: Low 1–5, Medium 6–10, High 11–15, Critical 16–25. " +
+        (risk.impactFloor ? "A confirmed Impact 5 sets the governing tier to at least Medium (impact floor, Proposed — for Council confirmation). " : "") +
+        "The governing tier is set in AIG-ASS-02: inherent tier unless controls are evidenced (and independently verified for High or Critical), raised by the §4.4.6 trigger floors, the impact floor and the agentic floor. " +
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
-        "Assessor confirms directly in AIG-ASS-02; no tier, approval, permission, AGPI priority or legal applicability is inferred.</p>" :
-        "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness. The residual score then follows AIG-ASS-02 arithmetic; residual tier bands remain unspecified and no tier will be inferred.</p>",
-      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. These downloads are draft field/value handovers, not exact worksheet rows.</p>',
+        "No approval, permission, AGPI priority or legal applicability is inferred.</p>" :
+        "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness.</p>",
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
-        '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. This tool does not set or change agent authority.</div>' : "",
-      '<p class="small">AGPI is prioritisation only. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
+        '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. Gate 2 and Gate 6 are mandatory for every action-capable use; Gate 6 grants the permitted autonomy level. This tool does not set or change agent authority.</div>' : "",
+      '<p class="small">AGPI priority sets urgency only; the route follows the governing tier. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
     ].join("");
-    resultCard("c-results", "Change handovers prepared", body, downloads);
+    resultCard("c-results", "Change drafts prepared", body, downloads);
   }
 
   function monitoringSubmit(event) {
@@ -524,6 +567,7 @@
       breach: value("m-breach"), material: value("m-material"),
       escalation: value("m-escalation"), status: value("m-status"),
       reassessment: value("m-reassessment"),
+      riskTier: value("m-risk-tier"), trigger: value("m-trigger"),
       controlFailure: value("m-control-failure"), controlFailureDetail: value("m-control-failure-detail"),
       accessExpansion: value("m-access-expansion"), accessExpansionDetail: value("m-access-expansion-detail"),
       trend: value("m-trend"), sampleMethod: value("m-sample-method"),
@@ -551,78 +595,80 @@
       trend: value("m-trend"), breach: value("m-breach"), material: value("m-material"),
       reassessment: value("m-reassessment"), escalation: value("m-escalation")
     });
-    const unknownNote = "AIG-OPS-02 value; the log shows UNKNOWN TO RESOLVE and the row cannot close until it is answered";
-    const resultEntries = [
-      ["AIR-ID", value("m-air"), "User-confirmed against current AIG-INV-04; owner rechecks"],
-      ["AI System / Service", value("m-system"), "Required system identity; reconcile to current AIG-INV-04"],
-      ["Measure scope (UC-specific / Shared system)",
-        ({ "UC-ID specific": "UC-specific", "Explicit shared system measure": "Shared system" })[value("m-use-scope")] || "",
-        value("m-use-scope") === "Unknown" ?
-          "Scope is Unknown, which is not an AIG-OPS-02 value: resolve to UC-specific or Shared system before transfer" :
-          "AIG-OPS-02 controlled value; a shared system measure is not evidence of UC approval"],
-      ["UC-ID (blank only for an explicitly shared system measure)", value("m-uc-id"), value("m-use-scope") === "UC-ID specific" ?
-        "Exact use identifier for this measure; verify against controlled use-case index" : "Blank unless measure scope is UC-ID specific"],
-      ["Monitoring Period", value("m-period"), "Confirm"],
-      ["Review Date", value("m-date"), "Enter actual review date"],
-      ["Monitoring Owner", value("m-owner"), "Confirm responsibility"],
-      ["Metric Category", value("m-category"), "Confirm controlled category if applicable"],
-      ["Metric / Indicator", value("m-metric"), "Confirm monitoring plan"],
-      ["Approved Threshold / Tolerance", value("m-threshold"), "Verify approved threshold source"],
-      ["Actual Result", value("m-actual"), "Interpret only with the separate observed-result state"],
-      ["Observed-result state", value("m-result-state"), "Explicitly distinguishes observed zero, non-zero, blank/unknown and not applicable"],
-      ["Observed-result state note", value("m-result-reason"),
-        value("m-result-reason") ? "Reason supplied for blank/unknown or not-applicable result" : "Blank — result is observed"],
-      ["Trend", value("m-trend"), value("m-trend") === "Not yet known" ? unknownNote : "Owner interprets; Not yet known is distinct from Stable"],
-      ["Threshold Breach?", value("m-breach"), value("m-breach") === "Unknown" ? unknownNote : "Owner confirms"],
-      ["Severity", value("m-severity"), "Triage only; owner confirms"],
-      ["Action / Decision", value("m-action"), "Confirm against controlled record"],
-      ["Action Owner", value("m-action-owner"), "Confirm responsibility"],
-      ["Due Date", value("m-due-date"), "Actual recorded due date; blank if none"],
-      ["Incident / CAPA Ref", value("m-incident-ref"), "Existing reference only; do not invent"],
-      ["Material Change?", value("m-material"), value("m-material") === "Unknown" ? unknownNote : "Owner confirms"],
-      ["Risk Reassessment Required?", value("m-reassessment"), value("m-reassessment") === "Unknown" ? unknownNote : "Owner disposition; tool separately raises review signals"],
-      ["Residual Risk After Review", value("m-residual-risk"), "Owner-entered result only; no calculation by this tool"],
-      ["Governance Escalation?", value("m-escalation"), value("m-escalation") === "Unknown" ? unknownNote : "Owner confirms"],
-      ["Gate Log Ref", value("m-gate-ref"), "Existing AIG-DEC-04 reference only"],
-      ["Complaints / Challenges", value("m-challenge"), "Use AIG-OPS-04 where applicable; no outcome determined"],
-      ["Human Override Rate / Trend", value("m-human-override"), "Observed value / trend; distinguish blank from zero"],
-      ["Evidence Location", value("m-evidence"), "Native evidence remains at source; AIG-INV-04 Evidence Index holds a versioned pointer"],
-      ["Next Review Date", value("m-next-date"), "Enter only a planned/recorded date"],
-      ["Review Status", value("m-status"), "Draft status only; no condition / approval is closed"],
-      ["Sample Source / Population of Record", value("m-source"), "Required by AIG-OPS-02 for every result"],
-      ["Selection Basis", value("m-selection"), "Required by AIG-OPS-02 for every result"],
-      ["Population Size", value("m-population"), "Separate denominator; zero only for an empty population"],
-      ["Sample Size Reviewed", value("m-sample"), "Separate numerator; blank is not zero"],
-      ["Sampling Window", value("m-window"), "Required by AIG-OPS-02 for every result"],
-      ["Sample selection reproduction detail", value("m-sample-method"), "Method/seed/draw date for random selection; explicit not-applicable otherwise"],
-      ["Highest-impact decisions reviewed in full?", value("m-high-impact"), "AIG-OPS-02 sampling method requires full review of highest-impact decision types"],
-      ["Highest-impact decision review note", value("m-high-impact-detail"), "Record reviewed types or explain the gap / unknown"],
-      ["Evidence version", value("m-evidence-version"), "Supplemental provenance; verify against native evidence"],
-      ["Evidence checked by", value("m-checker"), "Supplemental provenance; reviewer identity"],
-      ["Evidence data cut / as-at", value("m-data-cut"), "Supplemental provenance; distinct from review date"],
-      ["Observed metric denominator", value("m-observed-denominator"), "Separate metric denominator; not the sampling population"],
-      ["Observed-denominator state", value("m-denominator-state"), "Explicitly distinguishes observed zero, positive, blank/unknown and not applicable"],
-      ["Denominator context / source", value("m-denominator"), "Explain source; blank/unknown or not applicable requires a reason"],
-      ["Control-failure review signal", value("m-control-failure") + (value("m-control-failure-detail") ? " — " + value("m-control-failure-detail") : ""), "Control failure triggers documented consideration of reassessment"],
-      ["Access-expansion review signal", value("m-access-expansion") + (value("m-access-expansion-detail") ? " — " + value("m-access-expansion-detail") : ""), "Expanded access triggers documented consideration of reassessment"],
-      ["Reassessment handoff signal", reassessment ? "Yes — owner assessment needed" :
-        unknowns.length ? "Unknown — resolve " + unknowns.join(", ") + " before closure" : "No affirmative trigger selected",
-        "Signals are not a decision; owner records rationale and disposition"]
-    ].concat(screeningRows(screening));
+    const scope = value("m-use-scope");
+    const row = {
+      "AIR-ID": value("m-air"),
+      "AI System / Service": value("m-system"),
+      "Monitoring Period": value("m-period"),
+      "Review Date": value("m-date"),
+      "Monitoring Owner": value("m-owner"),
+      "Metric Category": value("m-category"),
+      "Metric / Indicator": value("m-metric"),
+      "Approved Threshold / Tolerance": value("m-threshold"),
+      "Actual Result": value("m-actual"),
+      "Trend": value("m-trend"),
+      "Threshold Breach?": value("m-breach"),
+      "Severity": value("m-severity"),
+      "Action / Decision": value("m-action"),
+      "Action Owner": value("m-action-owner"),
+      "Due Date": value("m-due-date"),
+      "Incident / CAPA Ref": value("m-incident-ref"),
+      "Material Change?": value("m-material"),
+      "Risk Reassessment Required?": value("m-reassessment"),
+      "Residual Risk After Review": value("m-residual-risk"),
+      "Governance Escalation?": value("m-escalation"),
+      "AIG-DEC-04 Event ID (Gate Log ref)": value("m-gate-ref"),
+      "Complaints / Challenges": value("m-challenge"),
+      "Human Override Rate / Trend": value("m-human-override"),
+      "Evidence Location": value("m-evidence"),
+      "Next Review Date": value("m-next-date"),
+      "Review Status": value("m-status"),
+      "Sample Source / Population of Record": value("m-source"),
+      "Selection Basis": value("m-selection"),
+      "Population Size": value("m-population"),
+      "Sample Size Reviewed": value("m-sample"),
+      "Sampling Window": value("m-window"),
+      "UC-ID (blank only for an explicitly shared system measure)": scope === "UC-ID specific" ? value("m-uc-id") : "",
+      "Measure scope (UC-ID specific / Shared system baseline)": G.scopeValue(scope),
+      "Risk tier (UC-ID, AIG-ASS-02)": value("m-risk-tier"),
+      "Reassessment trigger (Appendix E.4)": value("m-trigger"),
+      "Reassessment / consideration ref (AIG-ASS-02)": value("m-reassessment-ref"),
+      "AIG-DEC-04 Condition ID (if monitoring a condition)": value("m-condition-id")
+    };
+    const check = G.ops02ClosureCheck(row);
+    const cadence = G.ops02Cadence(value("m-risk-tier"));
+    const minimum = G.ops02MinimumSample(value("m-risk-tier"), value("m-population"));
+    const notes = [
+      "Closure and evidence check (AH) the workbook will show for this row: " + check,
+      cadence ? "Required minimum cadence (AJ): " + cadence : "",
+      minimum !== "" ? "Minimum sample (AK): " + minimum : "",
+      G.scopeNote(scope, "Measure"),
+      unknowns.length ? "Unknown answers kept as Unknown, never No: " + unknowns.join(", ") + " — the row shows UNKNOWN TO RESOLVE until each is answered" : "",
+      "Observed-result state: " + value("m-result-state") + (value("m-result-reason") ? " — " + value("m-result-reason") : ""),
+      "Observed metric denominator: " + (value("m-observed-denominator") || "(none)") + " (" + value("m-denominator-state") + "); context: " + value("m-denominator"),
+      "Evidence version " + value("m-evidence-version") + "; checked by " + value("m-checker") + "; data cut / as-at " + G.formatDateTime(value("m-data-cut")),
+      "Sample selection reproduction detail: " + value("m-sample-method"),
+      "Highest-impact decisions reviewed in full: " + value("m-high-impact") + " — " + value("m-high-impact-detail"),
+      "Control-failure review: " + value("m-control-failure") + (value("m-control-failure-detail") ? " — " + value("m-control-failure-detail") : ""),
+      "Access-expansion review: " + value("m-access-expansion") + (value("m-access-expansion-detail") ? " — " + value("m-access-expansion-detail") : ""),
+      "Reassessment handoff signal: " + (reassessment ? "Yes — owner assessment needed" :
+        unknowns.length ? "Unknown — resolve " + unknowns.join(", ") + " before closure" : "No affirmative trigger selected"),
+      "AIR-ID user-confirmed against current AIG-INV-04; Evidence Location should cite a versioned pointer (AIG-INV-04 Evidence ID where imported)",
+      G.screeningNote(screening)
+    ];
     const body = [
       '<div class="' + (reassessment ? "caution" : "positive") + '"><strong>' +
         (reassessment ? "Reassessment handover indicated" : "Monitoring draft prepared") +
         "</strong> · " + (reassessment ?
           "A breach, material change, deteriorating trend, control failure, access expansion or reassessment signal was selected. Open Assess a change; the change owner decides and documents reassessment." :
           "No automatic trigger was selected. The monitoring owner still reviews the result and controlled record.") + "</div>",
-      '<p class="small">AIG-OPS-02 output follows Monitoring Log fields and requires a sampling frame for every result. Population and sample remain separate. It separately identifies evidence version, checker, data cut, denominator/blank-vs-zero context and review signals. This is a draft handover, not a live row. Evidence remains in its native source; verify the current record and workbook version.</p>',
+      "<p><strong>Workbook closure check (column AH):</strong> " + safe(check) +
+        (cadence ? " · minimum cadence: " + safe(cadence) : "") + (minimum !== "" ? " · minimum sample: " + safe(minimum) : "") + "</p>",
+      '<p class="small">The AIG-OPS-02 v1.5 draft download is one Monitoring Log row in the exact column order A–AN. Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
       value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider AIG-OPS-04 for contestability and redress. This tool does not decide a challenge.</div>' : ""
     ].join("");
-    const downloads = [{
-      label: "AIG-OPS-02 monitoring handover (.csv)",
-      filename: "AIG-OPS-02_monitoring_draft_" + G.fileKey(value("m-air")) + ".csv",
-      contents: G.handoverCsv("AIG-OPS-02 monitoring field/value handover", resultEntries)
-    }];
+    const downloads = [csvDownload("ops02Monitoring", "AIG-OPS-02 Monitoring Log row (.csv)", "AIG-OPS-02_Monitoring_Log",
+      [{ values: row, notes: notes }], value("m-air"))];
     const actions = [];
     if (reassessment) {
       actions.push({
@@ -631,9 +677,7 @@
           byId("c-air").value = value("m-air");
           byId("c-air-verified").checked = true;
           byId("c-system").value = value("m-system");
-          byId("c-use-scope").value = value("m-use-scope") === "UC-ID specific" ?
-            "UC-ID specific" : value("m-use-scope") === "Explicit shared system measure" ?
-              "Shared system baseline" : "Unknown";
+          byId("c-use-scope").value = scope === "UC-ID specific" || scope === "Shared system baseline" ? scope : "Unknown";
           byId("c-uc-id").value = value("m-uc-id");
           byId("c-description").value = "Monitoring signal: " + value("m-metric") + "; actual " +
             value("m-actual") + " vs approved threshold " + value("m-threshold") + "; " +
@@ -647,7 +691,7 @@
         }
       });
     }
-    resultCard("m-results", "Monitoring handover prepared", body, downloads, actions);
+    resultCard("m-results", "Monitoring draft prepared", body, downloads, actions);
   }
 
   function selectTab(tabId) {
