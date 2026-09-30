@@ -122,7 +122,10 @@
       controllerAwareness: value("i-controller-awareness"), rightsRisk: value("i-rights-risk"),
       rightsAssessor: value("i-rights-assessor"), rightsAssessmentDate: value("i-rights-date"),
       icoDecision: value("i-ico-decision"), decisionRationale: value("i-ico-rationale"),
-      decisionOwner: value("i-ico-owner"), dpoAdviceRef: value("i-dpo-ref")
+      decisionOwner: value("i-ico-owner"), dpoAdviceRef: value("i-dpo-ref"),
+      pauseApplied: value("i-pause"), pauseBy: value("i-pause-by"), pauseAt: value("i-pause-at"),
+      pauseIncidentRef: value("i-incident-ref"), pauseFollowUpDue: value("i-pause-followup"),
+      pauseEventId: value("i-pause-event"), pauseEventIdVerified: isChecked("i-pause-event-verified")
     });
     if (incidentValidation) {
       setError("i-error", incidentValidation);
@@ -142,6 +145,9 @@
       target: "Severity is unclassified: the Service Owner assesses provisional severity (where uncertain, apply the higher level until more is known) and sends Part A to the AI Governance Lead the same working day."
     };
     const dataBreach = ["Yes", "Uncertain"].includes(value("i-breach"));
+    const mandatory = selectedIndicators.filter((input) => input.hasAttribute("data-mandatory"))
+      .map((input) => input.parentElement.textContent.trim());
+    const paused = value("i-pause") === "Yes";
     const indicators = selectedIndicators.map((input) => input.parentElement.textContent.trim());
     const ticked = new Set(Array.from(byId("incident-form").querySelectorAll("[data-affected]:checked"))
       .map((input) => input.parentElement.textContent.trim()));
@@ -152,11 +158,15 @@
       indicators.length ? "<p><strong>Selected indicators:</strong> " + safe(indicators.join("; ")) + "</p>" :
         "<p>No severity indicator selected; the Provisional severity column is left blank for the Service Owner.</p>",
       assessment.aggregated ? "<p>Aggregation raised the provisional floor by one level.</p>" : "",
+      mandatory.length ? '<div class="caution"><strong>Mandatory trigger (Playbook §4.7.17):</strong> ' + safe(mandatory.join("; ")) +
+        ". Escalate to the AI Governance Lead immediately (the same working day), whatever the provisional severity, consider a precautionary pause, and classify the incident at least High.</div>" : "",
+      paused ? '<div class="caution"><strong>Precautionary pause applied</strong> by ' + safe(value("i-pause-by")) +
+        ". Log it in AIG-DEC-04 as Event type “Precautionary pause (containment)” with Outcome “Paused — pending decision” (a Gate events row is prepared below). Continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17).</div>" : "",
       assessment.uplifted ? "<p>Manual uplift: " + safe(value("i-uplift")) + " — " +
         safe(value("i-uplift-reason") || "reason not entered") + ".</p>" : "",
       dataBreach ? '<div class="caution"><strong>Suspected personal data breach:</strong> refer to the DPO / Information Governance route now, before AI triage. Where notifiable, the ICO must be told without undue delay and, where feasible, not later than 72 hours after the Council becomes aware (UK GDPR Art 33). Only the responsible owner determines any notification duty; this tool does not decide breach status or notify anyone.</div>' : "",
       value("i-security") === "Yes" ? '<div class="caution"><strong>Security or safeguarding concern:</strong> refer now to the Information and Cyber Security lead or under the Council’s safeguarding procedures; those routes lead on their own duties (Playbook §6.8.6.5).</div>' : "",
-      '<p class="small"><strong>AIG-OPS-03 v1.5 draft:</strong> the Part A download has one column per Part A field (sections 1–4), labelled exactly as the form. The timescales above are quoted from the form’s severity table; this tool calculates no deadline and creates no incident record or external notification.</p>',
+      '<p class="small"><strong>AIG-OPS-03 v1.6 draft:</strong> the Part A download has one column per Part A field (sections 1–4), labelled exactly as the form. The timescales above are quoted from the form’s severity table; this tool calculates no deadline and creates no incident record or external notification.</p>',
       isChecked("i-capa") ? '<div class="caution"><strong>AIG-AIMS-08:</strong> the optional CAPA Log row carries only the source, AIR-ID and immediate correction. The AIMS owner determines the NC ID, nonconformity, severity, status and corrective action.</div>' : "",
       '<p class="small">The decision, assurance state and severity remain for the authorised Council owner. A severe incident can prompt reassessment; it does not itself approve suspension, restart or a risk-tier change.</p>'
     ].join("");
@@ -185,6 +195,10 @@
         "\nDecision impact: " + value("i-decision-impact"),
       "Provisional severity": G.SEVERITY_ORDER.includes(assessment.level) ? assessment.level : "",
       "Immediate action taken": value("i-action"),
+      "Precautionary pause applied? Gate Log event ID": value("i-pause") === "Yes" ?
+        "Yes. Applied by " + value("i-pause-by") + " on " + G.formatDateTime(value("i-pause-at")) +
+        ". AIG-DEC-04 Gate events ID: " + (value("i-pause-event") || "to be logged (Precautionary pause (containment), Paused — pending decision)") :
+        value("i-pause"),
       "Suspected personal data breach?": value("i-breach"),
       "Security or safeguarding concern?": value("i-security"),
       "External notification may be required?": value("i-external"),
@@ -204,8 +218,40 @@
       "Review free text for unnecessary personal data before transfer",
       G.screeningNote(screening)
     ];
+    if (mandatory.length) partANotes.push("§4.7.17 mandatory trigger selected (" + mandatory.join("; ") + "): escalate to the AI Governance Lead immediately, consider a precautionary pause, classify at least High");
     const outputs = [csvDownload("ops03PartA", "AIG-OPS-03 Part A (.csv)", "AIG-OPS-03_PartA",
       [{ values: partAValues, notes: partANotes }], value("i-air"))];
+    // v3.9.2 (W-06): the precautionary pause as an AIG-DEC-04 v1.1 Gate events row.
+    if (paused) {
+      const pauseAt = value("i-pause-at");
+      outputs.push(csvDownload("dec04GateEvents", "AIG-DEC-04 Gate events row: precautionary pause (.csv)", "AIG-DEC-04_Gate_events_precautionary_pause", [{
+        values: {
+          "Event ID": value("i-pause-event"),
+          "AIR-ID": value("i-air"),
+          "Gate / forum": "Gate 7 Operate, monitor, review & change",
+          "Event type": G.PAUSE_EVENT,
+          "Date": pauseAt ? pauseAt.slice(0, 10) : "",
+          "Outcome": G.PAUSE_OUTCOME,
+          "Decision-maker / role": value("i-pause-by"),
+          "Next gate / action": "Follow-up decision by the officer or forum with confirmed delegation (continued suspension, resumption or withdrawal)",
+          "UC-ID(s) covered by this dated event": ucScope === "UC-ID specific" ? value("i-uc-id") : "",
+          "Decision scope (UC-ID specific / Shared system baseline)": G.scopeValue(ucScope),
+          "Time (hh:mm)": pauseAt ? pauseAt.slice(11, 16) : "",
+          "Source (minutes / decision record / system)": "AIG-OPS-03 incident report, Part A",
+          "Event-time lifecycle stage": value("i-pause-lifecycle"),
+          "Incident ref (AIG-OPS-03), precautionary pause": value("i-incident-ref"),
+          "Follow-up decision due date (precautionary pause)": value("i-pause-followup")
+        },
+        notes: [
+          "Precautionary pause (containment), not a decision: no AIG-DEC-03 reference is needed; the UC-ID keeps its recorded AIG-DEC-03 outcome until the follow-up decision (Playbook §4.7.17)",
+          value("i-pause-event") ? "Event ID checked by the user against current AIG-DEC-04" : "Event ID blank: the AIG-DEC-04 owner assigns it; never invent one",
+          value("i-incident-ref") ? "" : "Incident ref (column V) blank: add the AIG-OPS-03 incident reference once logged; the Gate Log row check requires it",
+          value("i-pause-followup") ? "" : "Follow-up decision due date (column W) blank: the Gate Log row check requires it",
+          G.scopeNote(ucScope, "Pause"),
+          G.screeningNote(screening)
+        ]
+      }], value("i-air")));
+    }
     const partBValues = partBKeys.map(value);
     if (partBValues.some(Boolean)) {
       outputs.push(csvDownload("ops03PartB8", "AIG-OPS-03 Part B §8 pointer (.csv)", "AIG-OPS-03_PartB_section8_pointer", [{
@@ -255,7 +301,7 @@
         selectTab("tab-monitor");
       }
     }];
-    if (assessment.level === "High" || assessment.level === "Critical" || dataBreach || isChecked("i-aggregate")) {
+    if (assessment.level === "High" || assessment.level === "Critical" || dataBreach || isChecked("i-aggregate") || mandatory.length || paused) {
       actions.push({
         label: "Assess this change / incident",
         run: function () {
@@ -277,10 +323,22 @@
       .map(value);
   }
 
+  function changeTriggerKeys() {
+    return Array.from(byId("change-form").querySelectorAll("[data-trigger]:checked")).map((input) => input.dataset.trigger);
+  }
+
+  function triggerAnswers() {
+    const answers = {};
+    G.STEP4_TRIGGERS.forEach((t) => { answers[t[0]] = value("c-t-" + t[0]); });
+    return answers;
+  }
+
   function changeSubmit(event) {
     event.preventDefault();
     clearOutput("c-results", "c-error");
     const changeError = G.validateChange({
+      changeTriggers: changeTriggerKeys(), triggerAnswers: triggerAnswers(),
+      pauseIncidentRef: value("e-incident-ref"), pauseFollowUpDue: value("e-followup-due"),
       airId: value("c-air"), airIdVerified: isChecked("c-air-verified"), system: value("c-system"),
       useScope: value("c-use-scope"), ucId: value("c-uc-id"),
       mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
@@ -346,11 +404,12 @@
     const triageRows = G.triageImportRows({
       airId: air, system: value("c-system"), impacts: selectedImpacts(),
       likelihood: value("c-likelihood"), control: value("c-control"),
-      useScope: value("c-use-scope"), ucId: value("c-uc-id")
+      useScope: value("c-use-scope"), ucId: value("c-uc-id"),
+      changeTriggers: changeTriggerKeys(), triggerAnswers: triggerAnswers()
     }, risk);
     triageRows[0].notes.push("Reason for reassessment: " + (value("c-description") || "not entered"),
       "Reassessment triggers selected in this tool: " + (triggers.join("; ") || "none") +
-        ". Confirm the Step 4 §4.4.6 trigger answers (rows 34–40) in AIG-ASS-02; they are not inferred here", screenNote);
+        ". They carry into the Step 4 §4.4.6 trigger rows 34–40 (Material change; agentic Unsure where authority changed); the assessor confirms each answer in AIG-ASS-02", screenNote);
     downloads.push(csvDownload("ass02TriageImport", "AIG-ASS-02 Triage Import (.csv)", "AIG-ASS-02_Triage_Import", triageRows, air));
 
     if (triggers.length) {
@@ -435,7 +494,9 @@
           "Time (hh:mm)": value("e-time"),
           "Source (minutes / decision record / system)": value("e-source"),
           "Evidence ID(s) (AIG-INV-04 Evidence index)": value("e-evidence"),
-          "Event-time lifecycle stage": value("e-lifecycle")
+          "Event-time lifecycle stage": value("e-lifecycle"),
+          "Incident ref (AIG-OPS-03), precautionary pause": value("e-incident-ref"),
+          "Follow-up decision due date (precautionary pause)": value("e-followup-due")
         },
         notes: [
           "Transfer checklist only — not an authoritative event record. The formal decision remains in AIG-DEC-03 / authorised native minutes; this row points to it",
@@ -443,12 +504,16 @@
           G.scopeNote(eventScope, "Decision"),
           escalation ? "Escalation recorded in Next gate / action, not as an Outcome" : "",
           value("e-type") === "Priority override" ? "Priority override: the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited in AIG-DEC-03 / minutes ref" : "",
+          value("e-type") === G.PAUSE_EVENT ? "Precautionary pause (containment): not a decision, so no AIG-DEC-03 reference is needed; columns V (incident ref) and W (follow-up decision due date) are required by the Gate Log row check; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17)" : "",
           value("e-notes") ? "Event notes (no AIG-DEC-04 column): " + value("e-notes") : "",
           "Decision authority / delegation reference (AIG-DEC-03 field, not an AIG-DEC-04 column): " + value("e-authority"),
           "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim",
           screenNote
         ]
       }], air));
+    }
+    if (value("e-type") && value("e-type") !== G.PAUSE_EVENT) {
+      const eventScope = value("e-use-scope");
       const record = value("e-record");
       const isGdr = /^GDR-/i.test(record);
       const outcome = G.dec03Outcome(decision, conditionStarted);
@@ -534,7 +599,7 @@
       '<div class="' + (mandatory ? "caution" : "positive") + '"><strong>' +
         (mandatory ? "Documented reassessment indicated" : "No selected trigger") + "</strong>" +
         (mandatory ? " · " + safe(triggers.join("; ")) : " · Owner still reviews this change; no trigger selected is not assurance of safety.") + "</div>",
-      risk ? "<p>AIG-ASS-02 v1.9 draft arithmetic: inherent risk = L × highest confirmed impact = " + safe(risk.inherent) +
+      risk ? "<p>AIG-ASS-02 v1.10 draft arithmetic: inherent risk = L × highest confirmed impact = " + safe(risk.inherent) +
         " (<strong>" + safe(risk.inherentTier) + "</strong>); residual risk = inherent × (C ÷ 5) = " + safe(risk.residual) +
         " (<strong>" + safe(risk.residualTier) + "</strong>). Bands: Low 1–5, Medium 6–10, High 11–15, Critical 16–25. " +
         (risk.impactFloor ? "A confirmed Impact 5 sets the governing tier to at least Medium (impact floor, Proposed — for Council confirmation). " : "") +
@@ -542,7 +607,7 @@
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
         "No approval, permission, AGPI priority or legal applicability is inferred.</p>" :
         "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness.</p>",
-      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.1 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.2 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
         '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. Gate 2 and Gate 6 are mandatory for every action-capable use; Gate 6 grants the permitted autonomy level. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI priority sets urgency only; the route follows the governing tier. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
@@ -568,6 +633,7 @@
       escalation: value("m-escalation"), status: value("m-status"),
       reassessment: value("m-reassessment"),
       riskTier: value("m-risk-tier"), trigger: value("m-trigger"),
+      reviewType: value("m-review-type"), agenticRaise: value("m-agentic-raise"),
       controlFailure: value("m-control-failure"), controlFailureDetail: value("m-control-failure-detail"),
       accessExpansion: value("m-access-expansion"), accessExpansionDetail: value("m-access-expansion-detail"),
       trend: value("m-trend"), sampleMethod: value("m-sample-method"),
@@ -633,10 +699,12 @@
       "Risk tier (UC-ID, AIG-ASS-02)": value("m-risk-tier"),
       "Reassessment trigger (Appendix E.4)": value("m-trigger"),
       "Reassessment / consideration ref (AIG-ASS-02)": value("m-reassessment-ref"),
-      "AIG-DEC-04 Condition ID (if monitoring a condition)": value("m-condition-id")
+      "AIG-DEC-04 Condition ID (if monitoring a condition)": value("m-condition-id"),
+      "Review type (§6.4.4: operational / performance / formal)": value("m-review-type"),
+      "Agentic cadence raise applied? (action-capable uses)": value("m-agentic-raise")
     };
     const check = G.ops02ClosureCheck(row);
-    const cadence = G.ops02Cadence(value("m-risk-tier"));
+    const cadence = G.ops02Cadence(value("m-risk-tier"), value("m-review-type"));
     const minimum = G.ops02MinimumSample(value("m-risk-tier"), value("m-population"));
     const notes = [
       "Closure and evidence check (AH) the workbook will show for this row: " + check,
@@ -664,7 +732,7 @@
           "No automatic trigger was selected. The monitoring owner still reviews the result and controlled record.") + "</div>",
       "<p><strong>Workbook closure check (column AH):</strong> " + safe(check) +
         (cadence ? " · minimum cadence: " + safe(cadence) : "") + (minimum !== "" ? " · minimum sample: " + safe(minimum) : "") + "</p>",
-      '<p class="small">The AIG-OPS-02 v1.5 draft download is one Monitoring Log row in the exact column order A–AN. Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
+      '<p class="small">The AIG-OPS-02 v1.6 draft download is one Monitoring Log row in the exact column order A–AP (AO review type and AP agentic cadence raise are new in v1.6). Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
       value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider AIG-OPS-04 for contestability and redress. This tool does not decide a challenge.</div>' : ""
     ].join("");
     const downloads = [csvDownload("ops02Monitoring", "AIG-OPS-02 Monitoring Log row (.csv)", "AIG-OPS-02_Monitoring_Log",
