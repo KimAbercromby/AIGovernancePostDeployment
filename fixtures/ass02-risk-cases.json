@@ -1,0 +1,175 @@
+{
+ "source": "AIG-ASS-02_AI_Risk_Assessment_Worksheet_Proposed.xlsx (suite v3.9, v1.8 draft): Triage Import B22–B28 set, recalculated in LibreOffice; Risk Assessment C28, C37, C38, C40, C41, E28 read back (30 September 2026).",
+ "cases": [
+  {
+   "impacts": [
+    1,
+    2,
+    3,
+    1,
+    2
+   ],
+   "likelihood": 2,
+   "control": 2,
+   "impact": 3,
+   "inherent": 6,
+   "inherentTier": "Medium",
+   "residual": 2.4,
+   "residualTier": "Low",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    5,
+    1,
+    2,
+    4,
+    1
+   ],
+   "likelihood": 4,
+   "control": 5,
+   "impact": 5,
+   "inherent": 20,
+   "inherentTier": "Critical",
+   "residual": 20,
+   "residualTier": "Critical",
+   "impactFloorFlag": "Impact floor (Severe impact) → Medium"
+  },
+  {
+   "impacts": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "likelihood": 1,
+   "control": 1,
+   "impact": 1,
+   "inherent": 1,
+   "inherentTier": "Low",
+   "residual": 0.2,
+   "residualTier": "Low",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    5,
+    1,
+    1,
+    1,
+    1
+   ],
+   "likelihood": 1,
+   "control": 1,
+   "impact": 5,
+   "inherent": 5,
+   "inherentTier": "Low",
+   "residual": 1,
+   "residualTier": "Low",
+   "impactFloorFlag": "Impact floor (Severe impact) → Medium"
+  },
+  {
+   "impacts": [
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "likelihood": 4,
+   "control": 3,
+   "impact": 3,
+   "inherent": 12,
+   "inherentTier": "High",
+   "residual": 7.2,
+   "residualTier": "Medium",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    4,
+    2,
+    1,
+    1,
+    1
+   ],
+   "likelihood": 3,
+   "control": 4,
+   "impact": 4,
+   "inherent": 12,
+   "inherentTier": "High",
+   "residual": 9.6,
+   "residualTier": "Medium",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "likelihood": 3,
+   "control": 1,
+   "impact": 2,
+   "inherent": 6,
+   "inherentTier": "Medium",
+   "residual": 1.2,
+   "residualTier": "Low",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    5,
+    5,
+    5,
+    5,
+    5
+   ],
+   "likelihood": 5,
+   "control": 5,
+   "impact": 5,
+   "inherent": 25,
+   "inherentTier": "Critical",
+   "residual": 25,
+   "residualTier": "Critical",
+   "impactFloorFlag": "Impact floor (Severe impact) → Medium"
+  },
+  {
+   "impacts": [
+    3,
+    1,
+    1,
+    1,
+    1
+   ],
+   "likelihood": 5,
+   "control": 4,
+   "impact": 3,
+   "inherent": 15,
+   "inherentTier": "High",
+   "residual": 12,
+   "residualTier": "High",
+   "impactFloorFlag": ""
+  },
+  {
+   "impacts": [
+    4,
+    1,
+    1,
+    1,
+    1
+   ],
+   "likelihood": 4,
+   "control": 5,
+   "impact": 4,
+   "inherent": 16,
+   "inherentTier": "Critical",
+   "residual": 16,
+   "residualTier": "Critical",
+   "impactFloorFlag": ""
+  }
+ ]
+}
