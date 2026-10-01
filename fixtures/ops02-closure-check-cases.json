@@ -1,5 +1,5 @@
 {
- "source": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx (suite v3.9.2, 1.6 draft), sheet Monitoring Log rows 5+; values written with openpyxl and recalculated in LibreOffice (recalc.py) on 30 September 2026. Columns AH (Closure and evidence check), AJ (Required minimum cadence), AK (Minimum sample).",
+ "source": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx (suite v3.9.3, 1.6 draft), sheet Monitoring Log rows 5+; values written with openpyxl and recalculated in LibreOffice (recalc.py) on 1 October 2026. Columns AH (Closure and evidence check), AJ (Required minimum cadence), AK (Minimum sample).",
  "cases": [
   {
    "row": {
