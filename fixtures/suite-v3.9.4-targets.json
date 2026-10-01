@@ -1,6 +1,6 @@
 {
- "suiteRelease": "v3.9.3",
- "generatedFrom": "AI_Governance_Sources_v3.9.3 (1 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
+ "suiteRelease": "v3.9.4",
+ "generatedFrom": "AI_Governance_Sources_v3.9.4 (1 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
  "sheets": {
   "ops02Monitoring": {
    "file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx",

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate the fixtures from a suite release folder of source workbooks and forms.
 
-Usage: python3 scripts/generate-fixtures.py <AI_Governance_Sources_v3.9.3 folder> [recalc.py]
+Usage: python3 scripts/generate-fixtures.py <AI_Governance_Sources_v3.9.4 folder> [recalc.py]
 
-Writes fixtures/suite-v3.9.3-targets.json (exact headers, formula columns, controlled
+Writes fixtures/suite-v3.9.4-targets.json (exact headers, formula columns, controlled
 lists, form fields, severity indicators, AIR-ID validation rules and versions) and, when
 the LibreOffice recalc script is given, recalculates fixtures/ass02-risk-cases.json and
 fixtures/ops02-closure-check-cases.json from the workbook formulas (inputs kept, outputs
@@ -24,7 +24,7 @@ from openpyxl.utils import get_column_letter as L
 
 SRC = Path(sys.argv[1])
 RECALC = sys.argv[2] if len(sys.argv) > 2 else None
-RELEASE = "v3.9.3"
+RELEASE = "v3.9.4"
 RELEASE_DATE = "1 October 2026"
 ROOT = Path(__file__).resolve().parent.parent
 FIX = ROOT / "fixtures"
