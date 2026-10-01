@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate the fixtures from a suite release folder of source workbooks and forms.
 
-Usage: python3 scripts/generate-fixtures.py <AI_Governance_Sources_v3.9.2 folder> [recalc.py]
+Usage: python3 scripts/generate-fixtures.py <AI_Governance_Sources_v3.9.3 folder> [recalc.py]
 
-Writes fixtures/suite-v3.9.2-targets.json (exact headers, formula columns, controlled
+Writes fixtures/suite-v3.9.3-targets.json (exact headers, formula columns, controlled
 lists, form fields, severity indicators, AIR-ID validation rules and versions) and, when
 the LibreOffice recalc script is given, recalculates fixtures/ass02-risk-cases.json and
 fixtures/ops02-closure-check-cases.json from the workbook formulas (inputs kept, outputs
@@ -24,12 +24,13 @@ from openpyxl.utils import get_column_letter as L
 
 SRC = Path(sys.argv[1])
 RECALC = sys.argv[2] if len(sys.argv) > 2 else None
-RELEASE = "v3.9.2"
+RELEASE = "v3.9.3"
+RELEASE_DATE = "1 October 2026"
 ROOT = Path(__file__).resolve().parent.parent
 FIX = ROOT / "fixtures"
 
 out = {"suiteRelease": RELEASE,
-       "generatedFrom": f"AI_Governance_Sources_{RELEASE} (30 September 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
+       "generatedFrom": f"AI_Governance_Sources_{RELEASE} ({RELEASE_DATE}) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
        "sheets": {}, "forms": {}}
 
 
@@ -216,7 +217,7 @@ for i, c in enumerate(old["cases"]):
                       residual=num(round(res, 10)) if isinstance(res, float) else res,
                       residualTier=ra["C41"].value, impactFloorFlag=ra["E28"].value or ""))
 (FIX / "ass02-risk-cases.json").write_text(json.dumps({
-    "source": f"{f} (suite {RELEASE}, {out['versions']['AIG-ASS-02']}): Triage Import B22–B28 set, recalculated in LibreOffice; Risk Assessment C28, C37, C38, C40, C41, E28 read back (30 September 2026).",
+    "source": f"{f} (suite {RELEASE}, {out['versions']['AIG-ASS-02']}): Triage Import B22–B28 set, recalculated in LibreOffice; Risk Assessment C28, C37, C38, C40, C41, E28 read back ({RELEASE_DATE}).",
     "cases": cases}, ensure_ascii=False, indent=1))
 print("ASS-02 cases", len(cases), "unchanged:", cases == old["cases"])
 
@@ -250,6 +251,6 @@ blank = lambda v: "" if v is None else v
 new = [{"row": row, "AH": blank(ws.cell(5 + i, CI("AH")).value), "AJ": blank(ws.cell(5 + i, CI("AJ")).value),
         "AK": blank(num(ws.cell(5 + i, CI("AK")).value))} for i, row in enumerate(rows_in)]
 (FIX / "ops02-closure-check-cases.json").write_text(json.dumps({
-    "source": f"{f} (suite {RELEASE}, {out['versions']['AIG-OPS-02']}), sheet Monitoring Log rows 5+; values written with openpyxl and recalculated in LibreOffice (recalc.py) on 30 September 2026. Columns AH (Closure and evidence check), AJ (Required minimum cadence), AK (Minimum sample).",
+    "source": f"{f} (suite {RELEASE}, {out['versions']['AIG-OPS-02']}), sheet Monitoring Log rows 5+; values written with openpyxl and recalculated in LibreOffice (recalc.py) on {RELEASE_DATE}. Columns AH (Closure and evidence check), AJ (Required minimum cadence), AK (Minimum sample).",
     "cases": new}, ensure_ascii=False, indent=1))
 print("OPS-02 cases", len(new), "changed outputs:", sum(1 for a, b in zip(new, old["cases"]) if {k: a[k] for k in ("AH", "AJ", "AK")} != {k: b.get(k) for k in ("AH", "AJ", "AK")}))
