@@ -1,6 +1,6 @@
 // One test per v3.9.2 pilot-readiness finding fixed in this router (scenario test of suite
-// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.3-targets.json,
-// generated from the v3.9.3 workbooks and forms by scripts/generate-fixtures.py.
+// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.4-targets.json,
+// generated from the v3.9.4 workbooks and forms by scripts/generate-fixtures.py.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -8,7 +8,7 @@ const { test } = require('node:test');
 const G = require('./src/logic.js');
 
 const read = (file) => fs.readFileSync(path.join(__dirname, file), 'utf8');
-const targets = JSON.parse(read('fixtures/suite-v3.9.3-targets.json'));
+const targets = JSON.parse(read('fixtures/suite-v3.9.4-targets.json'));
 const html = read('index.html');
 const app = read('src/app.js');
 

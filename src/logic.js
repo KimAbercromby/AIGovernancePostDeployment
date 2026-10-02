@@ -3,12 +3,12 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.3",
+    release: "v3.9.4",
     date: "1 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.13 draft"
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.14 draft"
   };
 
-  // Generated from the v3.9.3 source workbooks and forms (see fixtures/suite-v3.9.3-targets.json,
+  // Generated from the v3.9.4 source workbooks and forms (see fixtures/suite-v3.9.4-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
   const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.7 draft", "AIG-DEC-03": "1.7 draft"};
@@ -375,7 +375,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.3 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.4 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -492,7 +492,7 @@
   }
 
   // AIG-INV-04 AI Register validation on AIR-ID: LEFT(A,4)="AIR-" and LEN(TRIM(A))=8.
-  // AIG-AGT-04 v0.4 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
+  // AIG-AGT-04 v0.5 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
   // an AIR-ID accepted here is accepted by both workbooks (v3.9.2, T-10).
   function isAirId(value) {
     const id = text(value);
