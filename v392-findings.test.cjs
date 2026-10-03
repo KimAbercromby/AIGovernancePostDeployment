@@ -1,6 +1,6 @@
 // One test per v3.9.2 pilot-readiness finding fixed in this router (scenario test of suite
-// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.7-targets.json,
-// generated from the v3.9.7 workbooks and forms by scripts/generate-fixtures.py.
+// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.8-targets.json,
+// generated from the v3.9.8 workbooks and forms by scripts/generate-fixtures.py.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -8,7 +8,7 @@ const { test } = require('node:test');
 const G = require('./src/logic.js');
 
 const read = (file) => fs.readFileSync(path.join(__dirname, file), 'utf8');
-const targets = JSON.parse(read('fixtures/suite-v3.9.7-targets.json'));
+const targets = JSON.parse(read('fixtures/suite-v3.9.8-targets.json'));
 const html = read('index.html');
 const app = read('src/app.js');
 
@@ -97,7 +97,7 @@ test('W-04: the §4.7.17 mandatory triggers are offered and set at least High', 
 test('W-06: precautionary pause is a Gate Log containment event with V and W, not a decision', () => {
   const ev = targets.sheets.dec04GateEvents;
   assert.deepEqual(G.TARGETS.dec04GateEvents.headers, ev.headers);
-  assert.deepEqual(ev.headers.slice(-2), ['Incident ref (AIG-OPS-03), precautionary pause', 'Follow-up decision due date (precautionary pause)']);
+  assert.deepEqual(ev.headers.slice(-3), ['Incident ref (AIG-OPS-03), precautionary pause', 'Follow-up decision due date (precautionary pause)', 'Screening considered by the decision-maker (Yes / No)']);
   assert.ok(ev.lists['Event type'].includes(G.PAUSE_EVENT));
   assert.ok(ev.lists.Outcome.includes(G.PAUSE_OUTCOME));
   const row = targets.sheets.dec04Lists.outcomeMapping.find((r) => r[0] === G.PAUSE_OUTCOME);
@@ -193,7 +193,7 @@ test('v3.9.7: Gate Event checks match the AIG-DEC-04 v1.2 row checks', () => {
   assert.match(G.validateChange({ ...pause, pauseFollowUpDue: '2026-09-01' }), /cannot be before the pause/);
   assert.match(G.validateChange({ ...pause, eventUcId: 'UC-T011 UC-T012' }), /One UC-ID per Gate Event row/);
   assert.match(G.validateChange({ ...pause, eventUcId: 'UC-T011/UC-T012' }), /One UC-ID per Gate Event row/);
-  const N = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'suite-v3.9.7-targets.json'), 'utf8')).sheets.dec04GateEvents.formulas.N;
+  const N = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'suite-v3.9.8-targets.json'), 'utf8')).sheets.dec04GateEvents.formulas.N;
   ['Assurance opinion ref missing', 'Follow-up decision due date is before the pause', 'Plan gate differs from event gate']
     .forEach((msg) => assert.ok(N.includes(msg), msg));
 });

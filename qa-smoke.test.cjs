@@ -5,8 +5,8 @@ const { test } = require('node:test');
 const governance = require('./src/logic.js');
 
 const read = (name) => fs.readFileSync(path.join(__dirname, name), 'utf8');
-// Generated from the v3.9.7 source workbooks/forms (file, sheet and header row are recorded in the fixture).
-const targets = JSON.parse(read('fixtures/suite-v3.9.7-targets.json'));
+// Generated from the v3.9.8 source workbooks/forms (file, sheet and header row are recorded in the fixture).
+const targets = JSON.parse(read('fixtures/suite-v3.9.8-targets.json'));
 const decode = (value) => value.replace(/&amp;/g, '&');
 // Options of a <select>, ignoring the blank "Select" prompt.
 const optionsOf = (html, id) => [...html.match(new RegExp(`id="${id}">(.*?)</select>`))[1]
@@ -44,7 +44,7 @@ test('AIG-ASS-02 v1.8 arithmetic and tier bands match the workbook', () => {
   });
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).residual, 20);
   assert.equal(governance.calculateRisk([5, 1, 2, 4, 1], 4, 5).impactFloor, 'Medium');
-  // Values recalculated from the v3.9.7 workbook (fixtures/ass02-risk-cases.json).
+  // Values recalculated from the v3.9.8 workbook (fixtures/ass02-risk-cases.json).
   for (const c of JSON.parse(read('fixtures/ass02-risk-cases.json')).cases) {
     const r = governance.calculateRisk(c.impacts, c.likelihood, c.control);
     assert.equal(r.impact, c.impact); assert.equal(r.inherent, c.inherent); assert.equal(r.inherentTier, c.inherentTier);
@@ -146,9 +146,13 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     ...base, eventType: 'Decision', decision: 'Progress', eventDate: '2026-09-25',
     eventForum: 'Gate 7 Operate, monitor, review & change', eventUseScope: 'Unknown',
     eventLifecycle: 'Monitoring and Review', eventMaker: 'Authorised role', eventRecord: 'Minute ref',
-    eventAuthority: 'AIG-AGT-04 ref', eventSource: 'Approved minutes', eventConfirmed: true
+    eventAuthority: 'AIG-AGT-04 ref', eventSource: 'Approved minutes', eventConfirmed: true, screeningConsidered: 'Yes'
   };
   assert.equal(governance.validateChange(event), '');
+  // v3.9.8 (decision F8): AIG-DEC-04 v1.3 column X.
+  assert.match(governance.validateChange({ ...event, screeningConsidered: '' }), /saw and considered the equality/);
+  assert.match(governance.validateChange({ ...event, screeningConsidered: 'No' }), /saw and considered the equality/);
+  assert.equal(governance.validateChange({ ...event, decision: 'Stop', screeningConsidered: '' }), '', 'not needed for a Stop decision');
   assert.match(governance.validateChange({ ...event, eventUseScope: '' }), /decision scope/i);
   const scopedEvent = {
     ...event, eventUseScope: 'UC-ID specific', eventUcId: 'UC-REAL-1',
@@ -192,8 +196,14 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     conditionState: 'Open', conditionUseScope: 'Unknown'
   };
   assert.equal(governance.validateChange(conditioned), '');
-  assert.match(governance.validateChange({ ...conditioned, decision: 'Progress' }), /parent event must be a Decision with Outcome Progress with condition or Re-authorise/);
+  assert.match(governance.validateChange({ ...conditioned, decision: 'Progress' }), /parent event must be a Decision with Outcome Progress with condition, Re-authorise or Resume/);
   assert.equal(governance.validateChange({ ...conditioned, decision: 'Re-authorise' }), '');
+  // v3.9.8 (decision H2): Resume lifts a precautionary pause; it is a Decision, needs the
+  // screening confirmation and may carry new conditions.
+  assert.equal(governance.validateChange({ ...conditioned, decision: 'Resume' }), '');
+  assert.equal(governance.validateChange({ ...event, decision: 'Resume' }), '');
+  assert.match(governance.validateChange({ ...event, decision: 'Resume', screeningConsidered: 'No' }), /saw and considered the equality/);
+  assert.match(governance.validateChange({ ...event, eventType: 'Review only', decision: 'Resume' }), /set Event type to Decision/);
   assert.match(governance.validateChange({ ...conditioned, conditionDue: '2026-09-01' }), /cannot be before the parent event date/);
   for (const state of ['Met', 'Overdue', 'Superseded']) {
     assert.match(governance.validateChange({ ...conditioned, conditionState: state }), /Open, Closed-verified, Accepted-open, Waived or Unknown/);
@@ -370,8 +380,8 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /Permitted purpose/);
   assert.match(html + app, /Use-specific operating conditions/);
   assert.match(html + app, /separate standalone draft workbooks/);
-  assert.match(html, /suite v3\.9\.7 /);
-  assert.match(html, /v19\.9\.16/);
+  assert.match(html, /suite v3\.9\.8 /);
+  assert.match(html, /v19\.9\.17/);
   assert.doesNotMatch(html + app + read('README.md'), /field\/value drafts, not exact worksheet rows/);
   assert.doesNotMatch(html + app, /v1\.4\b.*AIG-OPS-02|AIG-OPS-02 v1\.4/);
   assert.doesNotMatch(html + app, /Westminster/i);
@@ -452,13 +462,13 @@ test('Gate Event options match AIG-DEC-04 controlled values', () => {
   assert.doesNotMatch(html, /<option>Noted<\/option>|<option>Escalation raised<\/option>/);
 });
 
-// ---- Suite v3.9.7 alignment: every download matches its target exactly ----
+// ---- Suite v3.9.8 alignment: every download matches its target exactly ----
 
 const SHEET_KEYS = ['ops02Monitoring', 'dec04GatePlan', 'dec04GateEvents', 'dec04Conditions', 'aims08Capa',
   'inv05MapChanges', 'inv04AssessmentSummary', 'ass02TriageImport'];
 const FORM_KEYS = ['ops03PartA', 'ops03PartB8', 'dec03Reference'];
 
-test('export targets carry the exact v3.9.7 headers, order, formula columns and versions', () => {
+test('export targets carry the exact v3.9.8 headers, order, formula columns and versions', () => {
   for (const key of SHEET_KEYS) {
     const expected = targets.sheets[key];
     const target = governance.TARGETS[key];
@@ -473,7 +483,7 @@ test('export targets carry the exact v3.9.7 headers, order, formula columns and 
   }
   assert.deepEqual(governance.ARTEFACT_VERSIONS, targets.versions);
   assert.deepEqual(governance.TRIAGE_IMPORT_ROWS, targets.sheets.ass02TriageImport.rows);
-  assert.equal(governance.SUITE.release, 'v3.9.7');
+  assert.equal(governance.SUITE.release, 'v3.9.8');
 });
 
 test('every CSV starts with the exact headers, then a blank spacer and guidance columns only', () => {
@@ -537,7 +547,7 @@ test('app values land only in real target columns', () => {
   for (const key of [...SHEET_KEYS, ...FORM_KEYS]) assert.ok(app.includes(`csvDownload("${key}"`), `${key} has a download`);
 });
 
-test('controlled lists and form options match the v3.9.7 data validations', () => {
+test('controlled lists and form options match the v3.9.8 data validations', () => {
   const html = read('index.html');
   const L = governance.LISTS;
   const ops = targets.sheets.ops02Monitoring.lists;
@@ -637,6 +647,9 @@ test('AIG-DEC-03 pointer maps gate outcomes with the AIG-DEC-04 Lists mapping', 
   }
   assert.equal(governance.dec03Outcome('Re-authorise', true).value, 'Approved with conditions');
   assert.equal(governance.dec03Outcome('Re-authorise', false).value, 'Approved');
+  assert.equal(governance.dec03Outcome('Resume', true).value, 'Approved with conditions');
+  assert.equal(governance.dec03Outcome('Resume', false).value, 'Approved');
+  assert.ok(mapping.some((r) => r[0] === 'Resume'), 'AIG-DEC-04 v1.3 Lists maps Resume');
   assert.equal(governance.dec03Outcome('Pause', false).value, '');
   governance.LISTS.dec04Outcomes.forEach((o) => {
     const v = governance.dec03Outcome(o, false).value;

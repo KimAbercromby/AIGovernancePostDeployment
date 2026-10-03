@@ -3,15 +3,15 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.7",
+    release: "v3.9.8",
     date: "3 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.16 draft"
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.17 draft"
   };
 
-  // Generated from the v3.9.7 source workbooks and forms (see fixtures/suite-v3.9.7-targets.json,
+  // Generated from the v3.9.8 source workbooks and forms (see fixtures/suite-v3.9.8-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.2 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.9 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.1 draft", "AIG-OPS-03": "1.9 draft", "AIG-DEC-03": "1.10 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -114,7 +114,8 @@
         "Evidence ID(s) (AIG-INV-04 Evidence index)",
         "Event-time lifecycle stage",
         "Incident ref (AIG-OPS-03), precautionary pause",
-        "Follow-up decision due date (precautionary pause)"
+        "Follow-up decision due date (precautionary pause)",
+        "Screening considered by the decision-maker (Yes / No)"
       ],
       formulaColumns: ["Row check", "Decision-scope completeness prompt"]
     },
@@ -375,7 +376,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.7 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.8 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -401,7 +402,7 @@
     dec04EventTypes: ["Decision", "Assurance opinion", "Review only", "Priority override", "Intake / registration",
       "Precautionary pause (containment)"],
     dec04Outcomes: ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop", "Suspend",
-      "Decommission", "Re-authorise", "Opinion only", "No decision", "Paused — pending decision"],
+      "Decommission", "Re-authorise", "Resume", "Opinion only", "No decision", "Paused — pending decision"],
     // AIG-ASS-02 Risk Assessment Step 4 (C50:C55 Yes/No; C56 also Unsure).
     ass02Trigger: ["Yes", "No"],
     ass02AgenticTrigger: ["Yes", "No", "Unsure"],
@@ -438,6 +439,8 @@
     "Suspend": { dec03: "Suspended", eventTypes: ["Decision"] },
     "Decommission": { dec03: "Retired", eventTypes: ["Decision"] },
     "Re-authorise": { dec03: "", note: "Approved or Approved with conditions (after reassessment)", eventTypes: ["Decision"] },
+    // Suite v3.9.8 (decision H2; AIG-DEC-04 v1.3 Lists row 16): lifts a precautionary pause with the approval unchanged.
+    "Resume": { dec03: "", note: "Approved or Approved with conditions: the approval in force before the precautionary pause carries over (new conditions go on Conditions rows); only in the event straight after the pause for the same AIR-ID and UC-ID", eventTypes: ["Decision"] },
     "Opinion only": { dec03: "", note: "None — assurance input, not a decision (Pending)", eventTypes: ["Assurance opinion", "Review only"] },
     "No decision": { dec03: "", note: "None (Pending)", eventTypes: ["Review only", "Priority override", "Intake / registration"] },
     // v3.9.2 (W-06): containment, not a decision; the UC-ID keeps its AIG-DEC-03 outcome.
@@ -446,7 +449,7 @@
   const PAUSE_EVENT = "Precautionary pause (containment)";
   const PAUSE_OUTCOME = "Paused — pending decision";
   const DECISION_OUTCOMES = ["Progress", "Progress with condition", "Return for evidence", "Pause", "Stop",
-    "Suspend", "Decommission", "Re-authorise"];
+    "Suspend", "Decommission", "Re-authorise", "Resume"];
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
@@ -1222,10 +1225,10 @@
       return "A Priority override changes governance attention, not progress: leave Outcome blank or choose No decision.";
     }
     if (eventStarted && type !== "Decision" && DECISION_OUTCOMES.includes(outcome)) {
-      return "Progress, Progress with condition, Return for evidence, Pause, Stop, Suspend, Decommission and Re-authorise are decisions: set Event type to Decision, or choose another Outcome.";
+      return "Progress, Progress with condition, Return for evidence, Pause, Stop, Suspend, Decommission, Re-authorise and Resume are decisions: set Event type to Decision, or choose another Outcome.";
     }
     if (eventStarted && type === "Decision" && !DECISION_OUTCOMES.includes(outcome)) {
-      return "A Decision event needs a decision Outcome (Progress, Progress with condition, Return for evidence, Pause, Stop, Suspend, Decommission or Re-authorise).";
+      return "A Decision event needs a decision Outcome (Progress, Progress with condition, Return for evidence, Pause, Stop, Suspend, Decommission, Re-authorise or Resume).";
     }
     if (eventStarted && outcome && DEC04_OUTCOME_MAP[outcome].eventTypes.indexOf(type) < 0) {
       return "AIG-DEC-04 Lists: Outcome “" + outcome + "” is allowed only with Event type " + DEC04_OUTCOME_MAP[outcome].eventTypes.join(" / ") + ".";
@@ -1258,6 +1261,12 @@
     }
     if (eventStarted && /[,;/]|\s/.test(text(data.eventUcId))) {
       return "One UC-ID per Gate Event row: split a multi-use decision into suffixed Event IDs (for example EVT-0012-a, EVT-0012-b).";
+    }
+    // Suite v3.9.8 (AIG-DEC-04 v1.3 column X; decision F8): a Decision that lets a use
+    // go ahead needs the decision-maker's confirmation that the screening was considered.
+    if (eventStarted && type === "Decision" && ["Progress", "Progress with condition", "Re-authorise", "Resume"].includes(outcome) &&
+      text(data.screeningConsidered) !== "Yes") {
+      return "Confirm the decision-maker saw and considered the equality, human rights and data protection screening (AIG-DEC-03; AIG-DEC-04 column X) before this Decision is transferred.";
     }
     // Suite v3.9.7 (AIG-DEC-04 v1.2 row checks): an Assurance opinion event needs its
     // assurance reference, and a pause follow-up cannot be due before the pause.
@@ -1327,8 +1336,8 @@
     )) {
       return "A Gate Condition prepared with a Gate Event must match the event's exact use scope and UC-ID.";
     }
-    if (conditionStarted && eventStarted && (type !== "Decision" || !["Progress with condition", "Re-authorise"].includes(outcome))) {
-      return "A Gate Condition's parent event must be a Decision with Outcome Progress with condition or Re-authorise.";
+    if (conditionStarted && eventStarted && (type !== "Decision" || !["Progress with condition", "Re-authorise", "Resume"].includes(outcome))) {
+      return "A Gate Condition's parent event must be a Decision with Outcome Progress with condition, Re-authorise or Resume.";
     }
     if (conditionStarted && eventStarted && text(data.eventDate) &&
       ((condition[2] && condition[2] < text(data.eventDate)) || (condition[4] && condition[4] < text(data.eventDate)))) {
@@ -1355,6 +1364,9 @@
     if (!map) return { value: "", note: "No gate Outcome recorded: no AIG-DEC-03 outcome (None (Pending))" };
     if (text(outcome) === "Re-authorise") {
       return { value: hasCondition ? "Approved with conditions" : "Approved", note: "Re-authorise maps to Approved or Approved with conditions (after reassessment)" };
+    }
+    if (text(outcome) === "Resume") {
+      return { value: hasCondition ? "Approved with conditions" : "Approved", note: "Resume maps to Approved or Approved with conditions: the approval in force before the precautionary pause carries over" };
     }
     return { value: map.dec03, note: map.note ? "AIG-DEC-03 outcome: " + map.note + " — the decision-maker records the actual outcome" : "" };
   }

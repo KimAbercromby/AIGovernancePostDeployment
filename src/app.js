@@ -338,7 +338,7 @@
     clearOutput("c-results", "c-error");
     const changeError = G.validateChange({
       changeTriggers: changeTriggerKeys(), triggerAnswers: triggerAnswers(),
-      pauseIncidentRef: value("e-incident-ref"), pauseFollowUpDue: value("e-followup-due"),
+      pauseIncidentRef: value("e-incident-ref"), pauseFollowUpDue: value("e-followup-due"), screeningConsidered: value("e-screening"),
       airId: value("c-air"), airIdVerified: isChecked("c-air-verified"), system: value("c-system"),
       useScope: value("c-use-scope"), ucId: value("c-uc-id"),
       mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
@@ -496,7 +496,8 @@
           "Evidence ID(s) (AIG-INV-04 Evidence index)": value("e-evidence"),
           "Event-time lifecycle stage": value("e-lifecycle"),
           "Incident ref (AIG-OPS-03), precautionary pause": value("e-incident-ref"),
-          "Follow-up decision due date (precautionary pause)": value("e-followup-due")
+          "Follow-up decision due date (precautionary pause)": value("e-followup-due"),
+          "Screening considered by the decision-maker (Yes / No)": value("e-screening")
         },
         notes: [
           "Transfer checklist only — not an authoritative event record. The formal decision remains in AIG-DEC-03 / authorised native minutes; this row points to it",
@@ -505,6 +506,7 @@
           escalation ? "Escalation recorded in Next gate / action, not as an Outcome" : "",
           value("e-type") === "Priority override" ? "Priority override: the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited in AIG-DEC-03 / minutes ref" : "",
           value("e-type") === G.PAUSE_EVENT ? "Precautionary pause (containment): not a decision, so no AIG-DEC-03 reference is needed; columns V (incident ref) and W (follow-up decision due date) are required by the Gate Log row check; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17)" : "",
+          decision === "Resume" ? "Resume: the Gate Log accepts it only as the next event for the same AIR-ID and UC-ID after the Precautionary pause row; enter it below that row (Playbook §4.7.17)" : "",
           value("e-notes") ? "Event notes (no AIG-DEC-04 column): " + value("e-notes") : "",
           "Decision authority / delegation reference (AIG-DEC-03 field, not an AIG-DEC-04 column): " + value("e-authority"),
           "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim",
@@ -585,7 +587,7 @@
         },
         notes: [
           "Condition ID blank: the Council assigns it; never invent one",
-          "Existing verified Event ID: the parent must be a dated Decision event with Outcome Progress with condition or Re-authorise",
+          "Existing verified Event ID: the parent must be a dated Decision event with Outcome Progress with condition, Re-authorise or Resume",
           G.scopeNote(condScope, "Condition"),
           value("e-use-decision-ref") ? "Parent per-UC decision reference: " + value("e-use-decision-ref") : "",
           "Overdue is derived by the workbook Row check (Open and due date passed), never typed; this tool does not close a condition",
@@ -607,7 +609,7 @@
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
         "No approval, permission, AGPI priority or legal applicability is inferred.</p>" :
         "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness.</p>",
-      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.7 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.8 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
         '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. Gate 2 and Gate 6 are mandatory for every action-capable use; Gate 6 grants the permitted autonomy level. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI priority sets urgency only; the route follows the governing tier. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
