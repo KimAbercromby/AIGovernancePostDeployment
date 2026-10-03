@@ -1,6 +1,6 @@
 {
- "suiteRelease": "v3.9.7",
- "generatedFrom": "AI_Governance_Sources_v3.9.7 (3 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
+ "suiteRelease": "v3.9.8",
+ "generatedFrom": "AI_Governance_Sources_v3.9.8 (3 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
  "sheets": {
   "ops02Monitoring": {
    "file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx",
@@ -1091,7 +1091,7 @@
     "Event classification": "Incident / Near miss / Concern — near misses follow the same early-reporting and triage route",
     "Provisional severity": "Low / Medium / High / Critical",
     "Immediate action taken": "e.g. system paused, output withheld, users notified",
-    "Precautionary pause applied? Gate Log event ID": "Yes / No. If Yes: who applied it, date and time, and the AIG-DEC-04 Gate events ID (Event type “Precautionary pause (containment)”, outcome “Paused — pending decision”). The pause is containment, not a decision; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17) (Proposed — for Council confirmation)",
+    "Precautionary pause applied? Gate Log event ID": "Yes / No. If Yes: who applied it, date and time, and the AIG-DEC-04 Gate events ID (Event type “Precautionary pause (containment)”, outcome “Paused — pending decision”). The pause is containment, not a decision; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17), and a resumption is logged as a Decision with Outcome “Resume” (approval unchanged) or “Re-authorise” (after reassessment) (Proposed — for Council confirmation)",
     "Suspected personal data breach?": "Yes / No / Uncertain — if Yes or Uncertain, refer to the DPO / Information Governance route now, before AI triage. Where notifiable, the ICO must be told without undue delay and, where feasible, not later than 72 hours after the Council becomes aware (UK GDPR Art 33). Date and time referred: ____",
     "Security or safeguarding concern?": "Yes / No — if Yes, refer now to the Information and Cyber Security lead or under the Council’s safeguarding procedures; those routes lead on their own duties (Playbook §6.8.6.5)",
     "External notification may be required?": "Yes / No / Unsure — e.g. ICO, other regulator, data subjects, partners; decided by the DPO or specialist route and recorded in §8",
@@ -1192,8 +1192,8 @@
   "AIG-AIMS-08": "1.2 draft",
   "AIG-ASS-02": "1.10 draft",
   "AIG-INV-05": "0.3 proposed design draft",
-  "AIG-INV-04": "1.0 draft",
-  "AIG-OPS-03": "1.8 draft",
+  "AIG-INV-04": "1.1 draft",
+  "AIG-OPS-03": "1.9 draft",
   "AIG-DEC-03": "1.10 draft"
  }
 }
