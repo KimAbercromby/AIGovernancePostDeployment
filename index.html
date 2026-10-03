@@ -64,6 +64,15 @@
     details{margin-top:12px}summary{font-weight:700;color:var(--navy);cursor:pointer}
     footer{border-top:1px solid var(--line);padding:20px 0 30px;color:var(--muted);font-size:.85rem}
     .small{font-size:.84rem;color:var(--muted)}
+    .record-loader{padding:17px 20px;margin-bottom:20px}
+    .record-loader h2{margin:0 0 6px;font:700 1.18rem Georgia,serif;color:var(--navy)}
+    .record-loader .actions{margin:10px 0 4px}
+    .record-pick{display:inline-flex;align-items:center;position:relative}
+    .record-pick:focus-within{outline:3px solid #e5be55;outline-offset:2px}
+    .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+    .from-record{background:#fff8e6!important;border-color:var(--gold)!important}
+    .record-note{display:block;color:#7a5a12;font-weight:400;font-size:.8rem;margin-top:3px}
+    #record-status ul{margin:6px 0 0;padding-left:20px}
     @media(max-width:650px){.wrap{padding:0 15px}.grid,.grid.three,.check-list{grid-template-columns:1fr}.hero{padding:29px 0 18px}.tabs{display:grid;grid-template-columns:1fr}.tab{text-align:left}fieldset{padding:13px}}
     @media print{.masthead,.notice,form,.actions,footer{display:none!important}body{background:#fff}.panel[hidden]{display:block!important}.result{box-shadow:none;break-inside:avoid}}
   </style>
@@ -93,6 +102,16 @@
       <strong>Record key:</strong> AIG-INV-04 is the Register and owns one permanent AIR-ID and current assurance state per system; use cases require their own exact UC-ID scope and may share that AIR-ID. AIG-DEC-04 is the separate Gate Log for plans, events and conditions. A system-level Approved baseline does not approve any UC-ID, and unknown use scope is not shared scope. Proposed controlled AIG-INV-05 is a relationship map only—not an approved/adopted record, decision, permission or approval source. Do not invent an AIR-ID, event ID, authority, approval, legal conclusion, FRIA completion, publication or ISO conformity. Each download uses the exact column headers, order and controlled lists of its AI governance suite v3.9.5 target (guidance columns sit after a blank spacer and are never pasted); still verify every value against the current controlled record before transfer. Do not enter residents’ names, case details or other unnecessary personal data here.
       <p class="small">AGPI is prioritisation, not a waiver. Equality Act 2010 section 149, Human Rights Act 1998 section 6, privacy and other case-specific duties require screening for every tier. EU AI Act, ATRS and procurement duties are conditional: ask the legal/procurement owner to confirm applicability for the case.</p>
     </aside>
+
+    <section class="card record-loader" aria-labelledby="record-heading">
+      <h2 id="record-heading">Start from a triage record <span class="small">(optional)</span></h2>
+      <p class="small">Saves retyping. Choose the canonical record you downloaded from the Multi-Board Triage tool (“Download canonical record”, a .json file). The system name, AIR-ID, UC-ID and use scope are then filled wherever they appear below, highlighted so you can check them. The file is read on this device only: it is not uploaded or kept. Nothing you have already typed is overwritten, and the “checked against AIG-INV-04” confirmations and confirmed risk tiers are never filled for you.</p>
+      <div class="actions">
+        <label class="button secondary record-pick">Choose triage record…<input id="record-file" type="file" accept=".json,application/json" class="visually-hidden"></label>
+        <button class="button secondary" type="button" id="record-clear" hidden>Remove loaded values</button>
+      </div>
+      <div id="record-status" role="status" aria-live="polite"></div>
+    </section>
 
     <section class="panel" id="panel-incident" role="tabpanel" aria-labelledby="tab-incident">
       <p class="intro">Report an incident, near miss or concern, identify a provisional internal route, and prepare the AIG-OPS-03 Part A draft. Report to your Service Owner without delay using Part A; the Service Owner assesses provisional severity and sends Part A to the AI Governance Lead the same working day (immediately for a suspected High or Critical incident or any statutory route). Refer a suspected personal-data breach to the DPO immediately. Severity alone does not establish an AIMS nonconformity.</p>
