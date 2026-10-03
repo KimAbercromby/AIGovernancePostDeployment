@@ -3,15 +3,15 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.4",
-    date: "1 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.14 draft"
+    release: "v3.9.5",
+    date: "2 October 2026",
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.15 draft"
   };
 
-  // Generated from the v3.9.4 source workbooks and forms (see fixtures/suite-v3.9.4-targets.json,
+  // Generated from the v3.9.5 source workbooks and forms (see fixtures/suite-v3.9.5-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.7 draft", "AIG-DEC-03": "1.7 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.8 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -375,7 +375,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.4 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.5 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -450,7 +450,7 @@
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
-  // Recipients and escalation wording from the AIG-OPS-03 v1.7 Part A §4 severity table.
+  // Recipients and escalation wording from the AIG-OPS-03 v1.8 Part A §4 severity table.
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
@@ -470,7 +470,7 @@
     }
   };
 
-  // AIG-OPS-03 v1.7 Part A §4 "When it applies" wording, including the indicators for
+  // AIG-OPS-03 v1.8 Part A §4 "When it applies" wording, including the indicators for
   // each severity (v3.9.2, T-06: Low has its own indicators, so Low can be selected).
   const SEVERITY_WHEN = {
     "Low": "Limited operational impact; no significant legal, ethical or service consequences. Indicators: an isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm), an isolated user complaint, a documentation error or a non-material process failure.",
@@ -478,7 +478,7 @@
     "High": "Significant operational, legal, ethical or reputational impact. Indicators: material bias findings, significant model drift, operational disruption, security weaknesses, repeated control failures or significant service impacts.",
     "Critical": "Actual or potential harm to individuals, major legal/reputational exposure or statutory breach. Indicators: data breaches, unlawful automated decision-making, significant impacts on vulnerable individuals, major regulatory concerns, widespread service failure or substantial media scrutiny."
   };
-  // AIG-OPS-03 v1.7 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
+  // AIG-OPS-03 v1.8 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
   // the AI Governance Lead immediately, consider a precautionary pause, at least High.
   const MANDATORY_INCIDENT_TRIGGERS = [
     "Significant bias resulting in adverse outcomes",
