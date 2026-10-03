@@ -804,6 +804,27 @@
       });
     });
     setupRecordLoader();
+    setupLongNotes();
+  }
+
+  // Long introductions and section notes show their first two lines, with "Show more".
+  // The full text stays in the page, so screen readers and print read all of it.
+  function setupLongNotes() {
+    document.querySelectorAll("p.intro, p.section-note").forEach((note) => {
+      if (note.textContent.trim().length < 220) return;
+      note.classList.add("is-clamped");
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "more-toggle";
+      toggle.textContent = "Show more";
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.addEventListener("click", () => {
+        const open = note.classList.toggle("is-clamped") === false;
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.textContent = open ? "Show less" : "Show more";
+      });
+      note.insertAdjacentElement("afterend", toggle);
+    });
   }
 
   // ---- Start from a triage record ---------------------------------------------
