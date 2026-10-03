@@ -104,7 +104,7 @@ ws = wb["Lists"]
 out["sheets"]["dec04Lists"] = {"file": "AIG-DEC-04_Gate_Log_Proposed.xlsx", "sheet": "Lists",
                                "gates": [ws[f"A{i}"].value for i in range(5, 15)],
                                "lifecycleStages": [ws[f"B{i}"].value for i in range(5, 12)],
-                               "outcomeMapping": [[ws[f"D{i}"].value, ws[f"E{i}"].value, ws[f"F{i}"].value] for i in range(5, 16)]}
+                               "outcomeMapping": [[ws[f"D{i}"].value, ws[f"E{i}"].value, ws[f"F{i}"].value] for i in range(5, 17)]}
 wb = openpyxl.load_workbook(SRC / "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx")
 ws = wb["Lists"]
 out["sheets"]["ops02Lists"] = {"file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx", "sheet": "Lists",

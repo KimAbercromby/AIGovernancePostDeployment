@@ -506,6 +506,7 @@
           escalation ? "Escalation recorded in Next gate / action, not as an Outcome" : "",
           value("e-type") === "Priority override" ? "Priority override: the priority before/after, reason and Assurance update reference belong in the AIG-DEC-03 record cited in AIG-DEC-03 / minutes ref" : "",
           value("e-type") === G.PAUSE_EVENT ? "Precautionary pause (containment): not a decision, so no AIG-DEC-03 reference is needed; columns V (incident ref) and W (follow-up decision due date) are required by the Gate Log row check; continued suspension, resumption or withdrawal is decided by the officer or forum with confirmed delegation (Playbook §4.7.17)" : "",
+          decision === "Resume" ? "Resume: the Gate Log accepts it only as the next event for the same AIR-ID and UC-ID after the Precautionary pause row; enter it below that row (Playbook §4.7.17)" : "",
           value("e-notes") ? "Event notes (no AIG-DEC-04 column): " + value("e-notes") : "",
           "Decision authority / delegation reference (AIG-DEC-03 field, not an AIG-DEC-04 column): " + value("e-authority"),
           "A system Approved baseline is not UC-ID approval; only the authoritative per-UC decision and conditions can support a use-specific claim",
@@ -586,7 +587,7 @@
         },
         notes: [
           "Condition ID blank: the Council assigns it; never invent one",
-          "Existing verified Event ID: the parent must be a dated Decision event with Outcome Progress with condition or Re-authorise",
+          "Existing verified Event ID: the parent must be a dated Decision event with Outcome Progress with condition, Re-authorise or Resume",
           G.scopeNote(condScope, "Condition"),
           value("e-use-decision-ref") ? "Parent per-UC decision reference: " + value("e-use-decision-ref") : "",
           "Overdue is derived by the workbook Row check (Open and due date passed), never typed; this tool does not close a condition",

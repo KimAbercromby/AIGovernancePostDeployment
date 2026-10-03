@@ -196,8 +196,14 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     conditionState: 'Open', conditionUseScope: 'Unknown'
   };
   assert.equal(governance.validateChange(conditioned), '');
-  assert.match(governance.validateChange({ ...conditioned, decision: 'Progress' }), /parent event must be a Decision with Outcome Progress with condition or Re-authorise/);
+  assert.match(governance.validateChange({ ...conditioned, decision: 'Progress' }), /parent event must be a Decision with Outcome Progress with condition, Re-authorise or Resume/);
   assert.equal(governance.validateChange({ ...conditioned, decision: 'Re-authorise' }), '');
+  // v3.9.8 (decision H2): Resume lifts a precautionary pause; it is a Decision, needs the
+  // screening confirmation and may carry new conditions.
+  assert.equal(governance.validateChange({ ...conditioned, decision: 'Resume' }), '');
+  assert.equal(governance.validateChange({ ...event, decision: 'Resume' }), '');
+  assert.match(governance.validateChange({ ...event, decision: 'Resume', screeningConsidered: 'No' }), /saw and considered the equality/);
+  assert.match(governance.validateChange({ ...event, eventType: 'Review only', decision: 'Resume' }), /set Event type to Decision/);
   assert.match(governance.validateChange({ ...conditioned, conditionDue: '2026-09-01' }), /cannot be before the parent event date/);
   for (const state of ['Met', 'Overdue', 'Superseded']) {
     assert.match(governance.validateChange({ ...conditioned, conditionState: state }), /Open, Closed-verified, Accepted-open, Waived or Unknown/);
@@ -641,6 +647,9 @@ test('AIG-DEC-03 pointer maps gate outcomes with the AIG-DEC-04 Lists mapping', 
   }
   assert.equal(governance.dec03Outcome('Re-authorise', true).value, 'Approved with conditions');
   assert.equal(governance.dec03Outcome('Re-authorise', false).value, 'Approved');
+  assert.equal(governance.dec03Outcome('Resume', true).value, 'Approved with conditions');
+  assert.equal(governance.dec03Outcome('Resume', false).value, 'Approved');
+  assert.ok(mapping.some((r) => r[0] === 'Resume'), 'AIG-DEC-04 v1.3 Lists maps Resume');
   assert.equal(governance.dec03Outcome('Pause', false).value, '');
   governance.LISTS.dec04Outcomes.forEach((o) => {
     const v = governance.dec03Outcome(o, false).value;
