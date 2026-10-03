@@ -5,7 +5,7 @@
   const SUITE = {
     release: "v3.9.7",
     date: "3 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.15 draft"
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.16 draft"
   };
 
   // Generated from the v3.9.7 source workbooks and forms (see fixtures/suite-v3.9.7-targets.json,

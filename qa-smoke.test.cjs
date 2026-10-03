@@ -371,7 +371,7 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /Use-specific operating conditions/);
   assert.match(html + app, /separate standalone draft workbooks/);
   assert.match(html, /suite v3\.9\.7 /);
-  assert.match(html, /v19\.9\.15/);
+  assert.match(html, /v19\.9\.16/);
   assert.doesNotMatch(html + app + read('README.md'), /field\/value drafts, not exact worksheet rows/);
   assert.doesNotMatch(html + app, /v1\.4\b.*AIG-OPS-02|AIG-OPS-02 v1\.4/);
   assert.doesNotMatch(html + app, /Westminster/i);
