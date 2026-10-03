@@ -1,6 +1,6 @@
 // One test per v3.9.2 pilot-readiness finding fixed in this router (scenario test of suite
-// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.6-targets.json,
-// generated from the v3.9.6 workbooks and forms by scripts/generate-fixtures.py.
+// v3.9.1, 30 September 2026). Expected values come from fixtures/suite-v3.9.7-targets.json,
+// generated from the v3.9.7 workbooks and forms by scripts/generate-fixtures.py.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -8,7 +8,7 @@ const { test } = require('node:test');
 const G = require('./src/logic.js');
 
 const read = (file) => fs.readFileSync(path.join(__dirname, file), 'utf8');
-const targets = JSON.parse(read('fixtures/suite-v3.9.6-targets.json'));
+const targets = JSON.parse(read('fixtures/suite-v3.9.7-targets.json'));
 const html = read('index.html');
 const app = read('src/app.js');
 
@@ -181,4 +181,19 @@ test('NEW-02 (v3.9.2 re-test follow-up): a blank AP is flagged like "raise not y
   assert.equal(G.ops02ClosureCheck({ ...ready.row, [AP]: 'Action-capable: raise not yet set' }), FLAG);
   assert.equal(G.ops02ClosureCheck({ ...ready.row, [AP]: '' }), FLAG);
   assert.ok(fixture.cases.some((c) => c.row[AP] === '' && c.AH === FLAG), 'recalculated workbook flags a blank AP');
+});
+
+test('v3.9.7: Gate Event checks match the AIG-DEC-04 v1.2 row checks', () => {
+  const pause = {
+    ...baseChange, eventType: G.PAUSE_EVENT, decision: G.PAUSE_OUTCOME, eventDate: '2026-09-29', eventForum: 'Gate 7 Operate, monitor, review & change',
+    eventLifecycle: 'Deployment and Operation', eventMaker: 'Service Owner (applied the pause)', eventSource: 'AIG-OPS-03 Part A',
+    eventConfirmed: true, eventUseScope: 'UC-ID specific', eventUcId: 'UC-T011', pauseIncidentRef: 'INC-0042', pauseFollowUpDue: '2026-10-06', today: '2026-09-30'
+  };
+  assert.equal(G.validateChange(pause), '');
+  assert.match(G.validateChange({ ...pause, pauseFollowUpDue: '2026-09-01' }), /cannot be before the pause/);
+  assert.match(G.validateChange({ ...pause, eventUcId: 'UC-T011 UC-T012' }), /One UC-ID per Gate Event row/);
+  assert.match(G.validateChange({ ...pause, eventUcId: 'UC-T011/UC-T012' }), /One UC-ID per Gate Event row/);
+  const N = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'suite-v3.9.7-targets.json'), 'utf8')).sheets.dec04GateEvents.formulas.N;
+  ['Assurance opinion ref missing', 'Follow-up decision due date is before the pause', 'Plan gate differs from event gate']
+    .forEach((msg) => assert.ok(N.includes(msg), msg));
 });

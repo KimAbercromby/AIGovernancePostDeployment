@@ -221,7 +221,7 @@
     if (mandatory.length) partANotes.push("§4.7.17 mandatory trigger selected (" + mandatory.join("; ") + "): escalate to the AI Governance Lead immediately, consider a precautionary pause, classify at least High");
     const outputs = [csvDownload("ops03PartA", "AIG-OPS-03 Part A (.csv)", "AIG-OPS-03_PartA",
       [{ values: partAValues, notes: partANotes }], value("i-air"))];
-    // v3.9.2 (W-06): the precautionary pause as an AIG-DEC-04 v1.1 Gate events row.
+    // v3.9.2 (W-06): the precautionary pause as an AIG-DEC-04 v1.2 Gate events row.
     if (paused) {
       const pauseAt = value("i-pause-at");
       outputs.push(csvDownload("dec04GateEvents", "AIG-DEC-04 Gate events row: precautionary pause (.csv)", "AIG-DEC-04_Gate_events_precautionary_pause", [{
@@ -607,7 +607,7 @@
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
         "No approval, permission, AGPI priority or legal applicability is inferred.</p>" :
         "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness.</p>",
-      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.6 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.7 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
         '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. Gate 2 and Gate 6 are mandatory for every action-capable use; Gate 6 grants the permitted autonomy level. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI priority sets urgency only; the route follows the governing tier. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
