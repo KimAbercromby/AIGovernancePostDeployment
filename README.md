@@ -4,7 +4,7 @@ A public, static working aid for the operate-and-monitor part of the AI governan
 
 **Suite status:** the standalone AI governance workbook drafts referenced by this tool are proposed for review, not approved or live. This tool must not be described as approved.
 
-**Aligned to:** AI governance suite release v3.9.7 (3 October 2026), Playbook AIG-GOV-02 v19.9.16 draft. Target versions: AIG-OPS-02 v1.6 draft, AIG-OPS-03 v1.8 draft, AIG-AIMS-08 v1.2 draft, AIG-ASS-02 v1.10 draft, AIG-DEC-03 v1.8 draft, AIG-DEC-04 v1.2 draft, AIG-INV-04 v1.0 draft, AIG-INV-05 v0.3 proposed design draft.
+**Aligned to:** AI governance suite release v3.9.7 (3 October 2026), Playbook AIG-GOV-02 v19.9.16 draft. Target versions: AIG-OPS-02 v1.6 draft, AIG-OPS-03 v1.8 draft, AIG-AIMS-08 v1.2 draft, AIG-ASS-02 v1.10 draft, AIG-DEC-03 v1.9 draft, AIG-DEC-04 v1.2 draft, AIG-INV-04 v1.0 draft, AIG-INV-05 v0.3 proposed design draft.
 
 ## Downloads
 

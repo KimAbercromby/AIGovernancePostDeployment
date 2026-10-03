@@ -11,7 +11,7 @@
   // Generated from the v3.9.7 source workbooks and forms (see fixtures/suite-v3.9.7-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.2 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.8 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.2 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.9 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
