@@ -3,15 +3,15 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.6",
+    release: "v3.9.7",
     date: "3 October 2026",
     playbook: "AIG-GOV-02 AI Governance Playbook v19.9.15 draft"
   };
 
-  // Generated from the v3.9.6 source workbooks and forms (see fixtures/suite-v3.9.6-targets.json,
+  // Generated from the v3.9.7 source workbooks and forms (see fixtures/suite-v3.9.7-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.8 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.2 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.8 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -375,7 +375,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.6 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.7 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -1199,7 +1199,7 @@
     if (eventStarted && !EVENT_TYPES.includes(type)) {
       return "Select the AIG-DEC-04 Event type: Decision, Assurance opinion, Review only, Priority override, Intake / registration or Precautionary pause (containment).";
     }
-    // v3.9.2 (W-06): AIG-DEC-04 v1.1 row check for a precautionary pause (containment).
+    // v3.9.2 (W-06): AIG-DEC-04 v1.2 row check for a precautionary pause (containment).
     if (eventStarted && pause && outcome !== PAUSE_OUTCOME) {
       return "Precautionary pause: Outcome must be Paused — pending decision.";
     }
@@ -1256,8 +1256,17 @@
     if (eventStarted && !["UC-ID specific", "Shared system baseline", "Unknown"].includes(text(data.eventUseScope))) {
       return "Select the Gate Event decision scope as UC-ID specific, Shared system baseline, or Unknown; scope cannot be inferred.";
     }
-    if (eventStarted && /[,;]/.test(text(data.eventUcId))) {
+    if (eventStarted && /[,;/]|\s/.test(text(data.eventUcId))) {
       return "One UC-ID per Gate Event row: split a multi-use decision into suffixed Event IDs (for example EVT-0012-a, EVT-0012-b).";
+    }
+    // Suite v3.9.7 (AIG-DEC-04 v1.2 row checks): an Assurance opinion event needs its
+    // assurance reference, and a pause follow-up cannot be due before the pause.
+    if (eventStarted && type === "Assurance opinion" && !text(data.assuranceOpinion)) {
+      return "An Assurance opinion event needs its assurance opinion reference.";
+    }
+    if (eventStarted && pause && text(data.eventDate) && text(data.pauseFollowUpDue) &&
+      text(data.pauseFollowUpDue) < text(data.eventDate)) {
+      return "Precautionary pause: the follow-up decision due date cannot be before the pause.";
     }
     if (eventStarted && pause && data.eventUseScope === "UC-ID specific" && !text(data.eventUcId)) {
       return "Enter the exact UC-ID of the paused use.";

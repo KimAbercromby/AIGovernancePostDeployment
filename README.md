@@ -4,13 +4,13 @@ A public, static working aid for the operate-and-monitor part of the AI governan
 
 **Suite status:** the standalone AI governance workbook drafts referenced by this tool are proposed for review, not approved or live. This tool must not be described as approved.
 
-**Aligned to:** AI governance suite release v3.9.6 (3 October 2026), Playbook AIG-GOV-02 v19.9.15 draft. Target versions: AIG-OPS-02 v1.6 draft, AIG-OPS-03 v1.8 draft, AIG-AIMS-08 v1.2 draft, AIG-ASS-02 v1.10 draft, AIG-DEC-03 v1.8 draft, AIG-DEC-04 v1.1 draft, AIG-INV-04 v1.0 draft, AIG-INV-05 v0.3 proposed design draft.
+**Aligned to:** AI governance suite release v3.9.7 (3 October 2026), Playbook AIG-GOV-02 v19.9.15 draft. Target versions: AIG-OPS-02 v1.6 draft, AIG-OPS-03 v1.8 draft, AIG-AIMS-08 v1.2 draft, AIG-ASS-02 v1.10 draft, AIG-DEC-03 v1.8 draft, AIG-DEC-04 v1.2 draft, AIG-INV-04 v1.0 draft, AIG-INV-05 v0.3 proposed design draft.
 
 ## Downloads
 
 Every CSV download is laid out exactly like its target: the first row holds the target sheet's column headers (or the form's field labels) in the same order, and every value the tool writes into a controlled column is one of that column's dropdown values. Guidance for the person transferring the row sits in two columns headed "Guidance only, do not paste", after one blank spacer column; those columns are never part of the workbook. Columns that the workbook fills by formula (for example the Row check columns and AIG-OPS-02 columns AH, AJ and AK) are included so the column letters line up, but they are left blank: keep the workbook formula and do not paste over it.
 
-| Download | Target (v3.9.6) |
+| Download | Target (v3.9.7) |
 | --- | --- |
 | AIG-OPS-03 Part A | AIG-OPS-03 AI Incident Report Form, Part A sections 1–4 (one column per field, form order; section 3 tick boxes as ☒ / ☐) |
 | AIG-OPS-03 Part B §8 pointer (optional) | AIG-OPS-03 Part B section 8 Notification and Closure (all 15 rows; only controller awareness, rights risk and ICO decision are filled) |
@@ -24,7 +24,7 @@ Every CSV download is laid out exactly like its target: the first row holds the 
 | AIG-INV-05 Map changes row | AIG-INV-05 workbook, Map changes sheet, header row 3 (A–M) |
 | AIG-OPS-02 Monitoring Log row | AIG-OPS-02 workbook, Monitoring Log sheet, header row 4 (A–AP; AO review type, AP agentic cadence raise) |
 
-The expected headers and controlled lists are stored in `fixtures/suite-v3.9.6-targets.json`, generated from the v3.9.6 source files by `scripts/generate-fixtures.py` (file, sheet and header row recorded for each), and the tests check every target against it.
+The expected headers and controlled lists are stored in `fixtures/suite-v3.9.7-targets.json`, generated from the v3.9.7 source files by `scripts/generate-fixtures.py` (file, sheet and header row recorded for each), and the tests check every target against it.
 
 ## Workflows
 
@@ -59,11 +59,11 @@ node --test qa-smoke.test.cjs v392-findings.test.cjs
 
 Regenerate the fixtures for a new suite release with `python3 scripts/generate-fixtures.py <sources folder> [path to LibreOffice recalc.py]`.
 
-The automated checks cover incident severity and routing, AIG-OPS-03 Part A/optional Part B validation, AIG-ASS-02 arithmetic and tier bands (against values recalculated from the v3.9.6 workbook), AIG-DEC-04 plan/event/condition and precautionary-pause rules, the AIG-OPS-02 closure check (against 77 rows recalculated from the v3.9.6 workbook, including review type and agentic cadence raise; a blank agentic cadence raise is flagged like "raise not yet set", so choose Not action-capable where the use cannot act), monitoring provenance and zero/blank distinctions, the map-change row, exact CSV headers and controlled lists for every download (against `fixtures/suite-v3.9.6-targets.json`), the AIG-ASS-02 Step 4 trigger carry-over and mandatory risk floor (against C42), the AIR-ID rule shared by AIG-INV-04 and AIG-AGT-04, escaping, and static-page governance boundaries.
+The automated checks cover incident severity and routing, AIG-OPS-03 Part A/optional Part B validation, AIG-ASS-02 arithmetic and tier bands (against values recalculated from the v3.9.7 workbook), AIG-DEC-04 plan/event/condition and precautionary-pause rules, the AIG-OPS-02 closure check (against 77 rows recalculated from the v3.9.7 workbook, including review type and agentic cadence raise; a blank agentic cadence raise is flagged like "raise not yet set", so choose Not action-capable where the use cannot act), monitoring provenance and zero/blank distinctions, the map-change row, exact CSV headers and controlled lists for every download (against `fixtures/suite-v3.9.7-targets.json`), the AIG-ASS-02 Step 4 trigger carry-over and mandatory risk floor (against C42), the AIR-ID rule shared by AIG-INV-04 and AIG-AGT-04, escaping, and static-page governance boundaries.
 
 ## Limitations
 
-- Downloads match the v3.9.6 draft workbooks and forms. If a later suite release changes a target's headers or lists, regenerate the fixture and update `src/logic.js` before use. A controlled-record owner verifies each value before transfer.
+- Downloads match the v3.9.7 draft workbooks and forms. If a later suite release changes a target's headers or lists, regenerate the fixture and update `src/logic.js` before use. A controlled-record owner verifies each value before transfer.
 - The user attests that an entered AIR-ID, decision and references are real; this static tool cannot verify a record or delegation.
 - Unknown use scope remains Unknown; it is never coerced to a shared baseline. A shared system measure or baseline is not use-specific approval. A use-specific operational claim must be verified against the exact UC-ID decision reference and permitted scope/conditions in the authoritative records; this aid never grants automatic approval.
 - Business-day calculations exclude weekends but not bank holidays. Internal route labels and timescales need validation against current approved procedures.
