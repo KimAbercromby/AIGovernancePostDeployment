@@ -3,12 +3,12 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.5",
-    date: "2 October 2026",
+    release: "v3.9.6",
+    date: "3 October 2026",
     playbook: "AIG-GOV-02 AI Governance Playbook v19.9.15 draft"
   };
 
-  // Generated from the v3.9.5 source workbooks and forms (see fixtures/suite-v3.9.5-targets.json,
+  // Generated from the v3.9.6 source workbooks and forms (see fixtures/suite-v3.9.6-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
   const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.1 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.8 draft"};
@@ -375,7 +375,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.5 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.6 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
