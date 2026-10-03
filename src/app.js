@@ -338,7 +338,7 @@
     clearOutput("c-results", "c-error");
     const changeError = G.validateChange({
       changeTriggers: changeTriggerKeys(), triggerAnswers: triggerAnswers(),
-      pauseIncidentRef: value("e-incident-ref"), pauseFollowUpDue: value("e-followup-due"),
+      pauseIncidentRef: value("e-incident-ref"), pauseFollowUpDue: value("e-followup-due"), screeningConsidered: value("e-screening"),
       airId: value("c-air"), airIdVerified: isChecked("c-air-verified"), system: value("c-system"),
       useScope: value("c-use-scope"), ucId: value("c-uc-id"),
       mapChangeDate: value("map-change-date"), mapChangeType: value("map-change-type"),
@@ -496,7 +496,8 @@
           "Evidence ID(s) (AIG-INV-04 Evidence index)": value("e-evidence"),
           "Event-time lifecycle stage": value("e-lifecycle"),
           "Incident ref (AIG-OPS-03), precautionary pause": value("e-incident-ref"),
-          "Follow-up decision due date (precautionary pause)": value("e-followup-due")
+          "Follow-up decision due date (precautionary pause)": value("e-followup-due"),
+          "Screening considered by the decision-maker (Yes / No)": value("e-screening")
         },
         notes: [
           "Transfer checklist only — not an authoritative event record. The formal decision remains in AIG-DEC-03 / authorised native minutes; this row points to it",

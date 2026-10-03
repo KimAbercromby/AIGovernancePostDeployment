@@ -11,7 +11,7 @@
   // Generated from the v3.9.7 source workbooks and forms (see fixtures/suite-v3.9.7-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.2 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.9 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.8 draft", "AIG-DEC-03": "1.9 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -114,7 +114,8 @@
         "Evidence ID(s) (AIG-INV-04 Evidence index)",
         "Event-time lifecycle stage",
         "Incident ref (AIG-OPS-03), precautionary pause",
-        "Follow-up decision due date (precautionary pause)"
+        "Follow-up decision due date (precautionary pause)",
+        "Screening considered by the decision-maker (Yes / No)"
       ],
       formulaColumns: ["Row check", "Decision-scope completeness prompt"]
     },
@@ -1258,6 +1259,12 @@
     }
     if (eventStarted && /[,;/]|\s/.test(text(data.eventUcId))) {
       return "One UC-ID per Gate Event row: split a multi-use decision into suffixed Event IDs (for example EVT-0012-a, EVT-0012-b).";
+    }
+    // Suite v3.9.8 (AIG-DEC-04 v1.3 column X; decision F8): a Decision that lets a use
+    // go ahead needs the decision-maker's confirmation that the screening was considered.
+    if (eventStarted && type === "Decision" && ["Progress", "Progress with condition", "Re-authorise"].includes(outcome) &&
+      text(data.screeningConsidered) !== "Yes") {
+      return "Confirm the decision-maker saw and considered the equality, human rights and data protection screening (AIG-DEC-03; AIG-DEC-04 column X) before this Decision is transferred.";
     }
     // Suite v3.9.7 (AIG-DEC-04 v1.2 row checks): an Assurance opinion event needs its
     // assurance reference, and a pause follow-up cannot be due before the pause.

@@ -146,9 +146,13 @@ test('AIG-DEC-04 change handover requires real plan, event and condition referen
     ...base, eventType: 'Decision', decision: 'Progress', eventDate: '2026-09-25',
     eventForum: 'Gate 7 Operate, monitor, review & change', eventUseScope: 'Unknown',
     eventLifecycle: 'Monitoring and Review', eventMaker: 'Authorised role', eventRecord: 'Minute ref',
-    eventAuthority: 'AIG-AGT-04 ref', eventSource: 'Approved minutes', eventConfirmed: true
+    eventAuthority: 'AIG-AGT-04 ref', eventSource: 'Approved minutes', eventConfirmed: true, screeningConsidered: 'Yes'
   };
   assert.equal(governance.validateChange(event), '');
+  // v3.9.8 (decision F8): AIG-DEC-04 v1.3 column X.
+  assert.match(governance.validateChange({ ...event, screeningConsidered: '' }), /saw and considered the equality/);
+  assert.match(governance.validateChange({ ...event, screeningConsidered: 'No' }), /saw and considered the equality/);
+  assert.equal(governance.validateChange({ ...event, decision: 'Stop', screeningConsidered: '' }), '', 'not needed for a Stop decision');
   assert.match(governance.validateChange({ ...event, eventUseScope: '' }), /decision scope/i);
   const scopedEvent = {
     ...event, eventUseScope: 'UC-ID specific', eventUcId: 'UC-REAL-1',

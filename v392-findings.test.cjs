@@ -97,7 +97,7 @@ test('W-04: the §4.7.17 mandatory triggers are offered and set at least High', 
 test('W-06: precautionary pause is a Gate Log containment event with V and W, not a decision', () => {
   const ev = targets.sheets.dec04GateEvents;
   assert.deepEqual(G.TARGETS.dec04GateEvents.headers, ev.headers);
-  assert.deepEqual(ev.headers.slice(-2), ['Incident ref (AIG-OPS-03), precautionary pause', 'Follow-up decision due date (precautionary pause)']);
+  assert.deepEqual(ev.headers.slice(-3), ['Incident ref (AIG-OPS-03), precautionary pause', 'Follow-up decision due date (precautionary pause)', 'Screening considered by the decision-maker (Yes / No)']);
   assert.ok(ev.lists['Event type'].includes(G.PAUSE_EVENT));
   assert.ok(ev.lists.Outcome.includes(G.PAUSE_OUTCOME));
   const row = targets.sheets.dec04Lists.outcomeMapping.find((r) => r[0] === G.PAUSE_OUTCOME);
