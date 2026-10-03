@@ -803,6 +803,136 @@
         byId(formId).addEventListener(eventName, () => clearOutput(outputId, errorId));
       });
     });
+    setupRecordLoader();
+  }
+
+  // ---- Start from a triage record ---------------------------------------------
+  // Values filled from the record, by field id, so they can be marked and removed.
+  const loaded = new Map();
+
+  function fieldLabel(id) {
+    const label = byId(id).closest("label");
+    const first = label && label.firstChild;
+    return first && first.nodeType === Node.TEXT_NODE ? first.textContent.trim() : id;
+  }
+
+  function unmark(id) {
+    const input = byId(id);
+    input.classList.remove("from-record");
+    const note = input.parentElement.querySelector('.record-note[data-for="' + id + '"]');
+    if (note) note.remove();
+    loaded.delete(id);
+    if (!loaded.size) byId("record-clear").hidden = true;
+  }
+
+  function mark(id, value) {
+    const input = byId(id);
+    input.classList.add("from-record");
+    const note = document.createElement("small");
+    note.className = "record-note";
+    note.dataset.for = id;
+    note.textContent = "From triage record. Check it is right.";
+    input.insertAdjacentElement("afterend", note);
+    loaded.set(id, value);
+  }
+
+  function setFieldValue(id, value) {
+    const input = byId(id);
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function showRecordStatus(kind, heading, items) {
+    const box = byId("record-status");
+    box.replaceChildren();
+    const panel = document.createElement("div");
+    panel.className = kind;
+    const strong = document.createElement("strong");
+    strong.textContent = heading;
+    panel.appendChild(strong);
+    if (items && items.length) {
+      const list = document.createElement("ul");
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        list.appendChild(li);
+      });
+      panel.appendChild(list);
+    }
+    box.appendChild(panel);
+  }
+
+  function applyRecord(parsed) {
+    const current = {};
+    Object.values(G.RECORD_FIELD_TARGETS).flat().forEach((id) => {
+      if (byId(id)) current[id] = byId(id).value;
+    });
+    const plan = G.planRecordFill(parsed.values, current);
+    plan.fills.forEach(({ id, value }) => {
+      if (loaded.has(id)) unmark(id);
+      setFieldValue(id, value);
+      if (byId(id).value === value) mark(id, value);
+    });
+    byId("record-clear").hidden = !loaded.size;
+    const info = parsed.info;
+    const items = [];
+    items.push(plan.fills.length + " field" + (plan.fills.length === 1 ? "" : "s") + " filled across the three tabs (highlighted). Check each one.");
+    if (info.provisionalTier) {
+      items.push("Triage gave a provisional governing tier of " + info.provisionalTier +
+        (info.priority ? " (" + info.priority + ")" : "") +
+        ". Tier fields are not filled: enter the tier confirmed in the AI Risk Assessment Worksheet (AIG-ASS-02).");
+    }
+    items.push("Tick “checked against AIG-INV-04” only after you have checked the AIR-ID in the Register yourself.");
+    plan.kept.forEach((k) => items.push("Kept what you typed in “" + fieldLabel(k.id) + "” (" + k.existing + "); the record says " + k.proposed + "."));
+    parsed.warnings.forEach((w) => items.push(w));
+    const who = parsed.values.systemName || "this use";
+    const when = info.exportedAt ? " (record downloaded " + info.exportedAt.slice(0, 10) + ")" : "";
+    showRecordStatus("positive", "Loaded the triage record for " + who + when + ".", items);
+  }
+
+  function setupRecordLoader() {
+    const picker = byId("record-file");
+    picker.addEventListener("change", () => {
+      const file = picker.files && picker.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        showRecordStatus("caution", "This file is too large to be a triage record.");
+        picker.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parsed = G.parseTriageRecord(reader.result, file.size);
+        if (!parsed.ok) showRecordStatus("caution", parsed.error);
+        else applyRecord(parsed);
+        picker.value = "";
+      };
+      reader.onerror = () => {
+        showRecordStatus("caution", "The file could not be read.");
+        picker.value = "";
+      };
+      reader.readAsText(file);
+    });
+    byId("record-clear").addEventListener("click", () => {
+      [...loaded.entries()].forEach(([id, value]) => {
+        if (byId(id).value === value) setFieldValue(id, "");
+        unmark(id);
+      });
+      showRecordStatus("positive", "Loaded values removed. Anything you changed yourself was kept.");
+    });
+    // A person editing a filled field takes ownership of it.
+    document.addEventListener("input", (event) => {
+      if (event.isTrusted && event.target && loaded.has(event.target.id)) unmark(event.target.id);
+    });
+    document.addEventListener("change", (event) => {
+      if (event.isTrusted && event.target && loaded.has(event.target.id)) unmark(event.target.id);
+    });
+    ["incident-form", "change-form", "monitor-form"].forEach((formId) => {
+      byId(formId).addEventListener("reset", () => {
+        [...loaded.keys()].forEach((id) => { if (byId(formId).contains(byId(id))) unmark(id); });
+      });
+    });
   }
 
   init();

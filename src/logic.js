@@ -1376,8 +1376,85 @@
     });
   }
 
+  // ---- Start from a triage record (enter once, reuse) -------------------------
+  // Reads the canonical record downloaded from the Multi-Board Triage tool and
+  // proposes values for the identity fields this tool asks for more than once.
+  // Deliberately NOT filled: the "checked against AIG-INV-04" confirmations (a
+  // person must check the Register) and confirmed risk tiers (triage gives a
+  // provisional tier; this tool asks for the tier confirmed in AIG-ASS-02).
+  const RECORD_MAX_BYTES = 2 * 1024 * 1024;
+  const RECORD_FIELD_TARGETS = {
+    systemName: ["i-system", "c-system", "m-system"],
+    registerId: ["i-air", "c-air", "m-air"],
+    ucId: ["i-uc-id", "c-uc-id", "m-uc-id", "p-uc-id", "e-uc-id"],
+    useScope: ["i-use-scope", "c-use-scope", "m-use-scope", "p-use-scope", "e-use-scope"]
+  };
+
+  function cleanRecordValue(value, max) {
+    if (typeof value !== "string" && typeof value !== "number") return "";
+    return text(String(value).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ")).slice(0, max);
+  }
+
+  function parseTriageRecord(raw, byteLength) {
+    if (byteLength > RECORD_MAX_BYTES) return { ok: false, error: "This file is too large to be a triage record." };
+    let data;
+    try {
+      data = JSON.parse(String(raw).replace(/^﻿/, ""));
+    } catch (error) {
+      return { ok: false, error: "This file is not a triage record (it could not be read as a record file)." };
+    }
+    if (!data || typeof data !== "object" || Array.isArray(data) || !data.profile || typeof data.profile !== "object" ||
+        typeof data.schemaVersion !== "string" || !data.triageScope || typeof data.triageScope !== "object") {
+      return { ok: false, error: "This file is not a canonical triage record. Use “Download canonical record” in the Multi-Board Triage tool." };
+    }
+    const profile = data.profile;
+    const warnings = [];
+    const systemName = cleanRecordValue(profile.systemName, 200);
+    const ucId = cleanRecordValue(profile.ucId || data.triageScope.ucId, 80);
+    let registerId = cleanRecordValue(profile.registerId, 40);
+    if (registerId && !isAirId(registerId)) {
+      warnings.push("The record’s AIR-ID “" + registerId + "” is not in the AIG-INV-04 format, so it was not filled. " + AIR_ID_MESSAGE);
+      registerId = "";
+    }
+    if (!registerId) warnings.push("No AIR-ID was filled. Enter the Council-issued AIR-ID from the AIG-INV-04 Register.");
+    if (!ucId) warnings.push("The record has no UC-ID, so use scope was left blank. Unknown scope is not shared scope: choose it yourself.");
+    const risk = data.risk && typeof data.risk === "object" ? data.risk : {};
+    const agpi = data.agpi && typeof data.agpi === "object" ? data.agpi : {};
+    return {
+      ok: true,
+      values: { systemName, registerId, ucId, useScope: ucId ? "UC-ID specific" : "" },
+      info: {
+        exportedAt: cleanRecordValue(data.exportedAt, 40),
+        suiteVersion: cleanRecordValue(data.suiteVersion, 200),
+        provisionalTier: cleanRecordValue(risk.effectiveGovernanceTier, 20),
+        priority: cleanRecordValue(agpi.effectiveGovernancePriority, 60)
+      },
+      warnings
+    };
+  }
+
+  // current: { fieldId: existing value }. Never overwrites a value already entered.
+  function planRecordFill(values, current) {
+    const fills = [];
+    const kept = [];
+    Object.keys(RECORD_FIELD_TARGETS).forEach(function (key) {
+      const proposed = text(values[key]);
+      if (!proposed) return;
+      RECORD_FIELD_TARGETS[key].forEach(function (id) {
+        if (!(id in current)) return;
+        const existing = text(current[id]);
+        if (!existing) fills.push({ id: id, value: proposed });
+        else if (existing !== proposed) kept.push({ id: id, existing: existing, proposed: proposed });
+      });
+    });
+    return { fills, kept };
+  }
+
   const api = {
     ARTEFACT_VERSIONS,
+    RECORD_FIELD_TARGETS,
+    parseTriageRecord,
+    planRecordFill,
     DEC04_OUTCOME_MAP,
     EVENT_OUTCOMES,
     EVENT_TYPES,
