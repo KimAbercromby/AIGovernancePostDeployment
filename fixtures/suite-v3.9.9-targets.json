@@ -1,6 +1,6 @@
 {
- "suiteRelease": "v3.9.8",
- "generatedFrom": "AI_Governance_Sources_v3.9.8 (3 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
+ "suiteRelease": "v3.9.9",
+ "generatedFrom": "AI_Governance_Sources_v3.9.9 (4 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
  "sheets": {
   "ops02Monitoring": {
    "file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx",
@@ -1194,6 +1194,6 @@
   "AIG-INV-05": "0.3 proposed design draft",
   "AIG-INV-04": "1.1 draft",
   "AIG-OPS-03": "1.9 draft",
-  "AIG-DEC-03": "1.10 draft"
+  "AIG-DEC-03": "1.11 draft"
  }
 }

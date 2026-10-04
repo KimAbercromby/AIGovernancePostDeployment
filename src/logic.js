@@ -3,15 +3,15 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.8",
-    date: "3 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.17 draft"
+    release: "v3.9.9",
+    date: "4 October 2026",
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.18 draft"
   };
 
-  // Generated from the v3.9.8 source workbooks and forms (see fixtures/suite-v3.9.8-targets.json,
+  // Generated from the v3.9.9 source workbooks and forms (see fixtures/suite-v3.9.9-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.1 draft", "AIG-OPS-03": "1.9 draft", "AIG-DEC-03": "1.10 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.1 draft", "AIG-OPS-03": "1.9 draft", "AIG-DEC-03": "1.11 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -376,7 +376,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.8 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.9 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
