@@ -495,7 +495,7 @@
   }
 
   // AIG-INV-04 AI Register validation on AIR-ID: LEFT(A,4)="AIR-" and LEN(TRIM(A))=8.
-  // AIG-AGT-04 v0.5 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
+  // AIG-AGT-04 v0.6 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
   // an AIR-ID accepted here is accepted by both workbooks (v3.9.2, T-10).
   function isAirId(value) {
     const id = text(value);
