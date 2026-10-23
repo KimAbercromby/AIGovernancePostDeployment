@@ -3,12 +3,12 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.10",
-    date: "12 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.19 draft"
+    release: "v3.9.11",
+    date: "16 October 2026",
+    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.23 draft"
   };
 
-  // Generated from the v3.9.10 source workbooks and forms (see fixtures/suite-v3.9.10-targets.json,
+  // Generated from the v3.9.11 source workbooks and forms (see fixtures/suite-v3.9.11-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
   const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.2 draft", "AIG-OPS-03": "1.10 draft", "AIG-DEC-03": "1.12 draft"};
@@ -376,7 +376,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.10 target sheets and forms.
+  // Controlled lists (data validations) of the v3.9.11 target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -453,7 +453,7 @@
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
-  // Recipients and escalation wording from the AIG-OPS-03 v1.8 Part A §4 severity table.
+  // Recipients and escalation wording from the AIG-OPS-03 Part A §4 severity table.
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
@@ -473,7 +473,7 @@
     }
   };
 
-  // AIG-OPS-03 v1.8 Part A §4 "When it applies" wording, including the indicators for
+  // AIG-OPS-03 Part A §4 "When it applies" wording, including the indicators for
   // each severity (v3.9.2, T-06: Low has its own indicators, so Low can be selected).
   const SEVERITY_WHEN = {
     "Low": "Limited operational impact; no significant legal, ethical or service consequences. Indicators: an isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm), an isolated user complaint, a documentation error or a non-material process failure.",
@@ -481,7 +481,7 @@
     "High": "Significant operational, legal, ethical or reputational impact. Indicators: material bias findings, significant model drift, operational disruption, security weaknesses, repeated control failures or significant service impacts.",
     "Critical": "Actual or potential harm to individuals, major legal/reputational exposure or statutory breach. Indicators: data breaches, unlawful automated decision-making, significant impacts on vulnerable individuals, major regulatory concerns, widespread service failure or substantial media scrutiny."
   };
-  // AIG-OPS-03 v1.8 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
+  // AIG-OPS-03 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
   // the AI Governance Lead immediately, consider a precautionary pause, at least High.
   const MANDATORY_INCIDENT_TRIGGERS = [
     "Significant bias resulting in adverse outcomes",
@@ -495,7 +495,7 @@
   }
 
   // AIG-INV-04 AI Register validation on AIR-ID: LEFT(A,4)="AIR-" and LEN(TRIM(A))=8.
-  // AIG-AGT-04 v0.6 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
+  // AIG-AGT-04 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
   // an AIR-ID accepted here is accepted by both workbooks (v3.9.2, T-10).
   function isAirId(value) {
     const id = text(value);
@@ -1371,7 +1371,7 @@
     return { value: map.dec03, note: map.note ? "AIG-DEC-03 outcome: " + map.note + " — the decision-maker records the actual outcome" : "" };
   }
 
-  // AIG-OPS-02 v1.5 accepts Unknown (Not yet known for Trend) in these columns. An
+  // AIG-OPS-02 accepts Unknown (Not yet known for Trend) in these columns. An
   // unknown is never recorded as No; the log shows UNKNOWN TO RESOLVE and blocks closure.
   const MONITORING_UNKNOWN_FIELDS = [
     ["trend", "Trend", "Not yet known"],

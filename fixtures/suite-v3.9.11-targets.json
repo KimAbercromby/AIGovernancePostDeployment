@@ -1,6 +1,6 @@
 {
- "suiteRelease": "v3.9.10",
- "generatedFrom": "AI_Governance_Sources_v3.9.10 (12 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
+ "suiteRelease": "v3.9.11",
+ "generatedFrom": "AI_Governance_Sources_v3.9.11 (16 October 2026) — read with openpyxl/python-docx by scripts/generate-fixtures.py; do not edit by hand",
  "sheets": {
   "ops02Monitoring": {
    "file": "AIG-OPS-02_AI_Post_Deployment_Monitoring_and_Review_Log_Proposed.xlsx",
@@ -459,6 +459,12 @@
     "Row check"
    ],
    "lists": {
+    "Decisions about individuals — Art 22A flag / AIG-OPS-04 tier": [
+     "Tier A — solely automated significant decision (Art 22A)",
+     "Tier B — AI materially influences a human decision",
+     "Tier C — no bearing on decisions about individuals",
+     "Unsure — assess"
+    ],
     "Effective Governance Priority (AIG-ASS-01, after any authorised override)": [
      "Priority 1 – Critical",
      "Priority 2 – High",
@@ -471,12 +477,6 @@
      "Medium",
      "High",
      "Critical"
-    ],
-    "Decisions about individuals — Art 22A flag / AIG-OPS-04 tier": [
-     "Tier A — solely automated significant decision (Art 22A)",
-     "Tier B — AI materially influences a human decision",
-     "Tier C — no bearing on decisions about individuals",
-     "Unsure — assess"
     ]
    }
   },
