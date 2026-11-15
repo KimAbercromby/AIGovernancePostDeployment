@@ -3,9 +3,9 @@
 
   // Suite release the downloads are aligned to.
   const SUITE = {
-    release: "v3.9.10",
-    date: "12 October 2026",
-    playbook: "AIG-GOV-02 AI Governance Playbook v19.9.19 draft"
+    release: "version 1.0 draft",
+    date: "",
+    playbook: "AIG-GOV-02 AI Governance Playbook"
   };
 
   // Generated from the v3.9.10 source workbooks and forms (see fixtures/suite-v3.9.10-targets.json,
@@ -376,7 +376,7 @@
     ["Triage / assessment scope", "", "ASSESSOR INPUT", "Scope key", "Select UC-ID specific for a use assessment or Shared system baseline for shared controls. A shared baseline never approves a use."]
   ];
 
-  // Controlled lists (data validations) of the v3.9.10 target sheets and forms.
+  // Controlled lists (data validations) of the suite target sheets and forms.
   const LISTS = {
     yesNoUnknown: ["Yes", "No", "Unknown"],
     riskTier: ["Low", "Medium", "High", "Critical"],
@@ -439,7 +439,7 @@
     "Suspend": { dec03: "Suspended", eventTypes: ["Decision"] },
     "Decommission": { dec03: "Retired", eventTypes: ["Decision"] },
     "Re-authorise": { dec03: "", note: "Approved or Approved with conditions (after reassessment)", eventTypes: ["Decision"] },
-    // Suite v3.9.8 (decision H2; AIG-DEC-04 v1.3 Lists row 16): lifts a precautionary pause with the approval unchanged.
+    // Suite version 1.0 draft (decision H2; AIG-DEC-04 Lists row 16): lifts a precautionary pause with the approval unchanged.
     "Resume": { dec03: "", note: "Approved or Approved with conditions: the approval in force before the precautionary pause carries over (new conditions go on Conditions rows); only in the event straight after the pause for the same AIR-ID and UC-ID", eventTypes: ["Decision"] },
     "Opinion only": { dec03: "", note: "None — assurance input, not a decision (Pending)", eventTypes: ["Assurance opinion", "Review only"] },
     "No decision": { dec03: "", note: "None (Pending)", eventTypes: ["Review only", "Priority override", "Intake / registration"] },
@@ -453,7 +453,7 @@
 
   const SEVERITY_ORDER = ["Low", "Medium", "High", "Critical"];
   const SCREENING_KEYS = ["equality", "humanRights", "privacy", "other"];
-  // Recipients and escalation wording from the AIG-OPS-03 v1.8 Part A §4 severity table.
+  // Recipients and escalation wording from the AIG-OPS-03 Part A §4 severity table.
   const ROUTES = {
     Low: {
       recipient: "Service Owner",
@@ -473,7 +473,7 @@
     }
   };
 
-  // AIG-OPS-03 v1.8 Part A §4 "When it applies" wording, including the indicators for
+  // AIG-OPS-03 Part A §4 "When it applies" wording, including the indicators for
   // each severity (v3.9.2, T-06: Low has its own indicators, so Low can be selected).
   const SEVERITY_WHEN = {
     "Low": "Limited operational impact; no significant legal, ethical or service consequences. Indicators: an isolated minor output inaccuracy (for example one wrong date or figure, corrected before harm), an isolated user complaint, a documentation error or a non-material process failure.",
@@ -481,7 +481,7 @@
     "High": "Significant operational, legal, ethical or reputational impact. Indicators: material bias findings, significant model drift, operational disruption, security weaknesses, repeated control failures or significant service impacts.",
     "Critical": "Actual or potential harm to individuals, major legal/reputational exposure or statutory breach. Indicators: data breaches, unlawful automated decision-making, significant impacts on vulnerable individuals, major regulatory concerns, widespread service failure or substantial media scrutiny."
   };
-  // AIG-OPS-03 v1.8 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
+  // AIG-OPS-03 Part A §4 / Playbook §4.7.17 mandatory triggers (W-04): escalate to
   // the AI Governance Lead immediately, consider a precautionary pause, at least High.
   const MANDATORY_INCIDENT_TRIGGERS = [
     "Significant bias resulting in adverse outcomes",
@@ -495,7 +495,7 @@
   }
 
   // AIG-INV-04 AI Register validation on AIR-ID: LEFT(A,4)="AIR-" and LEN(TRIM(A))=8.
-  // AIG-AGT-04 v0.6 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
+  // AIG-AGT-04 Agent Record uses the same rule (plus its AIR-EXAMPLE sample row), so
   // an AIR-ID accepted here is accepted by both workbooks (v3.9.2, T-10).
   function isAirId(value) {
     const id = text(value);
@@ -523,7 +523,7 @@
     return { level: floor || "Unclassified", aggregated: aggregated, uplifted: uplifted };
   }
 
-  // AIG-ASS-02 v1.8 Risk Assessment tier bands (C38 and C41): Low 1–5, Medium 6–10,
+  // AIG-ASS-02 Risk Assessment tier bands (C38 and C41): Low 1–5, Medium 6–10,
   // High 11–15, Critical 16–25 (residual: >15 Critical, >10 High, >5 Medium).
   function tierFromScore(score) {
     if (typeof score !== "number" || !isFinite(score)) return "";
@@ -859,7 +859,7 @@
     if (text(data.trigger) && !inList(data.trigger, LISTS.ops02Triggers)) return "Select an Appendix E.4 reassessment trigger from the AIG-OPS-02 list.";
     if (text(data.reviewType) && !inList(data.reviewType, LISTS.ops02ReviewType)) return "Select the review type: Operational monitoring, Performance review or Formal review (§6.4.4).";
     if (text(data.agenticRaise) && !inList(data.agenticRaise, LISTS.ops02AgenticRaise)) return "Select an AIG-OPS-02 Agentic cadence raise value.";
-    if (text(data.riskTier) && !text(data.reviewType)) return "Select the review type (operational monitoring, performance review or formal review): the AIG-OPS-02 v1.6 cadence check depends on it (§6.4.4).";
+    if (text(data.riskTier) && !text(data.reviewType)) return "Select the review type (operational monitoring, performance review or formal review): the AIG-OPS-02 cadence check depends on it (§6.4.4).";
     if (!inList(data.selection, LISTS.ops02SelectionBasis)) return "Select an AIG-OPS-02 Selection Basis value.";
     if (data.breach === "Yes" && !text(data.severity)) {
       return "Choose a provisional severity for the reported breach; an authorised owner confirms it.";
@@ -965,7 +965,7 @@
     return /^\d+$/.test(t) ? Number(t) : null;
   }
 
-  // AIG-OPS-02 v1.6 AJ: minimum cadence by tier and review type (§6.4.4).
+  // AIG-OPS-02 AJ: minimum cadence by tier and review type (§6.4.4).
   function ops02Cadence(tier, reviewType) {
     const t = text(tier);
     const r = text(reviewType);
@@ -981,7 +981,7 @@
     return "Annual";
   }
 
-  // AIG-OPS-02 v1.6 AH: the longest allowed gap (days) to the next review.
+  // AIG-OPS-02 AH: the longest allowed gap (days) to the next review.
   function ops02MaxGap(tier, reviewType) {
     const t = text(tier);
     const r = text(reviewType);
@@ -1098,7 +1098,7 @@
       return "For the optional Part B pointer, complete controller-awareness time, rights-risk assessment and its assessor/date, and the DPO-informed notifiability decision, rationale and owner; otherwise leave every Part B field blank.";
     }
     if (partB[4] && !inList(partB[4], LISTS.ops03IcoDecision)) return "Select the ICO notifiability decision: Notifiable, Not notifiable or Further assessment.";
-    // v3.9.2 (W-06): AIG-OPS-03 v1.6 Part A "Precautionary pause applied? Gate Log event ID".
+    // v3.9.2 (W-06): AIG-OPS-03 Part A "Precautionary pause applied? Gate Log event ID".
     const pauseKeys = ["pauseBy", "pauseAt", "pauseIncidentRef", "pauseFollowUpDue", "pauseEventId"];
     if (text(data.pauseApplied) && !inList(data.pauseApplied, LISTS.yesNo)) return "Answer “Precautionary pause applied?” with Yes or No.";
     if (data.pauseApplied === "Yes" && (!text(data.pauseBy) || !text(data.pauseAt))) {
@@ -1202,7 +1202,7 @@
     if (eventStarted && !EVENT_TYPES.includes(type)) {
       return "Select the AIG-DEC-04 Event type: Decision, Assurance opinion, Review only, Priority override, Intake / registration or Precautionary pause (containment).";
     }
-    // v3.9.2 (W-06): AIG-DEC-04 v1.2 row check for a precautionary pause (containment).
+    // v3.9.2 (W-06): AIG-DEC-04 row check for a precautionary pause (containment).
     if (eventStarted && pause && outcome !== PAUSE_OUTCOME) {
       return "Precautionary pause: Outcome must be Paused — pending decision.";
     }
@@ -1262,13 +1262,13 @@
     if (eventStarted && /[,;/]|\s/.test(text(data.eventUcId))) {
       return "One UC-ID per Gate Event row: split a multi-use decision into suffixed Event IDs (for example EVT-0012-a, EVT-0012-b).";
     }
-    // Suite v3.9.8 (AIG-DEC-04 v1.3 column X; decision F8): a Decision that lets a use
+    // Suite version 1.0 draft (AIG-DEC-04 column X; decision F8): a Decision that lets a use
     // go ahead needs the decision-maker's confirmation that the screening was considered.
     if (eventStarted && type === "Decision" && ["Progress", "Progress with condition", "Re-authorise", "Resume"].includes(outcome) &&
       text(data.screeningConsidered) !== "Yes") {
       return "Confirm the decision-maker saw and considered the equality, human rights and data protection screening (AIG-DEC-03; AIG-DEC-04 column X) before this Decision is transferred.";
     }
-    // Suite v3.9.7 (AIG-DEC-04 v1.2 row checks): an Assurance opinion event needs its
+    // Suite version 1.0 draft (AIG-DEC-04 row checks): an Assurance opinion event needs its
     // assurance reference, and a pause follow-up cannot be due before the pause.
     if (eventStarted && type === "Assurance opinion" && !text(data.assuranceOpinion)) {
       return "An Assurance opinion event needs its assurance opinion reference.";
@@ -1371,7 +1371,7 @@
     return { value: map.dec03, note: map.note ? "AIG-DEC-03 outcome: " + map.note + " — the decision-maker records the actual outcome" : "" };
   }
 
-  // AIG-OPS-02 v1.5 accepts Unknown (Not yet known for Trend) in these columns. An
+  // AIG-OPS-02 accepts Unknown (Not yet known for Trend) in these columns. An
   // unknown is never recorded as No; the log shows UNKNOWN TO RESOLVE and blocks closure.
   const MONITORING_UNKNOWN_FIELDS = [
     ["trend", "Trend", "Not yet known"],

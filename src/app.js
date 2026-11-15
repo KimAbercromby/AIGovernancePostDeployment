@@ -166,7 +166,7 @@
         safe(value("i-uplift-reason") || "reason not entered") + ".</p>" : "",
       dataBreach ? '<div class="caution"><strong>Suspected personal data breach:</strong> refer to the DPO / Information Governance route now, before AI triage. Where notifiable, the ICO must be told without undue delay and, where feasible, not later than 72 hours after the Council becomes aware (UK GDPR Art 33). Only the responsible owner determines any notification duty; this tool does not decide breach status or notify anyone.</div>' : "",
       value("i-security") === "Yes" ? '<div class="caution"><strong>Security or safeguarding concern:</strong> refer now to the Information and Cyber Security lead or under the Council’s safeguarding procedures; those routes lead on their own duties (Playbook §6.8.6.5).</div>' : "",
-      '<p class="small"><strong>AIG-OPS-03 v1.8 draft:</strong> the Part A download has one column per Part A field (sections 1–4), labelled exactly as the form. The timescales above are quoted from the form’s severity table; this tool calculates no deadline and creates no incident record or external notification.</p>',
+      '<p class="small"><strong>AIG-OPS-03:</strong> the Part A download has one column per Part A field (sections 1–4), labelled exactly as the form. The timescales above are quoted from the form’s severity table; this tool calculates no deadline and creates no incident record or external notification.</p>',
       isChecked("i-capa") ? '<div class="caution"><strong>AIG-AIMS-08:</strong> the optional CAPA Log row carries only the source, AIR-ID and immediate correction. The AIMS owner determines the NC ID, nonconformity, severity, status and corrective action.</div>' : "",
       '<p class="small">The decision, assurance state and severity remain for the authorised Council owner. A severe incident can prompt reassessment; it does not itself approve suspension, restart or a risk-tier change.</p>'
     ].join("");
@@ -221,7 +221,7 @@
     if (mandatory.length) partANotes.push("§4.7.17 mandatory trigger selected (" + mandatory.join("; ") + "): escalate to the AI Governance Lead immediately, consider a precautionary pause, classify at least High");
     const outputs = [csvDownload("ops03PartA", "AIG-OPS-03 Part A (.csv)", "AIG-OPS-03_PartA",
       [{ values: partAValues, notes: partANotes }], value("i-air"))];
-    // v3.9.2 (W-06): the precautionary pause as an AIG-DEC-04 v1.2 Gate events row.
+    // v3.9.2 (W-06): the precautionary pause as an AIG-DEC-04 Gate events row.
     if (paused) {
       const pauseAt = value("i-pause-at");
       outputs.push(csvDownload("dec04GateEvents", "AIG-DEC-04 Gate events row: precautionary pause (.csv)", "AIG-DEC-04_Gate_events_precautionary_pause", [{
@@ -601,7 +601,7 @@
       '<div class="' + (mandatory ? "caution" : "positive") + '"><strong>' +
         (mandatory ? "Documented reassessment indicated" : "No selected trigger") + "</strong>" +
         (mandatory ? " · " + safe(triggers.join("; ")) : " · Owner still reviews this change; no trigger selected is not assurance of safety.") + "</div>",
-      risk ? "<p>AIG-ASS-02 v1.10 draft arithmetic: inherent risk = L × highest confirmed impact = " + safe(risk.inherent) +
+      risk ? "<p>AIG-ASS-02 arithmetic: inherent risk = L × highest confirmed impact = " + safe(risk.inherent) +
         " (<strong>" + safe(risk.inherentTier) + "</strong>); residual risk = inherent × (C ÷ 5) = " + safe(risk.residual) +
         " (<strong>" + safe(risk.residualTier) + "</strong>). Bands: Low 1–5, Medium 6–10, High 11–15, Critical 16–25. " +
         (risk.impactFloor ? "A confirmed Impact 5 sets the governing tier to at least Medium (impact floor, Proposed — for Council confirmation). " : "") +
@@ -609,7 +609,7 @@
         (value("c-current-tier") ? "Entered current tier for comparison only: " + safe(value("c-current-tier")) + ". " : "") +
         "No approval, permission, AGPI priority or legal applicability is inferred.</p>" :
         "<p>Risk arithmetic not calculated: complete all five impact dimensions, likelihood and control effectiveness.</p>",
-      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact v3.9.10 column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
+      '<p><strong>Workbook boundaries:</strong> AIG-INV-04 Register, AIG-DEC-04 Gate Log and proposed controlled AIG-INV-05 Capabilities and System Map are separate standalone draft workbooks, not approved/live records. AIG-INV-04 keeps the permanent issued AIR-ID and current assurance state; AIG-DEC-04 separates prospective plan, dated event and event-linked conditions. The map is a relationship catalogue, not a second Register. Each download uses the exact column headers of its target sheet or form; guidance columns after the blank spacer are never pasted.</p>',
       triggers.some((trigger) => trigger.toLowerCase().includes("authority")) ?
         '<div class="caution"><strong>Agent authority:</strong> confirm the exact authorised permissions / delegation in AIG-AGT-04. Gate 2 and Gate 6 are mandatory for every action-capable use; Gate 6 grants the permitted autonomy level. This tool does not set or change agent authority.</div>' : "",
       '<p class="small">AGPI priority sets urgency only; the route follows the governing tier. Equality Act s149, HRA s6, privacy and other case-specific duties need screening at every tier. Conditional EU AI Act, ATRS and procurement duties require confirmation by the case-specific legal / procurement owner.</p>'
@@ -734,7 +734,7 @@
           "No automatic trigger was selected. The monitoring owner still reviews the result and controlled record.") + "</div>",
       "<p><strong>Workbook closure check (column AH):</strong> " + safe(check) +
         (cadence ? " · minimum cadence: " + safe(cadence) : "") + (minimum !== "" ? " · minimum sample: " + safe(minimum) : "") + "</p>",
-      '<p class="small">The AIG-OPS-02 v1.6 draft download is one Monitoring Log row in the exact column order A–AP (AO review type and AP agentic cadence raise are new in v1.6). Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
+      '<p class="small">The AIG-OPS-02 download is one Monitoring Log row in the exact column order A–AP (AO review type and AP agentic cadence raise are new in v1.6). Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
       value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider AIG-OPS-04 for contestability and redress. This tool does not decide a challenge.</div>' : ""
     ].join("");
     const downloads = [csvDownload("ops02Monitoring", "AIG-OPS-02 Monitoring Log row (.csv)", "AIG-OPS-02_Monitoring_Log",
