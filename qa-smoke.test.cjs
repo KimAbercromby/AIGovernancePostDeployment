@@ -380,8 +380,7 @@ test('public static page loads maintainable local source and communicates record
   assert.match(html + app, /Permitted purpose/);
   assert.match(html + app, /Use-specific operating conditions/);
   assert.match(html + app, /separate standalone draft workbooks/);
-  assert.match(html, /suite v3\.9\.10 /);
-  assert.match(html, /v19\.9\.19/);
+  assert.match(html, /suite version 1\.0 draft/);
   assert.doesNotMatch(html + app + read('README.md'), /field\/value drafts, not exact worksheet rows/);
   assert.doesNotMatch(html + app, /v1\.4\b.*AIG-OPS-02|AIG-OPS-02 v1\.4/);
   assert.doesNotMatch(html + app, /Westminster/i);
@@ -483,7 +482,7 @@ test('export targets carry the exact v3.9.10 headers, order, formula columns and
   }
   assert.deepEqual(governance.ARTEFACT_VERSIONS, targets.versions);
   assert.deepEqual(governance.TRIAGE_IMPORT_ROWS, targets.sheets.ass02TriageImport.rows);
-  assert.equal(governance.SUITE.release, 'v3.9.10');
+  assert.equal(governance.SUITE.release, 'version 1.0 draft');
 });
 
 test('every CSV starts with the exact headers, then a blank spacer and guidance columns only', () => {
