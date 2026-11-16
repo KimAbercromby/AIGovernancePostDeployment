@@ -11,7 +11,7 @@
   // Generated from the v3.9.10 source workbooks and forms (see fixtures/suite-v3.9.10-targets.json,
   // written by scripts/generate-fixtures.py).
   // Column headers, order and formula columns are exact; do not edit by hand.
-  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.6 draft", "AIG-DEC-04": "1.3 draft", "AIG-AIMS-08": "1.2 draft", "AIG-ASS-02": "1.10 draft", "AIG-INV-05": "0.3 proposed design draft", "AIG-INV-04": "1.2 draft", "AIG-OPS-03": "1.10 draft", "AIG-DEC-03": "1.12 draft"};
+  const ARTEFACT_VERSIONS = {"AIG-OPS-02": "1.0 draft", "AIG-DEC-04": "1.0 draft", "AIG-AIMS-08": "1.0 draft", "AIG-ASS-02": "1.0 draft", "AIG-INV-05": "1.0 draft", "AIG-INV-04": "1.0 draft", "AIG-OPS-03": "1.0 draft", "AIG-DEC-03": "1.0 draft"};
   const TARGETS = {
     ops02Monitoring: {
       artefact: "AIG-OPS-02",
@@ -354,7 +354,7 @@
     ["Mandatory Risk Floor", "", "DERIVED — current web triage", "Step 3 / 4", "Critical for statutory or agentic trigger; High for any other trigger; otherwise Low."],
     ["Effective Governance Tier", "", "DERIVED — current web triage", "Step 3 / 4", "Pre-control tier from web triage: highest of inherent tier, residual tier and mandatory risk floor (no control-based reduction). The confirmed tier in Risk Assessment C43 applies the Playbook §4.4.3 evidenced-control reduction, the impact floor (any confirmed Impact 5 → at least Medium) and the agentic floor."],
     ["Tier Floor Reason", "", "DERIVED — current web triage", "Step 3", "Explains inherent and/or mandatory uplift."],
-    ["Assurance Intensity", "", "DERIVED — current web triage", "Step 3", "Comprehensive / Enhanced / Standard / Proportionate. Risk Assessment C45 derives it from the governing tier and triggers only; the AGPI priority does not raise assurance depth (v3.8, T1)."],
+    ["Assurance Intensity", "", "DERIVED — current web triage", "Step 3", "Comprehensive / Enhanced / Standard / Proportionate. Risk Assessment C45 derives it from the governing tier and triggers only; the AGPI priority does not raise assurance depth (T1)."],
     ["Governance Status", "", "DERIVED — current web triage", "Assessment status", "Triage complete; formal approvals pending."],
     ["Is Agent", "", "DERIVED — current web triage", "Step 5", "Yes if it can act, including when a human approves each action, or its capability is Agentic AI."],
     ["Agentic Consequence", "", "AUTO — current Agentic Triage", "Step 5", "0–5."],

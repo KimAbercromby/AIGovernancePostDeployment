@@ -459,6 +459,12 @@
     "Row check"
    ],
    "lists": {
+    "Decisions about individuals — Art 22A flag / AIG-OPS-04 tier": [
+     "Tier A — solely automated significant decision (Art 22A)",
+     "Tier B — AI materially influences a human decision",
+     "Tier C — no bearing on decisions about individuals",
+     "Unsure — assess"
+    ],
     "Effective Governance Priority (AIG-ASS-01, after any authorised override)": [
      "Priority 1 – Critical",
      "Priority 2 – High",
@@ -471,12 +477,6 @@
      "Medium",
      "High",
      "Critical"
-    ],
-    "Decisions about individuals — Art 22A flag / AIG-OPS-04 tier": [
-     "Tier A — solely automated significant decision (Art 22A)",
-     "Tier B — AI materially influences a human decision",
-     "Tier C — no bearing on decisions about individuals",
-     "Unsure — assess"
     ]
    }
   },
@@ -777,7 +777,7 @@
      "",
      "DERIVED — current web triage",
      "Step 3",
-     "Comprehensive / Enhanced / Standard / Proportionate. Risk Assessment C45 derives it from the governing tier and triggers only; the AGPI priority does not raise assurance depth (v3.8, T1)."
+     "Comprehensive / Enhanced / Standard / Proportionate. Risk Assessment C45 derives it from the governing tier and triggers only; the AGPI priority does not raise assurance depth (T1)."
     ],
     [
      "Governance Status",
@@ -1187,13 +1187,13 @@
   "AIG-AGT-04 Agent Record A5": "OR(A5=\"AIR-EXAMPLE\",AND(LEFT(A5,4)=\"AIR-\",LEN(TRIM(A5))=8))"
  },
  "versions": {
-  "AIG-OPS-02": "1.6 draft",
-  "AIG-DEC-04": "1.3 draft",
-  "AIG-AIMS-08": "1.2 draft",
-  "AIG-ASS-02": "1.10 draft",
-  "AIG-INV-05": "0.3 proposed design draft",
-  "AIG-INV-04": "1.2 draft",
-  "AIG-OPS-03": "1.10 draft",
-  "AIG-DEC-03": "1.12 draft"
+  "AIG-OPS-02": "1.0 draft",
+  "AIG-DEC-04": "1.0 draft",
+  "AIG-AIMS-08": "1.0 draft",
+  "AIG-ASS-02": "1.0 draft",
+  "AIG-INV-05": "1.0 draft",
+  "AIG-INV-04": "1.0 draft",
+  "AIG-OPS-03": "1.0 draft",
+  "AIG-DEC-03": "1.0 draft"
  }
 }
