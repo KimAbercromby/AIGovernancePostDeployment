@@ -734,7 +734,7 @@
           "No automatic trigger was selected. The monitoring owner still reviews the result and controlled record.") + "</div>",
       "<p><strong>Workbook closure check (column AH):</strong> " + safe(check) +
         (cadence ? " · minimum cadence: " + safe(cadence) : "") + (minimum !== "" ? " · minimum sample: " + safe(minimum) : "") + "</p>",
-      '<p class="small">The AIG-OPS-02 download is one Monitoring Log row in the exact column order A–AP (AO review type and AP agentic cadence raise are new in v1.6). Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
+      '<p class="small">The AIG-OPS-02 download is one Monitoring Log row in the exact column order A–AP (AO review type and AP agentic cadence raise). Columns AH, AJ and AK are workbook formulas and are left blank. Evidence version, checker, data cut, denominator and review signals appear only in the guidance columns. This is a draft, not a live row; evidence remains in its native source.</p>',
       value("m-challenge") ? '<div class="section-note"><strong>Challenge route:</strong> consider AIG-OPS-04 for contestability and redress. This tool does not decide a challenge.</div>' : ""
     ].join("");
     const downloads = [csvDownload("ops02Monitoring", "AIG-OPS-02 Monitoring Log row (.csv)", "AIG-OPS-02_Monitoring_Log",
